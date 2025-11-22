@@ -9,10 +9,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { BrushIcon } from "../components/icons/IconComponents";
-import Button from "../components/ui/Button";
-import Header from "../components/ui/Header";
-import { BorderRadius, Colors, Spacing, Typography } from "../constants/Theme";
+import { BrushIcon } from "../../components/icons/IconComponents";
+import Button from "../../components/ui/Button";
+import Header from "../../components/ui/Header";
+import {
+  BorderRadius,
+  Colors,
+  Spacing,
+  Typography,
+} from "../../constants/Theme";
 
 /**
  * Art Style Transfer Screen
