@@ -8,9 +8,9 @@ import {
   Text,
   View,
 } from "react-native";
-import { StarIcon, StarImageIcon } from "../components/icons/IconComponents";
-import Header from "../components/ui/Header";
-import { Colors, Spacing, Typography } from "../constants/Theme";
+import { StarIcon, StarImageIcon } from "../../components/icons/IconComponents";
+import Header from "../../components/ui/Header";
+import { Colors, Spacing, Typography } from "../../constants/Theme";
 
 /**
  * Star Icon Demo Screen

@@ -9,10 +9,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { TShirtIcon } from "../components/icons/IconComponents";
-import Button from "../components/ui/Button";
-import Header from "../components/ui/Header";
-import { BorderRadius, Colors, Spacing, Typography } from "../constants/Theme";
+import { TShirtIcon } from "../../components/icons/IconComponents";
+import Button from "../../components/ui/Button";
+import Header from "../../components/ui/Header";
+import {
+  BorderRadius,
+  Colors,
+  Spacing,
+  Typography,
+} from "../../constants/Theme";
 
 /**
  * Generate Mockup Screen
