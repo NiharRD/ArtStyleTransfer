@@ -15,11 +15,11 @@ const QuickActionsBar = () => {
   const handleActionPress = (actionId) => {
     switch (actionId) {
       case "art-style":
-        router.push("/art-style-transfer");
+        router.push("/(features)/art-style-transfer");
         break;
       case "generate-mockup":
       case "product-mockup":
-        router.push("/generate-mockup");
+        router.push("/(features)/generate-mockup");
         break;
       case "create":
         Alert.alert(

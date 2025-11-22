@@ -16,22 +16,32 @@ import QuickActionsBar from "../components/ui/QuickActionsBar";
 
 const { width, height } = Dimensions.get("window");
 
+/**
+ * Home Screen - Main app screen
+ *
+ * The main workspace where users can view and edit their images.
+ * Provides navigation to various features like art style transfer and mockup generation.
+ */
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   const handleBackPress = () => {
+    // Navigate back or show projects list
     Alert.alert("Navigation", "Back to projects list");
   };
 
   const handleMenuPress = () => {
+    // Open menu with project options
     Alert.alert("Menu", "Project options menu");
   };
 
   const handleAIPromptPress = () => {
+    // Navigate to AI assistant (future feature)
     Alert.alert("AI Assistant", "AI prompt feature coming soon!");
   };
 
   const handleDrawerToggle = () => {
+    // Toggle bottom drawer with additional options
     Alert.alert("Drawer", "Bottom drawer functionality coming soon!");
   };
 

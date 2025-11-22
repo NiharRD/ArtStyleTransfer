@@ -1,234 +1,329 @@
-# Art Style Transfer - Photo Editor App
+# Art Style Transfer App
 
-A modular React Native photo editor app with Art Style Transfer as the main feature. Built with Expo Router and designed for easy feature expansion.
+A React Native app built with Expo that allows users to apply artistic styles to images and generate product mockups.
 
-## 🏗️ Architecture
+## 🚀 Features
 
-The app follows a modular component-based architecture that makes it easy to add new features:
+- 🎨 **Art Style Transfer** - Apply famous art styles to your images
+- 👕 **Mockup Generation** - Create product mockups for apparel and accessories
+- ✨ **Beautiful UI** - Modern, animated interface with gradient effects
+- 📱 **Cross-Platform** - Works on iOS, Android, and Web
 
-### Component Structure
+## 📁 Project Structure
 
 ```
-app/
-├── index.jsx                 # Main home screen
-│
-components/
-├── icons/
-│   └── IconComponents.jsx    # Reusable icon components
-│
-└── ui/
-    ├── Header.jsx            # Top navigation header
-    ├── ControlBar.jsx        # Master/Branch switcher and AI/Expert toggle
-    ├── QuickActionsBar.jsx   # Horizontal scrollable action buttons
-    ├── QuickActionButton.jsx # Individual quick action button
-    ├── Button.jsx            # Generic button component
-    ├── Switcher.jsx          # Dropdown switcher component
-    ├── AIPromptButton.jsx    # Animated AI prompt button
-    └── DrawerToggle.jsx      # Bottom drawer handle
+ArtStyleTransfer/
+├── app/                          # Expo Router screens
+│   ├── _layout.jsx              # Root navigation layout
+│   ├── index.jsx                # Home screen
+│   ├── (features)/              # Feature screens route group
+│   │   ├── _layout.jsx
+│   │   ├── art-style-transfer.jsx
+│   │   └── generate-mockup.jsx
+│   └── (demo)/                  # Demo screens route group
+│       ├── _layout.jsx
+│       └── star-demo.jsx
+├── components/                   # Reusable components
+│   ├── icons/                   # SVG icon components
+│   │   ├── IconComponents.jsx  # Icon exports
+│   │   ├── AddIcon.jsx
+│   │   ├── BrushIcon.jsx
+│   │   ├── CameraIcon.jsx
+│   │   ├── TShirtIcon.jsx
+│   │   └── ... (more icons)
+│   └── ui/                      # UI components
+│       ├── AIPromptButton.jsx   # Animated AI button
+│       ├── Button.jsx
+│       ├── Header.jsx
+│       ├── QuickActionsBar.jsx
+│       └── ... (more components)
+├── constants/                    # App constants
+│   ├── Colors.ts
+│   └── Theme.js
+└── assets/                       # Images and fonts
+    ├── images/
+    └── fonts/
 ```
 
-## 🎨 Features
+## 🛠️ Tech Stack
 
-### Current Implementation
+- **Framework**: [Expo](https://expo.dev/) ~54.0
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) v6
+- **UI**: React Native 0.81.5
+- **Icons**: react-native-svg 15.12.1
+- **Gradients**: expo-linear-gradient 15.0.7
+- **Animations**: react-native-reanimated 4.1.1
 
-1. **Home Screen** - Main canvas for photo editing
+## 📦 Installation
 
-   - Image display area (450px height)
-   - Responsive layout
-   - Dark theme (#191816 background)
-
-2. **Header Component**
-
-   - Project title and sync status
-   - Back navigation
-   - Menu options
-
-3. **Control Bar**
-
-   - Master/Branch switcher
-   - AI/Expert mode toggle
-
-4. **Quick Actions Bar**
-
-   - Horizontal scrollable actions
-   - Smooth snap scrolling
-   - Multiple action types:
-     - Create a shortcut (dashed border)
-     - Art Style Transfer (main feature)
-     - Generate Mockup
-     - Product Mockup
-     - Global Editing
-
-5. **AI Prompt Button**
-   - Animated gradient effect
-   - Continuous rotation
-   - Pulse animation
-   - Positioned on the right side
-
-### Main Feature: Art Style Transfer
-
-The primary feature of this app. Currently displays as a quick action button. Ready for implementation of:
-
-- Style selection
-- Image processing
-- Preview generation
-- Style intensity controls
-
-## 🔧 Adding New Features
-
-The modular structure makes it easy to extend functionality:
-
-### Adding a New Quick Action
-
-1. Create a new icon in `components/icons/IconComponents.jsx`:
-
-```javascript
-export const YourIcon = ({ size = 28, color = "#E6E6E6" }) => (
-  <View style={[styles.iconContainer, { width: size, height: size }]}>
-    {/* Your icon design */}
-  </View>
-);
-```
-
-2. Add to `QuickActionsBar.jsx`:
-
-```javascript
-{
-  id: 'your-feature',
-  icon: <YourIcon size={28} color="#CCCCCC" />,
-  label: 'Your\nFeature',
-  isActive: true,
-}
-```
-
-### Adding a New Screen
-
-1. Create a new file in `app/` directory:
-
-```javascript
-// app/your-feature.jsx
-import React from "react";
-import { View, Text } from "react-native";
-
-export default function YourFeature() {
-  return (
-    <View>
-      <Text>Your Feature Screen</Text>
-    </View>
-  );
-}
-```
-
-2. Navigate using Expo Router:
-
-```javascript
-import { router } from "expo-router";
-router.push("/your-feature");
-```
-
-### Adding a New UI Component
-
-Create reusable components in `components/ui/`:
-
-```javascript
-// components/ui/YourComponent.jsx
-import React from "react";
-import { View, StyleSheet } from "react-native";
-
-const YourComponent = ({ ...props }) => {
-  return <View style={styles.container}>{/* ... */}</View>;
-};
-
-const styles = StyleSheet.create({
-  container: {
-    // Your styles
-  },
-});
-
-export default YourComponent;
-```
-
-## 🎯 Design System
-
-### Colors
-
-- Background: `#191816`
-- Primary Text: `#FFFFFF`
-- Secondary Text: `#999999`, `#CCCCCC`, `#CACACA`
-- Accent: `#E6E6E6`
-- Glass Effect: `rgba(118, 118, 128, 0.12)`
-- Border: `rgba(120, 120, 128, 0.16)`
-
-### Typography
-
-- Font Family: System (SF Pro on iOS, Roboto on Android)
-- Sizes: 12px, 13px, 16px, 17px
-
-### Spacing
-
-- Standard padding: 16px
-- Component gaps: 4px, 5px, 8px, 10px
-- Border radius: 22px (buttons), 70px (pills), 100px (circles)
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js (v16 or higher)
-- Expo CLI
-- iOS Simulator or Android Emulator (or Expo Go app)
-
-### Installation
+1. **Clone the repository**
 
 ```bash
-# Install dependencies
-npm install
-
-# Start the development server
-npm start
-
-# Run on iOS
-npm run ios
-
-# Run on Android
-npm run android
+git clone <repository-url>
+cd ArtStyleTransfer
 ```
 
-## 📱 Screens Overview
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Start the development server**
+
+```bash
+npm start
+```
+
+4. **Run on your platform**
+
+```bash
+npm run android  # For Android
+npm run ios      # For iOS
+npm run web      # For Web
+```
+
+## 🎯 Navigation Structure
+
+This app uses **Expo Router** with file-based navigation and route groups:
+
+```
+/                          → Home screen
+/art-style-transfer       → Art style transfer feature
+/generate-mockup          → Mockup generation feature
+/star-demo                → Icon demo (modal)
+```
+
+See [NAVIGATION_STRUCTURE.md](./NAVIGATION_STRUCTURE.md) for detailed navigation guide.
+
+## 🎨 Components
+
+### Icons
+
+All icons are SVG-based for perfect scaling and customization:
+
+```jsx
+import { BrushIcon, CameraIcon, TShirtIcon } from './components/icons/IconComponents';
+
+<BrushIcon size={28} color="#E6E6E6" />
+<CameraIcon size={40} color="#007AFF" />
+<TShirtIcon size={32} color="#FF6B6B" />
+```
+
+See [SVG_ICONS_GUIDE.md](./components/icons/SVG_ICONS_GUIDE.md) for icon documentation.
+
+### UI Components
+
+#### AIPromptButton
+
+Beautiful animated button with diamond shape and sparkles:
+
+```jsx
+import AIPromptButton from "./components/ui/AIPromptButton";
+
+<AIPromptButton onPress={handleAIPrompt} />;
+```
+
+#### QuickActionsBar
+
+Horizontal scrollable action buttons:
+
+```jsx
+import QuickActionsBar from "./components/ui/QuickActionsBar";
+
+<QuickActionsBar />;
+```
+
+#### Header
+
+Consistent header with back button and menu:
+
+```jsx
+import Header from "./components/ui/Header";
+
+<Header
+  title="My Screen"
+  subtitle="Description"
+  onBackPress={() => router.back()}
+  onMenuPress={() => console.log("Menu")}
+/>;
+```
+
+## 🎨 Theming
+
+The app uses a consistent dark theme defined in `constants/Theme.js`:
+
+```javascript
+const Colors = {
+  background: "#191816",
+  surface: "#2A2A28",
+  textPrimary: "#E6E6E6",
+  aiPrimary: "#8A2BE2",
+  // ... more colors
+};
+```
+
+## 📱 Screens
 
 ### Home Screen (`app/index.jsx`)
 
-The main screen featuring:
+- Main workspace
+- Image display area
+- Quick actions bar
+- AI prompt button
 
-- Header with project info
-- Control bar for mode switching
-- Large image display area (ready for photo editing)
-- Scrollable quick actions
-- AI prompt button for style transfer
-- Bottom drawer toggle
+### Art Style Transfer (`app/(features)/art-style-transfer.jsx`)
 
-## 🔮 Future Enhancements
+- Style gallery selection
+- Preview generation (coming soon)
+- Style intensity controls (coming soon)
 
-Ready to implement:
+### Generate Mockup (`app/(features)/generate-mockup.jsx`)
 
-- [ ] Image picker integration
-- [ ] Art style transfer ML model
-- [ ] Style library/gallery
-- [ ] Image filters and adjustments
-- [ ] Export and sharing
-- [ ] Project management
-- [ ] Cloud sync
-- [ ] Collaborative editing
+- Mockup template selection
+- Product categories
+- Export options (coming soon)
 
-## 📄 License
+### Star Demo (`app/(demo)/star-demo.jsx`)
 
-This project is part of the Art Style Transfer application.
+- Icon showcase
+- Usage examples
+- Implementation guide
+
+## 🔧 Configuration
+
+### App Configuration (`app.json`)
+
+- App name, slug, version
+- Expo Router enabled
+- Deep linking configured
+- Platform-specific settings
+
+### TypeScript
+
+TypeScript is configured with strict mode. Type definitions are in `expo-env.d.ts`.
+
+## 🚦 Development
+
+### Start Development Server
+
+```bash
+npm start
+```
+
+Opens Expo Dev Tools where you can:
+
+- Scan QR code with Expo Go
+- Open in iOS Simulator
+- Open in Android Emulator
+- Open in web browser
+
+### Clear Cache
+
+If you encounter issues:
+
+```bash
+npx expo start -c
+```
+
+### Build for Production
+
+```bash
+# iOS
+npx expo build:ios
+
+# Android
+npx expo build:android
+
+# EAS Build (recommended)
+eas build --platform ios
+eas build --platform android
+```
+
+## 📚 Documentation
+
+- [NAVIGATION_STRUCTURE.md](./NAVIGATION_STRUCTURE.md) - Navigation guide
+- [EXPO_ROUTER_SETUP.md](./EXPO_ROUTER_SETUP.md) - Expo Router setup
+- [SVG_ICONS_GUIDE.md](./components/icons/SVG_ICONS_GUIDE.md) - Icon usage
+- [ICONS_AND_BUTTON_UPDATE.md](./ICONS_AND_BUTTON_UPDATE.md) - Recent updates
+- [COMPONENT_GUIDE.md](./COMPONENT_GUIDE.md) - Component documentation
+
+## 🎓 Key Concepts
+
+### Expo Router
+
+File-based routing system where file structure = route structure:
+
+- `app/index.jsx` → `/`
+- `app/(features)/art-style-transfer.jsx` → `/art-style-transfer`
+
+Route groups (parentheses) organize files without affecting URLs.
+
+### SVG Icons
+
+All icons use `react-native-svg` for:
+
+- Perfect scaling at any size
+- Easy color customization
+- Small bundle size
+- Consistent rendering
+
+### Animations
+
+Smooth animations using:
+
+- `Animated` API for interpolations
+- `react-native-reanimated` for complex gestures
+- `expo-linear-gradient` for gradient effects
+
+## 🐛 Troubleshooting
+
+### Metro Bundler Issues
+
+```bash
+# Clear cache and restart
+npx expo start -c
+
+# Reset Metro bundler
+rm -rf node_modules .expo
+npm install
+npx expo start
+```
+
+### Navigation Not Working
+
+1. Check file exports are default exports
+2. Verify paths include route groups
+3. Restart dev server
+
+### Icons Not Showing
+
+1. Ensure `react-native-svg` is installed
+2. Check imports are correct
+3. Clear cache
 
 ## 🤝 Contributing
 
-The modular architecture makes contributions straightforward:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-1. Create components in appropriate directories
-2. Follow existing naming conventions
-3. Use StyleSheet for styling (no inline styles)
-4. Keep components focused and reusable
+## 📄 License
+
+[Your License Here]
+
+## 👥 Authors
+
+[Your Name/Team]
+
+## 🙏 Acknowledgments
+
+- Expo team for amazing tools
+- Figma for design resources
+- React Native community
+
+---
+
+**Happy Coding! 🎨✨**
