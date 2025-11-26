@@ -9,13 +9,15 @@ import {
 } from "../icons/IconComponents";
 import QuickActionButton from "./QuickActionButton";
 
-const QuickActionsBar = () => {
+const QuickActionsBar = ({ onArtStylePress }) => {
   const scrollViewRef = useRef(null);
 
   const handleActionPress = (actionId) => {
     switch (actionId) {
       case "art-style":
-        router.push("/(features)/art-style-transfer");
+        if (onArtStylePress) {
+          onArtStylePress();
+        }
         break;
       case "generate-mockup":
       case "product-mockup":
