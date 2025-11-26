@@ -5,20 +5,19 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  TouchableWithoutFeedback,
 } from "react-native";
-import Svg, { Path, Defs, LinearGradient, Stop } from "react-native-svg";
+import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import {
+  BorderRadius,
   Colors,
   Spacing,
   Typography,
-  BorderRadius,
 } from "../../constants/Theme";
 import ModalContainer from "./ModalContainer";
-import TalkToKimiButton from "./TalkToKimiButton";
+import SelectedStyleChip from "./SelectedStyleChip";
 import StyleGalleryGrid from "./StyleGalleryGrid";
 import StyleSearchBar from "./StyleSearchBar";
-import SelectedStyleChip from "./SelectedStyleChip";
+import TalkToKimiButton from "./TalkToKimiButton";
 
 /**
  * Icon Components
@@ -89,7 +88,14 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
       strokeWidth="0.13"
     />
     <Defs>
-      <LinearGradient id="paint0_linear_send" x1="18.4607" y1="13.2486" x2="22.6919" y2="32.0167" gradientUnits="userSpaceOnUse">
+      <LinearGradient
+        id="paint0_linear_send"
+        x1="18.4607"
+        y1="13.2486"
+        x2="22.6919"
+        y2="32.0167"
+        gradientUnits="userSpaceOnUse"
+      >
         <Stop stopColor="white" />
         <Stop offset="1" stopColor="white" stopOpacity="0" />
       </LinearGradient>
@@ -99,7 +105,7 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
 
 /**
  * ArtStyleTransferModal - Main modal with 3 states
- * 
+ *
  * States:
  * - 'textOnly': Default text input with "Choose Art Style" button
  * - 'gallery': Style gallery grid with search
@@ -160,7 +166,11 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
   };
 
   return (
-    <ModalContainer visible={visible} onClose={onClose} height={getModalHeight()}>
+    <ModalContainer
+      visible={visible}
+      onClose={onClose}
+      height={getModalHeight()}
+    >
       <View style={styles.container}>
         {/* Talk to Kimi Button */}
         <TalkToKimiButton onPress={() => console.log("Talk to Kimi")} />
@@ -266,7 +276,10 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
           {/* State 3: Text with Style */}
           {modalState === "textWithStyle" && (
             <View style={styles.stateContent}>
-              <SelectedStyleChip style={selectedStyle} onDeselect={handleDeselectStyle} />
+              <SelectedStyleChip
+                style={selectedStyle}
+                onDeselect={handleDeselectStyle}
+              />
 
               <TextInput
                 style={styles.textInput}
@@ -318,7 +331,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 22.5,
-    paddingBottom: 36,
+    paddingBottom: 64,
     paddingTop: Spacing.md,
     gap: Spacing.md,
   },
@@ -327,7 +340,9 @@ const styles = StyleSheet.create({
     borderWidth: 0.681,
     borderColor: Colors.modalBorder,
     borderRadius: 24,
-    padding: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingBottom: 24,
     gap: Spacing.xxl,
   },
   header: {
@@ -357,12 +372,14 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.base,
     color: Colors.textPrimary,
     minHeight: 60,
+    maxHeight: 100,
     textAlignVertical: "top",
   },
   actionsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginBottom: 20,
   },
   chooseButton: {
     flexDirection: "row",
@@ -373,8 +390,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.glassBorder,
     borderRadius: BorderRadius.pill,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    height: 36,
+    paddingVertical: Spacing.md,
+    height: 42,
   },
   findSimilarButton: {
     flexDirection: "row",
@@ -385,8 +402,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.glassBorder,
     borderRadius: BorderRadius.pill,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    height: 36,
+    paddingVertical: Spacing.md,
+    height: 42,
   },
   rightActions: {
     flexDirection: "row",
@@ -402,8 +419,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.glassBorder,
     borderRadius: BorderRadius.pill,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    height: 36,
+    paddingVertical: Spacing.md,
+    height: 42,
   },
   buttonText: {
     fontFamily: Typography.fontFamily.regular,
@@ -420,4 +437,3 @@ const styles = StyleSheet.create({
 });
 
 export default ArtStyleTransferModal;
-
