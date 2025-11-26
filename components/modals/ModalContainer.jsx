@@ -1,14 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Animated,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { Animated, StyleSheet } from "react-native";
 
 /**
  * ModalContainer - Reusable animated bottom sheet wrapper
- * 
+ *
  * Features:
  * - Slide up/down animations with spring physics
  * - Absolute positioning at bottom
@@ -64,7 +59,7 @@ const ModalContainer = ({ visible, onClose, children, height = 400 }) => {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 20,
+    bottom: 48,
     left: 0,
     right: 0,
     backgroundColor: "transparent",
@@ -73,4 +68,3 @@ const styles = StyleSheet.create({
 });
 
 export default ModalContainer;
-
