@@ -116,17 +116,17 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
   const [promptText, setPromptText] = useState("");
   const [selectedStyle, setSelectedStyle] = useState(null);
 
-  // Calculate modal height based on state
+  // Calculate modal height based on state (1.25x taller)
   const getModalHeight = () => {
     switch (modalState) {
       case "textOnly":
-        return 240;
+        return 300;
       case "gallery":
-        return 420;
+        return 525;
       case "textWithStyle":
-        return 280;
+        return 350;
       default:
-        return 240;
+        return 300;
     }
   };
 
@@ -348,7 +348,7 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 22.5,
+    paddingHorizontal: 12,
     paddingBottom: 64,
     paddingTop: Spacing.md,
     gap: Spacing.md,
