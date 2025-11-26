@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
+import GenerateMockupModal from "../components/modals/GenerateMockupModal";
 import AIPromptButton from "../components/ui/AIPromptButton";
 import ControlBar from "../components/ui/ControlBar";
 import DrawerToggle from "../components/ui/DrawerToggle";
@@ -31,6 +32,7 @@ const { width, height } = Dimensions.get("window");
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
+  const [generateMockupModalVisible, setGenerateMockupModalVisible] = useState(false);
 
   const handleBackPress = () => {
     // Navigate back or show projects list
@@ -56,8 +58,16 @@ const HomeScreen = () => {
     setArtStyleModalVisible(true);
   };
 
-  const handleCloseModal = () => {
+  const handleGenerateMockupPress = () => {
+    setGenerateMockupModalVisible(true);
+  };
+
+  const handleCloseArtStyleModal = () => {
     setArtStyleModalVisible(false);
+  };
+
+  const handleCloseGenerateMockupModal = () => {
+    setGenerateMockupModalVisible(false);
   };
 
   return (
@@ -98,10 +108,13 @@ const HomeScreen = () => {
 
           {/* Quick Actions Bar with AI Button */}
           <View style={styles.actionsContainer}>
-            <QuickActionsBar onArtStylePress={handleArtStylePress} />
+            <QuickActionsBar
+              onArtStylePress={handleArtStylePress}
+              onGenerateMockupPress={handleGenerateMockupPress}
+            />
 
-            {/* AI Prompt Button - Hide when modal open */}
-            {!artStyleModalVisible && (
+            {/* AI Prompt Button - Hide when any modal is open */}
+            {!artStyleModalVisible && !generateMockupModalVisible && (
               <View style={styles.aiButtonContainer}>
                 <AIPromptButton onPress={handleAIPromptPress} />
               </View>
@@ -115,7 +128,13 @@ const HomeScreen = () => {
         {/* Art Style Transfer Modal */}
         <ArtStyleTransferModal
           visible={artStyleModalVisible}
-          onClose={handleCloseModal}
+          onClose={handleCloseArtStyleModal}
+        />
+
+        {/* Generate Mockup Modal */}
+        <GenerateMockupModal
+          visible={generateMockupModalVisible}
+          onClose={handleCloseGenerateMockupModal}
         />
       </View>
     </SafeAreaView>
