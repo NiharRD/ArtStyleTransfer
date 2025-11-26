@@ -100,10 +100,12 @@ const HomeScreen = () => {
           <View style={styles.actionsContainer}>
             <QuickActionsBar onArtStylePress={handleArtStylePress} />
 
-            {/* AI Prompt Button - Positioned absolutely on the right */}
-            <View style={styles.aiButtonContainer}>
-              <AIPromptButton onPress={handleAIPromptPress} />
-            </View>
+            {/* AI Prompt Button - Hide when modal open */}
+            {!artStyleModalVisible && (
+              <View style={styles.aiButtonContainer}>
+                <AIPromptButton onPress={handleAIPromptPress} />
+              </View>
+            )}
           </View>
 
           {/* Home Indicator */}

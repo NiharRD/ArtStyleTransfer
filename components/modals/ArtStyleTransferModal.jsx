@@ -318,12 +318,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 22.5,
-    paddingBottom: 20,
+    paddingBottom: 36,
     paddingTop: Spacing.md,
     gap: Spacing.md,
   },
   contentContainer: {
-    backgroundColor: "rgba(43, 40, 41, 0.7)",
+    backgroundColor: "rgba(43, 40, 41, 0.95)",
     borderWidth: 0.681,
     borderColor: Colors.modalBorder,
     borderRadius: 24,
