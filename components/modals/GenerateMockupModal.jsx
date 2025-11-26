@@ -13,9 +13,9 @@ import {
   Spacing,
   Typography,
 } from "../../constants/Theme";
+import BackgroundGalleryGrid from "./BackgroundGalleryGrid";
 import ModalContainer from "./ModalContainer";
-import SelectedStyleChip from "./SelectedStyleChip";
-import StyleGalleryGrid from "./StyleGalleryGrid";
+import ProductImageChip from "./ProductImageChip";
 import StyleSearchBar from "./StyleSearchBar";
 import TalkToKimiButton from "./TalkToKimiButton";
 
@@ -104,49 +104,75 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
 );
 
 /**
- * ArtStyleTransferModal - Main modal with 3 states
+ * GenerateMockupModal - Main modal with 4 states
  *
  * States:
- * - 'textOnly': Default text input with "Choose Art Style" button
- * - 'gallery': Style gallery grid with search
- * - 'textWithStyle': Text input with selected style chip
+ * - 'textOnly': Initial - text input with "Add Product Image" button
+ * - 'productAdded': Product thumbnail shown + "Choose Background" button
+ * - 'backgroundGallery': Background grid with categories + search bar
+ * - 'allSelected': Both product + background thumbnails + circular reference button
  */
-const ArtStyleTransferModal = ({ visible, onClose }) => {
+const GenerateMockupModal = ({ visible, onClose }) => {
   const [modalState, setModalState] = useState("textOnly");
   const [promptText, setPromptText] = useState("");
-  const [selectedStyle, setSelectedStyle] = useState(null);
+  const [productImage, setProductImage] = useState(null);
+  const [selectedBackground, setSelectedBackground] = useState(null);
 
-  // Calculate modal height based on state (1.25x taller)
+  // Calculate modal height based on state
   const getModalHeight = () => {
     switch (modalState) {
       case "textOnly":
         return 300;
-      case "gallery":
-        return 525;
-      case "textWithStyle":
-        return 350;
+      case "productAdded":
+        return 400;
+      case "backgroundGallery":
+        return 600;
+      case "allSelected":
+        return 425;
       default:
         return 300;
     }
   };
 
   // State transition handlers
-  const handleChooseArtStyle = () => {
-    setModalState("gallery");
+  const handleAddProductImage = () => {
+    // Placeholder: In future, open image picker
+    // For now, simulate selecting a product image
+    setProductImage({ id: "product-1", source: null });
+    setModalState("productAdded");
   };
 
-  const handleStyleSelect = (style) => {
-    setSelectedStyle(style);
-    setModalState("textWithStyle");
-  };
-
-  const handleDeselectStyle = () => {
-    setSelectedStyle(null);
+  const handleRemoveProductImage = () => {
+    setProductImage(null);
+    setSelectedBackground(null);
     setModalState("textOnly");
+  };
+
+  const handleChooseBackground = () => {
+    setModalState("backgroundGallery");
+  };
+
+  const handleBackgroundSelect = (background) => {
+    setSelectedBackground(background);
+    setModalState("allSelected");
+  };
+
+  const handleRemoveBackground = () => {
+    setSelectedBackground(null);
+    setModalState("productAdded");
   };
 
   const handleHeaderClick = () => {
     onClose();
+  };
+
+  const handleCancelGallery = () => {
+    setModalState("productAdded");
+  };
+
+  // Circular reference button handler (state 4)
+  const handleCircularReference = () => {
+    setModalState("backgroundGallery");
   };
 
   // Placeholder functions for future AI implementation
@@ -157,16 +183,12 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
 
   const handleSend = () => {
     // TODO: AI prompt processing
-    console.log("Send clicked:", promptText, selectedStyle);
+    console.log("Send clicked:", promptText, productImage, selectedBackground);
   };
 
-  const handleFindSimilar = () => {
-    // TODO: AI similarity search
-    console.log("Find Similar clicked");
-  };
-
-  const handleCancelGallery = () => {
-    setModalState("textOnly");
+  const handleAddYourOwn = () => {
+    // TODO: Custom background upload
+    console.log("Add your own clicked");
   };
 
   return (
@@ -189,12 +211,12 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
               onPress={handleHeaderClick}
               activeOpacity={0.7}
             >
-              <Text style={styles.headerText}>Art Style Transfer</Text>
+              <Text style={styles.headerText}>Generate Mockup</Text>
               <DropdownIcon size={16} color={Colors.textAccent} />
             </TouchableOpacity>
 
             {/* Cross button - only in gallery state */}
-            {modalState === "gallery" && (
+            {modalState === "backgroundGallery" && (
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={handleCancelGallery}
@@ -219,12 +241,12 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
 
               <View style={styles.actionsRow}>
                 <TouchableOpacity
-                  style={styles.chooseButton}
-                  onPress={handleChooseArtStyle}
+                  style={styles.actionButton}
+                  onPress={handleAddProductImage}
                   activeOpacity={0.7}
                 >
                   <ReferenceIcon size={16} color={Colors.textAccent} />
-                  <Text style={styles.buttonText}>Choose Art Style</Text>
+                  <Text style={styles.buttonText}>Add Product Image</Text>
                 </TouchableOpacity>
 
                 <View style={styles.rightActions}>
@@ -249,54 +271,13 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
             </View>
           )}
 
-          {/* State 2: Gallery */}
-          {modalState === "gallery" && (
+          {/* State 2: Product Added */}
+          {modalState === "productAdded" && (
             <View style={styles.stateContent}>
-              <StyleGalleryGrid
-                onStyleSelect={handleStyleSelect}
-                selectedStyleId={selectedStyle?.id}
-              />
-
-              <StyleSearchBar />
-
-              <View style={styles.actionsRow}>
-                <TouchableOpacity
-                  style={styles.findSimilarButton}
-                  onPress={handleFindSimilar}
-                  activeOpacity={0.7}
-                >
-                  <AddIcon size={16} color={Colors.textAccent} />
-                  <Text style={styles.buttonText}>Find Similar</Text>
-                </TouchableOpacity>
-
-                <View style={styles.rightActions}>
-                  <TouchableOpacity
-                    style={styles.refineButton}
-                    onPress={handleRefine}
-                    activeOpacity={0.7}
-                  >
-                    <RefineIcon size={16} color={Colors.textAccent} />
-                    <Text style={styles.buttonText}>Refine</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.sendButton}
-                    onPress={handleSend}
-                    activeOpacity={0.7}
-                  >
-                    <ArrowSendIcon size={44} color={Colors.aiPrimary} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* State 3: Text with Style */}
-          {modalState === "textWithStyle" && (
-            <View style={styles.stateContent}>
-              <SelectedStyleChip
-                style={selectedStyle}
-                onDeselect={handleDeselectStyle}
+              <ProductImageChip
+                imageSource={productImage?.source}
+                onRemove={handleRemoveProductImage}
+                isPlaceholder={!productImage?.source}
               />
 
               <TextInput
@@ -310,12 +291,110 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
 
               <View style={styles.actionsRow}>
                 <TouchableOpacity
-                  style={styles.chooseButton}
-                  onPress={handleChooseArtStyle}
+                  style={styles.actionButton}
+                  onPress={handleChooseBackground}
+                  activeOpacity={0.7}
+                >
+                  <AddIcon size={16} color={Colors.textAccent} />
+                  <Text style={styles.buttonText}>Choose Background</Text>
+                </TouchableOpacity>
+
+                <View style={styles.rightActions}>
+                  <TouchableOpacity
+                    style={styles.refineButton}
+                    onPress={handleRefine}
+                    activeOpacity={0.7}
+                  >
+                    <RefineIcon size={16} color={Colors.textAccent} />
+                    <Text style={styles.buttonText}>Refine</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.sendButton}
+                    onPress={handleSend}
+                    activeOpacity={0.7}
+                  >
+                    <ArrowSendIcon size={44} color={Colors.aiPrimary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* State 3: Background Gallery */}
+          {modalState === "backgroundGallery" && (
+            <View style={styles.stateContent}>
+              <BackgroundGalleryGrid
+                onSelect={handleBackgroundSelect}
+                selectedId={selectedBackground?.id}
+              />
+
+              <StyleSearchBar />
+
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleAddYourOwn}
                   activeOpacity={0.7}
                 >
                   <ReferenceIcon size={16} color={Colors.textAccent} />
-                  <Text style={styles.buttonText}>Choose Art Style</Text>
+                  <Text style={styles.buttonText}>Add your own</Text>
+                </TouchableOpacity>
+
+                <View style={styles.rightActions}>
+                  <TouchableOpacity
+                    style={styles.refineButton}
+                    onPress={handleRefine}
+                    activeOpacity={0.7}
+                  >
+                    <RefineIcon size={16} color={Colors.textAccent} />
+                    <Text style={styles.buttonText}>Refine</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.sendButton}
+                    onPress={handleSend}
+                    activeOpacity={0.7}
+                  >
+                    <ArrowSendIcon size={44} color={Colors.aiPrimary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* State 4: All Selected */}
+          {modalState === "allSelected" && (
+            <View style={styles.stateContent}>
+              <View style={styles.thumbnailsRow}>
+                <ProductImageChip
+                  imageSource={productImage?.source}
+                  onRemove={handleRemoveProductImage}
+                  isPlaceholder={!productImage?.source}
+                />
+                <ProductImageChip
+                  imageSource={selectedBackground?.source}
+                  onRemove={handleRemoveBackground}
+                  isPlaceholder={!selectedBackground?.source}
+                />
+              </View>
+
+              <TextInput
+                style={styles.textInput}
+                value={promptText}
+                onChangeText={setPromptText}
+                placeholder="Can you make this scene more gloomy"
+                placeholderTextColor="#949494"
+                multiline
+              />
+
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  style={styles.circularReferenceButton}
+                  onPress={handleCircularReference}
+                  activeOpacity={0.7}
+                >
+                  <ReferenceIcon size={16} color={Colors.textAccent} />
                 </TouchableOpacity>
 
                 <View style={styles.rightActions}>
@@ -402,6 +481,10 @@ const styles = StyleSheet.create({
   stateContent: {
     gap: Spacing.md,
   },
+  thumbnailsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
   textInput: {
     fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.base,
@@ -416,7 +499,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 20,
   },
-  chooseButton: {
+  actionButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
@@ -428,17 +511,15 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     height: 42,
   },
-  findSimilarButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
+  circularReferenceButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 95,
     backgroundColor: Colors.glassBackground,
     borderWidth: 0.681,
     borderColor: Colors.glassBorder,
-    borderRadius: BorderRadius.pill,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    height: 42,
+    justifyContent: "center",
+    alignItems: "center",
   },
   rightActions: {
     flexDirection: "row",
@@ -471,4 +552,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ArtStyleTransferModal;
+export default GenerateMockupModal;
+
