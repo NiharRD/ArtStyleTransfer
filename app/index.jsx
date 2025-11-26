@@ -8,6 +8,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
 import AIPromptButton from "../components/ui/AIPromptButton";
 import ControlBar from "../components/ui/ControlBar";
 import DrawerToggle from "../components/ui/DrawerToggle";
@@ -21,9 +22,15 @@ const { width, height } = Dimensions.get("window");
  *
  * The main workspace where users can view and edit their images.
  * Provides navigation to various features like art style transfer and mockup generation.
+ *
+ * Features:
+ * - Responsive canvas with animated height
+ * - Bottom sheet modals that push content up
+ * - Smooth state transitions
  */
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
+  const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
 
   const handleBackPress = () => {
     // Navigate back or show projects list
@@ -43,6 +50,14 @@ const HomeScreen = () => {
   const handleDrawerToggle = () => {
     // Toggle bottom drawer with additional options
     Alert.alert("Drawer", "Bottom drawer functionality coming soon!");
+  };
+
+  const handleArtStylePress = () => {
+    setArtStyleModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setArtStyleModalVisible(false);
   };
 
   return (
@@ -83,7 +98,7 @@ const HomeScreen = () => {
 
           {/* Quick Actions Bar with AI Button */}
           <View style={styles.actionsContainer}>
-            <QuickActionsBar />
+            <QuickActionsBar onArtStylePress={handleArtStylePress} />
 
             {/* AI Prompt Button - Positioned absolutely on the right */}
             <View style={styles.aiButtonContainer}>
@@ -94,6 +109,12 @@ const HomeScreen = () => {
           {/* Home Indicator */}
           <View style={styles.homeIndicator} />
         </View>
+
+        {/* Art Style Transfer Modal */}
+        <ArtStyleTransferModal
+          visible={artStyleModalVisible}
+          onClose={handleCloseModal}
+        />
       </View>
     </SafeAreaView>
   );
@@ -109,7 +130,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#191816",
   },
   imageContainer: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -140,6 +160,7 @@ const styles = StyleSheet.create({
   actionsContainer: {
     position: "relative",
     marginTop: 8,
+    zIndex: 1,
   },
   aiButtonContainer: {
     position: "absolute",
