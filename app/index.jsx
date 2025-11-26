@@ -1,13 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Alert,
-  Animated,
   Dimensions,
   Image,
   SafeAreaView,
   StatusBar,
   StyleSheet,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
@@ -33,19 +31,6 @@ const { width, height } = Dimensions.get("window");
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
-
-  // Animated value for image height
-  const imageHeightAnim = useRef(new Animated.Value(450)).current;
-
-  // Animate image height when modal opens/closes
-  useEffect(() => {
-    Animated.spring(imageHeightAnim, {
-      toValue: artStyleModalVisible ? 250 : 450,
-      useNativeDriver: false,
-      tension: 65,
-      friction: 11,
-    }).start();
-  }, [artStyleModalVisible]);
 
   const handleBackPress = () => {
     // Navigate back or show projects list
@@ -75,13 +60,6 @@ const HomeScreen = () => {
     setArtStyleModalVisible(false);
   };
 
-  const handleImagePress = () => {
-    // Close modal when image is clicked
-    if (artStyleModalVisible) {
-      setArtStyleModalVisible(false);
-    }
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#191816" />
@@ -98,31 +76,25 @@ const HomeScreen = () => {
         {/* Control Bar */}
         <ControlBar />
 
-        {/* Main Image Display Area - Animated & Clickable */}
-        <TouchableWithoutFeedback onPress={handleImagePress}>
-          <Animated.View
-            style={[styles.imageContainer, { height: imageHeightAnim }]}
-          >
-            {selectedImage ? (
-              <Image
-                source={{ uri: selectedImage }}
-                style={styles.image}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={styles.placeholderContainer}>
-                <View style={styles.placeholder} />
-              </View>
-            )}
-          </Animated.View>
-        </TouchableWithoutFeedback>
+        {/* Main Image Display Area */}
+        <View style={styles.imageContainer}>
+          {selectedImage ? (
+            <Image
+              source={{ uri: selectedImage }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.placeholderContainer}>
+              <View style={styles.placeholder} />
+            </View>
+          )}
+        </View>
 
         {/* Bottom Section */}
         <View style={styles.bottomSection}>
-          {/* Drawer Toggle - Hide when modal open */}
-          {!artStyleModalVisible && (
-            <DrawerToggle onPress={handleDrawerToggle} />
-          )}
+          {/* Drawer Toggle */}
+          <DrawerToggle onPress={handleDrawerToggle} />
 
           {/* Quick Actions Bar with AI Button */}
           <View style={styles.actionsContainer}>
@@ -134,8 +106,8 @@ const HomeScreen = () => {
             </View>
           </View>
 
-          {/* Home Indicator - Hide when modal open */}
-          {!artStyleModalVisible && <View style={styles.homeIndicator} />}
+          {/* Home Indicator */}
+          <View style={styles.homeIndicator} />
         </View>
 
         {/* Art Style Transfer Modal */}
@@ -162,11 +134,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     marginTop: 10,
-    marginBottom: 24, // Minimum margin from modal
   },
   placeholderContainer: {
     width: width - 32,
-    flex: 1,
+    height: 450,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#2A2A28",
@@ -180,7 +151,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: width - 32,
-    flex: 1,
+    height: 450,
     borderRadius: 12,
   },
   bottomSection: {
