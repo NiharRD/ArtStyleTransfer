@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Alert,
+  Animated,
   Dimensions,
   Image,
   SafeAreaView,
@@ -23,11 +24,31 @@ const { width, height } = Dimensions.get("window");
  *
  * The main workspace where users can view and edit their images.
  * Provides navigation to various features like art style transfer and mockup generation.
+ * 
+ * Features:
+ * - Responsive layout with animated image canvas
+ * - Bottom sheet modals that push content up
+ * - Smooth transitions between states
  */
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
   const [mockupModalVisible, setMockupModalVisible] = useState(false);
+  
+  // Animated value for image height
+  const imageHeightAnim = useRef(new Animated.Value(450)).current;
+  
+  // Animate image height when modal opens/closes
+  useEffect(() => {
+    const isModalOpen = artStyleModalVisible || mockupModalVisible;
+    
+    Animated.spring(imageHeightAnim, {
+      toValue: isModalOpen ? 250 : 450,
+      useNativeDriver: false,
+      tension: 65,
+      friction: 11,
+    }).start();
+  }, [artStyleModalVisible, mockupModalVisible]);
 
   const handleBackPress = () => {
     // Navigate back or show projects list
@@ -73,8 +94,13 @@ const HomeScreen = () => {
         {/* Control Bar */}
         <ControlBar />
 
-        {/* Main Image Display Area */}
-        <View style={styles.imageContainer}>
+        {/* Main Image Display Area - Animated */}
+        <Animated.View 
+          style={[
+            styles.imageContainer,
+            { height: imageHeightAnim }
+          ]}
+        >
           {selectedImage ? (
             <Image
               source={{ uri: selectedImage }}
@@ -86,12 +112,14 @@ const HomeScreen = () => {
               <View style={styles.placeholder} />
             </View>
           )}
-        </View>
+        </Animated.View>
 
         {/* Bottom Section */}
         <View style={styles.bottomSection}>
-          {/* Drawer Toggle */}
-          <DrawerToggle onPress={handleDrawerToggle} />
+          {/* Drawer Toggle - Hide when modal is open */}
+          {!artStyleModalVisible && !mockupModalVisible && (
+            <DrawerToggle onPress={handleDrawerToggle} />
+          )}
 
           {/* Quick Actions Bar with AI Button */}
           <View style={styles.actionsContainer}>
@@ -106,20 +134,24 @@ const HomeScreen = () => {
             </View>
           </View>
 
-          {/* Home Indicator */}
-          <View style={styles.homeIndicator} />
+          {/* Home Indicator - Hide when modal is open */}
+          {!artStyleModalVisible && !mockupModalVisible && (
+            <View style={styles.homeIndicator} />
+          )}
+        </View>
+
+        {/* Modal Sheet Container - Positioned absolutely at bottom */}
+        <View style={styles.modalSheetContainer}>
+          <ArtStyleTransferModal
+            visible={artStyleModalVisible}
+            onClose={() => setArtStyleModalVisible(false)}
+          />
+          <GenerateMockupModal
+            visible={mockupModalVisible}
+            onClose={() => setMockupModalVisible(false)}
+          />
         </View>
       </View>
-
-      {/* Modals */}
-      <ArtStyleTransferModal
-        visible={artStyleModalVisible}
-        onClose={() => setArtStyleModalVisible(false)}
-      />
-      <GenerateMockupModal
-        visible={mockupModalVisible}
-        onClose={() => setMockupModalVisible(false)}
-      />
     </SafeAreaView>
   );
 };
@@ -134,7 +166,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#191816",
   },
   imageContainer: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -142,7 +173,7 @@ const styles = StyleSheet.create({
   },
   placeholderContainer: {
     width: width - 32,
-    height: 450,
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#2A2A28",
@@ -156,7 +187,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: width - 32,
-    height: 450,
+    flex: 1,
     borderRadius: 12,
   },
   bottomSection: {
@@ -165,6 +196,7 @@ const styles = StyleSheet.create({
   actionsContainer: {
     position: "relative",
     marginTop: 8,
+    zIndex: 1,
   },
   aiButtonContainer: {
     position: "absolute",
@@ -180,6 +212,13 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignSelf: "center",
     marginTop: 12,
+  },
+  modalSheetContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
   },
 });
 

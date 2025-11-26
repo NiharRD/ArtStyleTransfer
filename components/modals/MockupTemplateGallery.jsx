@@ -13,6 +13,7 @@ import {
   Typography,
   BorderRadius,
 } from "../../constants/Theme";
+import { SearchIcon, MicIcon } from "../icons/ModalIcons";
 
 /**
  * MockupTemplateGallery - Grid of mockup template tiles with search
@@ -63,7 +64,7 @@ const MockupTemplateGallery = ({ onTemplateSelect, selectedTemplates = [] }) => 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <SearchIcon size={17} color={Colors.textAccent} />
           <TextInput
             style={styles.searchInput}
             value={searchText}
@@ -71,7 +72,7 @@ const MockupTemplateGallery = ({ onTemplateSelect, selectedTemplates = [] }) => 
             placeholder="Search"
             placeholderTextColor={Colors.textAccent}
           />
-          <Text style={styles.voiceIcon}>🎤</Text>
+          <MicIcon size={17} color={Colors.textAccent} />
         </View>
       </View>
     </View>
@@ -129,18 +130,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: Spacing.md,
   },
-  searchIcon: {
-    fontSize: 17,
-  },
   searchInput: {
     flex: 1,
     fontFamily: Typography.fontFamily.regular,
     fontSize: 17,
     color: Colors.textAccent,
     letterSpacing: -0.08,
-  },
-  voiceIcon: {
-    fontSize: 17,
   },
 });
 

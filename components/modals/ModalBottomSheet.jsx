@@ -1,110 +1,66 @@
 import React, { useEffect, useRef } from "react";
-import {
-  Animated,
-  Dimensions,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
-import { Colors } from "../../constants/Theme";
-
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+import { Animated, StyleSheet } from "react-native";
 
 /**
- * ModalBottomSheet - Reusable bottom sheet modal component
- * 
+ * ModalBottomSheet - Layout-integrated bottom sheet component
+ *
  * Features:
  * - Animated slide-up/down transitions
- * - Dark overlay with tap-to-dismiss
+ * - Part of main layout (not overlay)
  * - Configurable height
+ *
+ * Note: This component is now rendered as part of the main layout,
+ * not as a Modal overlay. The parent component handles positioning.
  */
 const ModalBottomSheet = ({ visible, onClose, children, height = 400 }) => {
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const overlayAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(500)).current;
+  const [shouldRender, setShouldRender] = React.useState(visible);
 
   useEffect(() => {
     if (visible) {
-      // Slide up and fade in overlay
-      Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 65,
-          friction: 11,
-        }),
-        Animated.timing(overlayAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      setShouldRender(true);
+      // Slide up
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }).start();
     } else {
-      // Slide down and fade out overlay
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: SCREEN_HEIGHT,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.timing(overlayAnim, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Slide down
+      Animated.timing(slideAnim, {
+        toValue: 500,
+        duration: 250,
+        useNativeDriver: true,
+      }).start(() => {
+        // After animation completes, stop rendering
+        setShouldRender(false);
+      });
     }
   }, [visible]);
 
-  if (!visible) return null;
+  // Don't render if not visible and animation hasn't started
+  if (!shouldRender) {
+    return null;
+  }
 
   return (
-    <Modal
-      transparent
-      visible={visible}
-      onRequestClose={onClose}
-      animationType="none"
+    <Animated.View
+      style={[
+        styles.bottomSheet,
+        {
+          height,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+      pointerEvents={visible ? "auto" : "none"}
     >
-      <View style={styles.container}>
-        {/* Overlay */}
-        <TouchableWithoutFeedback onPress={onClose}>
-          <Animated.View
-            style={[
-              styles.overlay,
-              {
-                opacity: overlayAnim,
-              },
-            ]}
-          />
-        </TouchableWithoutFeedback>
-
-        {/* Bottom Sheet */}
-        <Animated.View
-          style={[
-            styles.bottomSheet,
-            {
-              height,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
-          {children}
-        </Animated.View>
-      </View>
-    </Modal>
+      {children}
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.modalOverlay,
-  },
   bottomSheet: {
     backgroundColor: "transparent",
     width: "100%",
@@ -112,4 +68,3 @@ const styles = StyleSheet.create({
 });
 
 export default ModalBottomSheet;
-

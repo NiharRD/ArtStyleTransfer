@@ -1,6 +1,12 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView } from "react-native";
 import { Colors, Spacing, Typography, BorderRadius } from "../../constants/Theme";
+import {
+  CrossIcon,
+  RefineIcon,
+  SendIcon,
+  ReferenceIcon,
+} from "../icons/ModalIcons";
 
 /**
  * PromptInputArea - Text prompt input with reference chips and action buttons
@@ -40,7 +46,7 @@ const PromptInputArea = ({
                 onPress={() => onRemoveReference && onRemoveReference(index)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.removeIcon}>✕</Text>
+                <CrossIcon size={10} color={Colors.textAccent} />
               </TouchableOpacity>
             </View>
           ))}
@@ -68,7 +74,7 @@ const PromptInputArea = ({
             onPress={onAddProduct}
             activeOpacity={0.7}
           >
-            <Text style={styles.addProductIcon}>📎</Text>
+            <ReferenceIcon size={16} color={Colors.textAccent} />
             <Text style={styles.buttonText}>Add Product Image</Text>
           </TouchableOpacity>
         ) : (
@@ -77,7 +83,7 @@ const PromptInputArea = ({
             onPress={onFindSimilar || onAddOwn}
             activeOpacity={0.7}
           >
-            <Text style={styles.buttonIcon}>{leftButtonIcon}</Text>
+            <ReferenceIcon size={16} color={Colors.textAccent} />
           </TouchableOpacity>
         )}
 
@@ -89,7 +95,7 @@ const PromptInputArea = ({
             onPress={onRefine}
             activeOpacity={0.7}
           >
-            <Text style={styles.refineIcon}>⚙️</Text>
+            <RefineIcon size={16} color={Colors.textAccent} />
             <Text style={styles.buttonText}>Refine</Text>
           </TouchableOpacity>
 
@@ -99,9 +105,7 @@ const PromptInputArea = ({
             onPress={onSend}
             activeOpacity={0.7}
           >
-            <View style={styles.sendIconContainer}>
-              <Text style={styles.sendIcon}>➤</Text>
-            </View>
+            <SendIcon size={44} color={Colors.aiPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -149,11 +153,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  removeIcon: {
-    fontSize: 10,
-    color: Colors.textAccent,
-    fontWeight: "600",
-  },
   textInputContainer: {
     minHeight: 60,
   },
@@ -178,9 +177,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  buttonIcon: {
-    fontSize: 16,
-  },
   addProductButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -191,9 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.pill,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
-  },
-  addProductIcon: {
-    fontSize: 14,
+    height: 36,
   },
   rightActions: {
     flexDirection: "row",
@@ -210,9 +204,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.pill,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
-  },
-  refineIcon: {
-    fontSize: 14,
+    height: 36,
   },
   buttonText: {
     fontFamily: Typography.fontFamily.regular,
@@ -221,24 +213,10 @@ const styles = StyleSheet.create({
     letterSpacing: Typography.letterSpacing.normal,
   },
   sendButton: {
-    width: 52,
-    height: 44,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  sendIconContainer: {
     width: 44,
     height: 44,
-    backgroundColor: "#8A2BE2",
-    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    transform: [{ rotate: "45deg" }],
-  },
-  sendIcon: {
-    fontSize: 18,
-    color: Colors.textPrimary,
-    transform: [{ rotate: "-45deg" }],
   },
 });
 

@@ -7,9 +7,14 @@ import {
   BorderRadius,
 } from "../../constants/Theme";
 import ModalBottomSheet from "./ModalBottomSheet";
-import VoiceButton from "./VoiceButton";
 import MockupTemplateGallery from "./MockupTemplateGallery";
 import PromptInputArea from "./PromptInputArea";
+import {
+  AddIcon,
+  RefineIcon,
+  SendIcon,
+  DropdownIcon,
+} from "../icons/ModalIcons";
 
 /**
  * GenerateMockupModal - Main modal for mockup generation feature
@@ -109,9 +114,6 @@ const GenerateMockupModal = ({ visible, onClose }) => {
   return (
     <ModalBottomSheet visible={visible} onClose={onClose} height={getModalHeight()}>
       <View style={styles.container}>
-        {/* Voice Button */}
-        <VoiceButton onPress={handleVoiceInput} />
-
         {/* Main Content Container */}
         <View style={styles.contentContainer}>
           {/* Header - Switcher */}
@@ -121,7 +123,7 @@ const GenerateMockupModal = ({ visible, onClose }) => {
             activeOpacity={0.7}
           >
             <Text style={styles.switcherText}>Generate Mockup</Text>
-            <Text style={styles.dropdownIcon}>▼</Text>
+            <DropdownIcon size={16} color={Colors.textAccent} />
           </TouchableOpacity>
 
           {/* Content based on state */}
@@ -139,7 +141,7 @@ const GenerateMockupModal = ({ visible, onClose }) => {
                   onPress={handleAddOwn}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.actionButtonIcon}>➕</Text>
+                  <AddIcon size={16} color={Colors.textAccent} />
                   <Text style={styles.actionButtonText}>Add your own</Text>
                 </TouchableOpacity>
 
@@ -149,7 +151,7 @@ const GenerateMockupModal = ({ visible, onClose }) => {
                     onPress={handleRefine}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.refineIcon}>⚙️</Text>
+                    <RefineIcon size={16} color={Colors.textAccent} />
                     <Text style={styles.buttonText}>Refine</Text>
                   </TouchableOpacity>
 
@@ -158,9 +160,7 @@ const GenerateMockupModal = ({ visible, onClose }) => {
                     onPress={handleSend}
                     activeOpacity={0.7}
                   >
-                    <View style={styles.sendIconContainer}>
-                      <Text style={styles.sendIcon}>➤</Text>
-                    </View>
+                    <SendIcon size={44} color={Colors.aiPrimary} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -205,8 +205,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 22.5,
-    paddingBottom: 35,
-    gap: Spacing.md,
+    paddingBottom: 20,
+    paddingTop: Spacing.md,
   },
   contentContainer: {
     backgroundColor: Colors.modalBackground,
@@ -219,23 +219,21 @@ const styles = StyleSheet.create({
   switcher: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    gap: 4,
     backgroundColor: Colors.glassBackground,
     borderWidth: 0.681,
     borderColor: Colors.glassBorder,
     borderRadius: BorderRadius.pill,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
+    alignSelf: "flex-start",
   },
   switcherText: {
     fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.base,
     color: Colors.textAccent,
     letterSpacing: Typography.letterSpacing.normal,
-  },
-  dropdownIcon: {
-    fontSize: 12,
-    color: Colors.textAccent,
   },
   galleryContainer: {
     gap: Spacing.md,
@@ -256,9 +254,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.pill,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
-  },
-  actionButtonIcon: {
-    fontSize: 14,
+    height: 36,
   },
   actionButtonText: {
     fontFamily: Typography.fontFamily.regular,
@@ -281,9 +277,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.pill,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
-  },
-  refineIcon: {
-    fontSize: 14,
+    height: 36,
   },
   buttonText: {
     fontFamily: Typography.fontFamily.regular,
@@ -292,24 +286,10 @@ const styles = StyleSheet.create({
     letterSpacing: Typography.letterSpacing.normal,
   },
   sendButton: {
-    width: 52,
-    height: 44,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  sendIconContainer: {
     width: 44,
     height: 44,
-    backgroundColor: Colors.aiPrimary,
-    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    transform: [{ rotate: "45deg" }],
-  },
-  sendIcon: {
-    fontSize: 18,
-    color: Colors.textPrimary,
-    transform: [{ rotate: "-45deg" }],
   },
 });
 
