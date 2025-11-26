@@ -13,6 +13,8 @@ import ControlBar from "../components/ui/ControlBar";
 import DrawerToggle from "../components/ui/DrawerToggle";
 import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
+import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
+import GenerateMockupModal from "../components/modals/GenerateMockupModal";
 
 const { width, height } = Dimensions.get("window");
 
@@ -24,6 +26,8 @@ const { width, height } = Dimensions.get("window");
  */
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
+  const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
+  const [mockupModalVisible, setMockupModalVisible] = useState(false);
 
   const handleBackPress = () => {
     // Navigate back or show projects list
@@ -43,6 +47,14 @@ const HomeScreen = () => {
   const handleDrawerToggle = () => {
     // Toggle bottom drawer with additional options
     Alert.alert("Drawer", "Bottom drawer functionality coming soon!");
+  };
+
+  const handleArtStylePress = () => {
+    setArtStyleModalVisible(true);
+  };
+
+  const handleMockupPress = () => {
+    setMockupModalVisible(true);
   };
 
   return (
@@ -83,7 +95,10 @@ const HomeScreen = () => {
 
           {/* Quick Actions Bar with AI Button */}
           <View style={styles.actionsContainer}>
-            <QuickActionsBar />
+            <QuickActionsBar
+              onArtStylePress={handleArtStylePress}
+              onMockupPress={handleMockupPress}
+            />
 
             {/* AI Prompt Button - Positioned absolutely on the right */}
             <View style={styles.aiButtonContainer}>
@@ -95,6 +110,16 @@ const HomeScreen = () => {
           <View style={styles.homeIndicator} />
         </View>
       </View>
+
+      {/* Modals */}
+      <ArtStyleTransferModal
+        visible={artStyleModalVisible}
+        onClose={() => setArtStyleModalVisible(false)}
+      />
+      <GenerateMockupModal
+        visible={mockupModalVisible}
+        onClose={() => setMockupModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };

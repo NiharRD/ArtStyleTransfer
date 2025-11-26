@@ -44,6 +44,14 @@ export const Colors = {
   // Home Indicator
   indicator: "#8E8E8E",
   indicatorDark: "#333333",
+
+  // Modal Colors
+  modalBackground: "rgba(43, 40, 41, 0.7)",
+  modalOverlay: "rgba(0, 0, 0, 0.6)",
+  tileGray: "#9a9a9a",
+  modalBorder: "#FFFFFF",
+  promptBackground: "#312f31",
+  promptBorder: "#3d3b3e",
 };
 
 export const Typography = {

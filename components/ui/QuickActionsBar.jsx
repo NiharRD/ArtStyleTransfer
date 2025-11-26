@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import React, { useRef } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import {
@@ -9,17 +8,21 @@ import {
 } from "../icons/IconComponents";
 import QuickActionButton from "./QuickActionButton";
 
-const QuickActionsBar = () => {
+const QuickActionsBar = ({ onArtStylePress, onMockupPress }) => {
   const scrollViewRef = useRef(null);
 
   const handleActionPress = (actionId) => {
     switch (actionId) {
       case "art-style":
-        router.push("/(features)/art-style-transfer");
+        if (onArtStylePress) {
+          onArtStylePress();
+        }
         break;
       case "generate-mockup":
       case "product-mockup":
-        router.push("/(features)/generate-mockup");
+        if (onMockupPress) {
+          onMockupPress();
+        }
         break;
       case "create":
         Alert.alert(
