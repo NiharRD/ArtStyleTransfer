@@ -122,15 +122,15 @@ const GenerateMockupModal = ({ visible, onClose }) => {
   const getModalHeight = () => {
     switch (modalState) {
       case "textOnly":
-        return 300;
+        return 265;
       case "productAdded":
-        return 400;
+        return 365;
       case "backgroundGallery":
-        return 600;
+        return 555;
       case "allSelected":
-        return 425;
+        return 385;
       default:
-        return 300;
+        return 265;
     }
   };
 
@@ -428,9 +428,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 12,
-    paddingBottom: 16,
-    paddingTop: Spacing.md,
-    gap: Spacing.md,
+    paddingBottom: 4,
+    paddingTop: Spacing.sm,
+    gap: Spacing.sm,
   },
   contentContainer: {
     backgroundColor: "rgba(43, 40, 41, 0.95)",

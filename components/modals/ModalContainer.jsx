@@ -59,7 +59,7 @@ const ModalContainer = ({ visible, onClose, children, height = 400 }) => {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 8,
+    bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: "transparent",
