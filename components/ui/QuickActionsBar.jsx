@@ -57,12 +57,7 @@ const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress }) => {
       label: "Generate\nMockup",
       isActive: true,
     },
-    {
-      id: "product-mockup",
-      icon: <TShirtIcon size={28} color="#CCCCCC" />,
-      label: "Product\nMockup",
-      isActive: true,
-    },
+
     {
       id: "global-editing-1",
       icon: <CameraIcon size={28} color="#CCCCCC" />,
@@ -70,11 +65,17 @@ const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress }) => {
       isActive: true,
     },
     {
-      id: "global-editing-2",
-      icon: <CameraIcon size={28} color="#CCCCCC" />,
-      label: "Global\nEditing",
+      id: "product-mockup",
+      icon: <TShirtIcon size={28} color="#CCCCCC" />,
+      label: "Product\nMockup",
       isActive: true,
     },
+    // {
+    //   id: "global-editing-2",
+    //   icon: <CameraIcon size={28} color="#CCCCCC" />,
+    //   label: "Global\nEditing",
+    //   isActive: true,
+    // },
   ];
 
   return (
