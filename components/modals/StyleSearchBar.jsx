@@ -33,7 +33,7 @@ const MicIcon = ({ size = 17, color = "#E6E6E6" }) => (
 
 /**
  * StyleSearchBar - Search input with icons (representational only)
- * 
+ *
  * Features:
  * - Search icon on left
  * - Mic icon on right
@@ -77,4 +77,3 @@ const styles = StyleSheet.create({
 });
 
 export default StyleSearchBar;
-

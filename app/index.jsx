@@ -32,7 +32,8 @@ const { width, height } = Dimensions.get("window");
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
-  const [generateMockupModalVisible, setGenerateMockupModalVisible] = useState(false);
+  const [generateMockupModalVisible, setGenerateMockupModalVisible] =
+    useState(false);
 
   const handleBackPress = () => {
     // Navigate back or show projects list
@@ -108,10 +109,13 @@ const HomeScreen = () => {
 
           {/* Quick Actions Bar with AI Button */}
           <View style={styles.actionsContainer}>
-            <QuickActionsBar
-              onArtStylePress={handleArtStylePress}
-              onGenerateMockupPress={handleGenerateMockupPress}
-            />
+            {/* Quick Actions Bar - Hide when any modal is open */}
+            {!artStyleModalVisible && !generateMockupModalVisible && (
+              <QuickActionsBar
+                onArtStylePress={handleArtStylePress}
+                onGenerateMockupPress={handleGenerateMockupPress}
+              />
+            )}
 
             {/* AI Prompt Button - Hide when any modal is open */}
             {!artStyleModalVisible && !generateMockupModalVisible && (

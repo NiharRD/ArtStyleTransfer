@@ -122,15 +122,15 @@ const GenerateMockupModal = ({ visible, onClose }) => {
   const getModalHeight = () => {
     switch (modalState) {
       case "textOnly":
-        return 300;
+        return 265;
       case "productAdded":
-        return 400;
+        return 365;
       case "backgroundGallery":
-        return 600;
+        return 555;
       case "allSelected":
-        return 425;
+        return 385;
       default:
-        return 300;
+        return 265;
     }
   };
 
@@ -427,10 +427,11 @@ const GenerateMockupModal = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: "flex-end",
     paddingHorizontal: 12,
-    paddingBottom: 64,
-    paddingTop: Spacing.md,
-    gap: Spacing.md,
+    paddingBottom: 4,
+    paddingTop: Spacing.sm,
+    gap: Spacing.sm,
   },
   contentContainer: {
     backgroundColor: "rgba(43, 40, 41, 0.95)",
@@ -439,8 +440,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingTop: Spacing.md,
     paddingHorizontal: Spacing.md,
-    paddingBottom: 24,
-    gap: Spacing.xxl,
+    paddingBottom: Spacing.md,
+    gap: Spacing.md,
   },
   headerRow: {
     flexDirection: "row",
@@ -479,7 +480,7 @@ const styles = StyleSheet.create({
     letterSpacing: Typography.letterSpacing.normal,
   },
   stateContent: {
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   thumbnailsRow: {
     flexDirection: "row",
@@ -497,7 +498,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
   },
   actionButton: {
     flexDirection: "row",
@@ -553,4 +553,3 @@ const styles = StyleSheet.create({
 });
 
 export default GenerateMockupModal;
-
