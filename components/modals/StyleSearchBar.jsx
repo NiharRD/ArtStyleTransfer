@@ -43,7 +43,7 @@ const MicIcon = ({ size = 17, color = "#E6E6E6" }) => (
 const StyleSearchBar = () => {
   return (
     <View style={styles.container}>
-      <SearchIcon size={17} color={Colors.textAccent} />
+      <SearchIcon size={16} color={Colors.textAccent} />
       <TextInput
         style={styles.input}
         placeholder="Search"
@@ -64,15 +64,20 @@ const styles = StyleSheet.create({
     borderColor: "#3d3b3e",
     borderRadius: 100,
     paddingHorizontal: 11,
-    paddingVertical: 10,
+    paddingVertical: 6,
     gap: Spacing.md,
+    height: 46,
   },
   input: {
     flex: 1,
+    height: "100%",
     fontFamily: Typography.fontFamily.regular,
     fontSize: 17,
     color: Colors.textAccent,
     letterSpacing: -0.08,
+    textAlignVertical: "center",
+    padding: 0,
+    includeFontPadding: false,
   },
 });
 
