@@ -427,6 +427,7 @@ const GenerateMockupModal = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: "flex-end",
     paddingHorizontal: 12,
     paddingBottom: 4,
     paddingTop: Spacing.sm,
