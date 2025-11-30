@@ -30,7 +30,11 @@ const { width, height } = Dimensions.get("window");
  * - Smooth state transitions
  */
 const DEFAULT_CANVAS_HEIGHT = 450;
+const DEFAULT_CANVAS_WIDTH = width - 32;
 const MIN_CANVAS_HEIGHT = 200;
+// Calculate min width to maintain aspect ratio
+const MIN_CANVAS_WIDTH =
+  (MIN_CANVAS_HEIGHT / DEFAULT_CANVAS_HEIGHT) * DEFAULT_CANVAS_WIDTH;
 
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -43,6 +47,13 @@ const HomeScreen = () => {
   const canvasHeightAnim = useRef(
     new Animated.Value(DEFAULT_CANVAS_HEIGHT)
   ).current;
+
+  // Interpolate width from height to maintain aspect ratio
+  const canvasWidthAnim = canvasHeightAnim.interpolate({
+    inputRange: [MIN_CANVAS_HEIGHT, DEFAULT_CANVAS_HEIGHT],
+    outputRange: [MIN_CANVAS_WIDTH, DEFAULT_CANVAS_WIDTH],
+    extrapolate: "clamp",
+  });
 
   // Calculate canvas height based on modal height
   const calculateCanvasHeight = (modalHeight) => {
@@ -123,19 +134,22 @@ const HomeScreen = () => {
         {/* Control Bar */}
         <ControlBar />
 
-        {/* Main Image Display Area - Animated height */}
+        {/* Main Image Display Area - Animated height & width (maintains aspect ratio) */}
         <View style={styles.imageContainer}>
           {selectedImage ? (
             <Animated.Image
               source={{ uri: selectedImage }}
-              style={[styles.image, { height: canvasHeightAnim }]}
+              style={[
+                styles.image,
+                { height: canvasHeightAnim, width: canvasWidthAnim },
+              ]}
               resizeMode="cover"
             />
           ) : (
             <Animated.View
               style={[
                 styles.placeholderContainer,
-                { height: canvasHeightAnim },
+                { height: canvasHeightAnim, width: canvasWidthAnim },
               ]}
             >
               <View style={styles.placeholder} />
