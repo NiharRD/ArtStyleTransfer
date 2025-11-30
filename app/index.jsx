@@ -15,6 +15,7 @@ import ControlBar from "../components/ui/ControlBar";
 import DrawerToggle from "../components/ui/DrawerToggle";
 import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
+import SmartSuggestions from "../components/ui/SmartSuggestions";
 
 const { width, height } = Dimensions.get("window");
 
@@ -32,9 +33,12 @@ const { width, height } = Dimensions.get("window");
 const DEFAULT_CANVAS_HEIGHT = 450;
 const DEFAULT_CANVAS_WIDTH = width - 32;
 const MIN_CANVAS_HEIGHT = 200;
+const SUGGESTIONS_HEIGHT = 100; // Height reserved for suggestions section
 // Calculate min width to maintain aspect ratio
 const MIN_CANVAS_WIDTH =
   (MIN_CANVAS_HEIGHT / DEFAULT_CANVAS_HEIGHT) * DEFAULT_CANVAS_WIDTH;
+// Canvas height when suggestions are visible (no modal open)
+const CANVAS_WITH_SUGGESTIONS = DEFAULT_CANVAS_HEIGHT - SUGGESTIONS_HEIGHT;
 
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -55,27 +59,31 @@ const HomeScreen = () => {
     extrapolate: "clamp",
   });
 
-  // Calculate canvas height based on modal height
-  const calculateCanvasHeight = (modalHeight) => {
-    if (modalHeight === 0) {
-      return DEFAULT_CANVAS_HEIGHT;
+  // Check if any modal is open
+  const isModalOpen = artStyleModalVisible || generateMockupModalVisible;
+
+  // Calculate canvas height based on modal height and suggestions visibility
+  const calculateCanvasHeight = (modalHeight, modalOpen) => {
+    if (modalHeight > 0) {
+      // Modal is open - shrink proportionally to modal height (50% of modal height)
+      const shrinkAmount = modalHeight * 0.5;
+      const newHeight = DEFAULT_CANVAS_HEIGHT - shrinkAmount;
+      return Math.max(newHeight, MIN_CANVAS_HEIGHT);
     }
-    // Shrink canvas proportionally to modal height (50% of modal height)
-    const shrinkAmount = modalHeight * 0.5;
-    const newHeight = DEFAULT_CANVAS_HEIGHT - shrinkAmount;
-    return Math.max(newHeight, MIN_CANVAS_HEIGHT);
+    // No modal open - use canvas height with suggestions
+    return CANVAS_WITH_SUGGESTIONS;
   };
 
-  // Animate canvas height when modal height changes
+  // Animate canvas height when modal height changes or modal visibility changes
   useEffect(() => {
-    const targetHeight = calculateCanvasHeight(currentModalHeight);
+    const targetHeight = calculateCanvasHeight(currentModalHeight, isModalOpen);
     Animated.spring(canvasHeightAnim, {
       toValue: targetHeight,
       useNativeDriver: false, // Height cannot use native driver
       tension: 65,
       friction: 11,
     }).start();
-  }, [currentModalHeight]);
+  }, [currentModalHeight, isModalOpen]);
 
   // Handler for modal height changes
   const handleModalHeightChange = (height) => {
@@ -156,6 +164,15 @@ const HomeScreen = () => {
             </Animated.View>
           )}
         </View>
+
+        {/* Smart Suggestions - Hide when any modal is open */}
+        {!artStyleModalVisible && !generateMockupModalVisible && (
+          <SmartSuggestions
+            onSuggestionPress={(suggestion) => {
+              Alert.alert("Suggestion", `Selected: ${suggestion.label}`);
+            }}
+          />
+        )}
 
         {/* Bottom Section */}
         <View style={styles.bottomSection}>
