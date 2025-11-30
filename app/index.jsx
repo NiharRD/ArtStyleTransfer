@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   Dimensions,
-  Image,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -29,11 +29,47 @@ const { width, height } = Dimensions.get("window");
  * - Bottom sheet modals that push content up
  * - Smooth state transitions
  */
+const DEFAULT_CANVAS_HEIGHT = 450;
+const MIN_CANVAS_HEIGHT = 200;
+
 const HomeScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
   const [generateMockupModalVisible, setGenerateMockupModalVisible] =
     useState(false);
+  const [currentModalHeight, setCurrentModalHeight] = useState(0);
+
+  // Animated value for canvas height
+  const canvasHeightAnim = useRef(
+    new Animated.Value(DEFAULT_CANVAS_HEIGHT)
+  ).current;
+
+  // Calculate canvas height based on modal height
+  const calculateCanvasHeight = (modalHeight) => {
+    if (modalHeight === 0) {
+      return DEFAULT_CANVAS_HEIGHT;
+    }
+    // Shrink canvas proportionally to modal height (50% of modal height)
+    const shrinkAmount = modalHeight * 0.5;
+    const newHeight = DEFAULT_CANVAS_HEIGHT - shrinkAmount;
+    return Math.max(newHeight, MIN_CANVAS_HEIGHT);
+  };
+
+  // Animate canvas height when modal height changes
+  useEffect(() => {
+    const targetHeight = calculateCanvasHeight(currentModalHeight);
+    Animated.spring(canvasHeightAnim, {
+      toValue: targetHeight,
+      useNativeDriver: false, // Height cannot use native driver
+      tension: 65,
+      friction: 11,
+    }).start();
+  }, [currentModalHeight]);
+
+  // Handler for modal height changes
+  const handleModalHeightChange = (height) => {
+    setCurrentModalHeight(height);
+  };
 
   const handleBackPress = () => {
     // Navigate back or show projects list
@@ -87,18 +123,23 @@ const HomeScreen = () => {
         {/* Control Bar */}
         <ControlBar />
 
-        {/* Main Image Display Area */}
+        {/* Main Image Display Area - Animated height */}
         <View style={styles.imageContainer}>
           {selectedImage ? (
-            <Image
+            <Animated.Image
               source={{ uri: selectedImage }}
-              style={styles.image}
+              style={[styles.image, { height: canvasHeightAnim }]}
               resizeMode="cover"
             />
           ) : (
-            <View style={styles.placeholderContainer}>
+            <Animated.View
+              style={[
+                styles.placeholderContainer,
+                { height: canvasHeightAnim },
+              ]}
+            >
               <View style={styles.placeholder} />
-            </View>
+            </Animated.View>
           )}
         </View>
 
@@ -133,12 +174,14 @@ const HomeScreen = () => {
         <ArtStyleTransferModal
           visible={artStyleModalVisible}
           onClose={handleCloseArtStyleModal}
+          onHeightChange={handleModalHeightChange}
         />
 
         {/* Generate Mockup Modal */}
         <GenerateMockupModal
           visible={generateMockupModalVisible}
           onClose={handleCloseGenerateMockupModal}
+          onHeightChange={handleModalHeightChange}
         />
       </View>
     </SafeAreaView>
