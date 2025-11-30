@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.pill,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    alignSelf: "flex-start",
+    alignSelf: "center",
   },
   label: {
     fontFamily: Typography.fontFamily.regular,

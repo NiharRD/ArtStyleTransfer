@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 12,
-    paddingBottom: 64,
+    paddingBottom: 16,
     paddingTop: Spacing.md,
     gap: Spacing.md,
   },
@@ -439,8 +439,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingTop: Spacing.md,
     paddingHorizontal: Spacing.md,
-    paddingBottom: 24,
-    gap: Spacing.xxl,
+    paddingBottom: Spacing.md,
+    gap: Spacing.md,
   },
   headerRow: {
     flexDirection: "row",
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     letterSpacing: Typography.letterSpacing.normal,
   },
   stateContent: {
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   thumbnailsRow: {
     flexDirection: "row",
@@ -497,7 +497,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
   },
   actionButton: {
     flexDirection: "row",
@@ -553,4 +552,3 @@ const styles = StyleSheet.create({
 });
 
 export default GenerateMockupModal;
-
