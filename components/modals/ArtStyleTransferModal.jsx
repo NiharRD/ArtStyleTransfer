@@ -111,7 +111,7 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
  * - 'gallery': Style gallery grid with search
  * - 'textWithStyle': Text input with selected style chip
  */
-const ArtStyleTransferModal = ({ visible, onClose }) => {
+const ArtStyleTransferModal = ({ visible, onClose, onHeightChange }) => {
   const [modalState, setModalState] = useState("textOnly");
   const [promptText, setPromptText] = useState("");
   const [selectedStyle, setSelectedStyle] = useState(null);
@@ -129,6 +129,14 @@ const ArtStyleTransferModal = ({ visible, onClose }) => {
         return 265;
     }
   };
+
+  // Report height changes to parent for canvas animation
+  React.useEffect(() => {
+    if (onHeightChange) {
+      const height = visible ? getModalHeight() : 0;
+      onHeightChange(height);
+    }
+  }, [visible, modalState]);
 
   // State transition handlers
   const handleChooseArtStyle = () => {

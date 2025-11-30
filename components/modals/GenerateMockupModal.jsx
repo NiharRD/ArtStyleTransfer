@@ -112,7 +112,7 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
  * - 'backgroundGallery': Background grid with categories + search bar
  * - 'allSelected': Both product + background thumbnails + circular reference button
  */
-const GenerateMockupModal = ({ visible, onClose }) => {
+const GenerateMockupModal = ({ visible, onClose, onHeightChange }) => {
   const [modalState, setModalState] = useState("textOnly");
   const [promptText, setPromptText] = useState("");
   const [productImage, setProductImage] = useState(null);
@@ -133,6 +133,14 @@ const GenerateMockupModal = ({ visible, onClose }) => {
         return 265;
     }
   };
+
+  // Report height changes to parent for canvas animation
+  React.useEffect(() => {
+    if (onHeightChange) {
+      const height = visible ? getModalHeight() : 0;
+      onHeightChange(height);
+    }
+  }, [visible, modalState]);
 
   // State transition handlers
   const handleAddProductImage = () => {
