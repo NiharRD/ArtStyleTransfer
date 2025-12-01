@@ -392,11 +392,13 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
       height={getModalHeight()}
     >
       <View style={styles.container}>
-        {/* Talk to Kimi Button */}
-        <TalkToKimiButton
-          onPress={handleTalkToKimiPress}
-          label={getTalkToKimiLabel()}
-        />
+        {/* Talk to Kimi Button - hide when upper section is visible */}
+        {!upperSectionVisible && (
+          <TalkToKimiButton
+            onPress={handleTalkToKimiPress}
+            label={getTalkToKimiLabel()}
+          />
+        )}
 
         {/* Main Content */}
         <View style={styles.contentContainer}>
