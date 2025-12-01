@@ -291,7 +291,7 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
 
   // Calculate modal height based on all states
   const getModalHeight = () => {
-    let baseHeight = 260; // Base height with controls row + text input + actions row
+    let baseHeight = 330; // Base height with controls row + text input + actions row
 
     // Add confirmation row height if visible
     if (confirmationVisible) {
@@ -655,20 +655,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     paddingHorizontal: 12,
-    paddingBottom: 8,
+    paddingBottom: 10,
     paddingTop: Spacing.xs,
     gap: Spacing.xs,
-    marginBottom: 25,
+    marginBottom: 31.5,
   },
   contentContainer: {
-    backgroundColor: "#1D1C1D",
-    borderWidth: 0,
-    borderColor: "#FFFFFF",
+    backgroundColor: "rgba(43, 40, 41, 0.95)",
+    borderWidth: 0.681,
+    borderColor: Colors.modalBorder,
     borderRadius: 24,
-    paddingTop: Spacing.sm,
+    paddingTop: Spacing.md,
     paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.sm,
-    gap: Spacing.sm,
+    paddingBottom: Spacing.md,
+    gap: Spacing.md,
   },
   upperSection: {
     gap: Spacing.md,
