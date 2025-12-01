@@ -20,6 +20,7 @@ import {
   Spacing,
   Typography,
 } from "../../constants/Theme";
+import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
 
 /**
@@ -135,8 +136,44 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
   const [modalState, setModalState] = useState("bulbState");
   const [promptText, setPromptText] = useState("");
 
-  // Calculate modal height (consistent for both states)
+  // Slider state management for all features
+  const [sliderValues, setSliderValues] = useState({
+    brightness: 0,
+    contrast: 0,
+    exposure: 0,
+    highlights: 0,
+    shadows: 0,
+    whites: 0,
+    blacks: 0,
+    saturation: 0,
+    vibrance: 5, // Default to 5
+    colorMixer: {
+      red: 0,
+      orange: 0,
+      yellow: 0,
+      green: 0,
+      cyan: 0,
+      blue: 0,
+      purple: 0,
+    },
+  });
+  const [selectedFeature, setSelectedFeature] = useState("vibrance");
+  const [selectedColorChannel, setSelectedColorChannel] = useState("red");
+
+  // Handler for slider value changes
+  const handleSliderValueChange = (feature, value) => {
+    setSliderValues((prev) => ({
+      ...prev,
+      [feature]: value,
+    }));
+  };
+
+  // Calculate modal height based on state
   const getModalHeight = () => {
+    if (modalState === "slidersState") {
+      // Taller when slider is shown, even taller when color mixer is selected
+      return selectedFeature === "colorMixer" ? 520 : 480;
+    }
     return 460;
   };
 
@@ -146,7 +183,7 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
       const height = visible ? getModalHeight() : 0;
       onHeightChange(height);
     }
-  }, [visible, modalState]);
+  }, [visible, modalState, selectedFeature]);
 
   // Close modal when clicking "Global Editing" dropdown
   const handleHeaderClick = () => {
@@ -198,10 +235,21 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
             )}
           </View>
 
-          {/* Placeholder Rectangle */}
-          <View style={styles.placeholderRectangle}>
-            {/* Empty placeholder - to be implemented later */}
-          </View>
+          {/* Content based on state */}
+          {modalState === "bulbState" ? (
+            <View style={styles.placeholderRectangle}>
+              {/* Empty placeholder for bulb state - to be implemented later */}
+            </View>
+          ) : (
+            <FeatureSliderContainer
+              sliderValues={sliderValues}
+              onSliderValueChange={handleSliderValueChange}
+              selectedFeature={selectedFeature}
+              onFeatureSelect={setSelectedFeature}
+              selectedColorChannel={selectedColorChannel}
+              onColorChannelSelect={setSelectedColorChannel}
+            />
+          )}
 
           {/* Bottom Controls Row */}
           <View style={styles.controlsRow}>
