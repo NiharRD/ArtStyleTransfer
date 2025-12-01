@@ -6,7 +6,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Svg, { Defs, G, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import Svg, {
+  Defs,
+  G,
+  LinearGradient,
+  Path,
+  Rect,
+  Stop,
+} from "react-native-svg";
 import {
   BorderRadius,
   Colors,
@@ -14,7 +21,6 @@ import {
   Typography,
 } from "../../constants/Theme";
 import ModalContainer from "./ModalContainer";
-import TalkToKimiButton from "./TalkToKimiButton";
 
 /**
  * Icon Components
@@ -131,7 +137,7 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
 
   // Calculate modal height (consistent for both states)
   const getModalHeight = () => {
-    return 500;
+    return 460;
   };
 
   // Report height changes to parent for canvas animation
@@ -168,9 +174,6 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
       height={getModalHeight()}
     >
       <View style={styles.container}>
-        {/* Talk to Kimi Button */}
-        <TalkToKimiButton onPress={() => console.log("Talk to Kimi")} />
-
         {/* Main Content */}
         <View style={styles.contentContainer}>
           {/* Header Row with helper text */}
@@ -184,7 +187,10 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
               </>
             ) : (
               <>
-                <SlidersVerticalIcon size={15} color="rgba(255, 255, 255, 0.6)" />
+                <SlidersVerticalIcon
+                  size={15}
+                  color="rgba(255, 255, 255, 0.6)"
+                />
                 <Text style={styles.helperText}>
                   Tweak these values for advanced changes
                 </Text>
@@ -302,7 +308,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     backgroundColor: "#1D1C1D",
-    borderWidth: 0.681,
+    borderWidth: 0,
     borderColor: "#FFFFFF",
     borderRadius: 24,
     paddingTop: Spacing.xl,
@@ -441,4 +447,3 @@ const styles = StyleSheet.create({
 });
 
 export default GlobalEditingModal;
-
