@@ -18,11 +18,12 @@ const MicIcon = ({ size = 16, color = "#E6E6E6" }) => (
 );
 
 /**
- * TalkToKimiButton - Representational button (no functionality)
+ * TalkToKimiButton - Button to toggle voice/text input modes
  * 
- * Displays "Talk to Kimi instead" with microphone icon
+ * @param {function} onPress - Callback when button is pressed
+ * @param {string} label - Button label text (default: "Talk to Kimi instead")
  */
-const TalkToKimiButton = ({ onPress }) => {
+const TalkToKimiButton = ({ onPress, label = "Talk to Kimi instead" }) => {
   return (
     <TouchableOpacity
       style={styles.container}
@@ -30,7 +31,7 @@ const TalkToKimiButton = ({ onPress }) => {
       activeOpacity={0.7}
     >
       <MicIcon size={16} color={Colors.textAccent} />
-      <Text style={styles.label}>Talk to Kimi instead</Text>
+      <Text style={styles.label}>{label}</Text>
     </TouchableOpacity>
   );
 };
