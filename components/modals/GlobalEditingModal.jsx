@@ -1,12 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import Svg, { Defs, G, Path, Rect } from "react-native-svg";
+import Svg, {
+  Defs,
+  G,
+  LinearGradient,
+  Path,
+  Rect,
+  Stop,
+} from "react-native-svg";
 import {
   BorderRadius,
   Colors,
@@ -15,7 +23,11 @@ import {
 } from "../../constants/Theme";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
+import TalkToKimiButton from "./TalkToKimiButton";
 import XYPad from "./XYPad";
+
+// Constants for upper section animation
+const UPPER_SECTION_HEIGHT = 220; // Height of XY Pad / Sliders section
 
 /**
  * Icon Components
@@ -103,16 +115,67 @@ const MicButtonIcon = ({ size = 44, color = "#8A2BE2" }) => (
   </Svg>
 );
 
+const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
+  <Svg width={size} height={size} viewBox="0 0 44 44" fill="none">
+    {/* Circular background */}
+    <Path
+      d="M22 44C34.1503 44 44 34.1503 44 22C44 9.84974 34.1503 0 22 0C9.84974 0 0 9.84974 0 22C0 34.1503 9.84974 44 22 44Z"
+      fill={color}
+    />
+    {/* Arrow icon - scaled and centered */}
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M13.0719 26.7381L14.1277 21.8156L13.0719 16.8932C12.9455 16.3057 12.9862 15.6946 13.1894 15.129C13.3926 14.5635 13.7502 14.0662 14.2215 13.6935C14.6929 13.3207 15.2593 13.0875 15.8564 13.0202C16.4536 12.9529 17.0576 13.0543 17.6001 13.3127L29.512 18.9772C30.0485 19.2326 30.5017 19.6348 30.819 20.1372C31.1364 20.6396 31.3049 21.2216 31.305 21.8158C31.3051 22.41 31.1368 22.9921 30.8196 23.4946C30.5024 23.9971 30.0494 24.3994 29.5129 24.655L17.5992 30.3176C17.0568 30.5757 16.453 30.6768 15.8561 30.6094C15.2592 30.542 14.6931 30.3088 14.2219 29.9363C13.7508 29.5637 13.3933 29.0667 13.1901 28.5015C12.9868 27.9362 12.9459 27.3254 13.0719 26.7381ZM16.7358 28.5008L28.6467 22.8392C28.8409 22.7478 29.0051 22.603 29.1202 22.4217C29.2352 22.2405 29.2963 22.0303 29.2963 21.8156C29.2963 21.601 29.2352 21.3907 29.1202 21.2095C29.0051 21.0283 28.8409 20.8835 28.6467 20.7921L16.7377 15.1304C16.5344 15.0332 16.3079 14.9948 16.084 15.0197C15.86 15.0446 15.6474 15.1317 15.4705 15.2712C15.2935 15.4107 15.1591 15.597 15.0826 15.809C15.006 16.021 14.9904 16.2501 15.0375 16.4705L15.9672 20.8101L22.1833 20.8092C22.3167 20.8069 22.4493 20.8312 22.5732 20.8808C22.6972 20.9303 22.81 21.004 22.9052 21.0976C23.0003 21.1912 23.0759 21.3028 23.1275 21.4259C23.179 21.5491 23.2055 21.6812 23.2055 21.8147C23.2054 21.9482 23.1788 22.0803 23.1271 22.2033C23.0754 22.3264 22.9998 22.438 22.9045 22.5315C22.8093 22.625 22.6964 22.6986 22.5724 22.748C22.4484 22.7974 22.3158 22.8216 22.1823 22.8192L15.9663 22.8202L15.0375 27.1588C14.9902 27.3791 15.0056 27.6082 15.0819 27.8202C15.1582 28.0322 15.2923 28.2186 15.469 28.3583C15.6458 28.498 15.8582 28.5854 16.0821 28.6106C16.3059 28.6358 16.5324 28.5977 16.7358 28.5008Z"
+      fill="white"
+      fillOpacity="0.9"
+    />
+    <Path
+      d="M29.4844 19.0358C30.0097 19.2859 30.4532 19.6798 30.7639 20.1717C31.0747 20.6638 31.2396 21.2339 31.2397 21.8159C31.2398 22.3978 31.0758 22.968 30.7653 23.4601C30.4547 23.9522 30.0105 24.3464 29.485 24.5967L17.5719 30.2591C17.0405 30.5119 16.4484 30.6109 15.8636 30.5449C15.2787 30.4789 14.7239 30.2505 14.2622 29.8855C13.8005 29.5204 13.4504 29.0334 13.2513 28.4796C13.0521 27.9257 13.0118 27.3273 13.1353 26.7518L14.1911 21.829L14.1939 21.8152L14.1904 21.8021L13.1353 16.88C13.0114 16.3043 13.0508 15.705 13.2499 15.1509C13.449 14.5967 13.7997 14.1095 14.2615 13.7442C14.7234 13.379 15.2785 13.15 15.8636 13.0841C16.4486 13.0182 17.0404 13.1182 17.5719 13.3714L29.4844 19.0358ZM29.175 21.1751C29.0534 20.9835 28.8796 20.8305 28.6744 20.7338L16.7654 15.0715C16.5513 14.9691 16.3121 14.9293 16.0762 14.9554C15.8406 14.9817 15.6169 15.0732 15.4306 15.2199C15.2441 15.3669 15.1024 15.5642 15.0218 15.7875C14.9413 16.0108 14.9246 16.2522 14.9742 16.4843L15.9036 20.8236L15.9147 20.8747H15.9671L22.1833 20.8733L22.184 20.874C22.3089 20.8719 22.4334 20.8947 22.5493 20.941C22.6652 20.9873 22.7711 21.0565 22.8601 21.144C22.949 21.2315 23.0197 21.3362 23.0679 21.4513C23.116 21.5663 23.1411 21.6898 23.1411 21.8145C23.141 21.9394 23.1156 22.0633 23.0672 22.1784C23.031 22.2647 22.9826 22.3451 22.9229 22.4167L22.8594 22.4857C22.7703 22.5732 22.6639 22.6418 22.5479 22.688C22.4321 22.7341 22.308 22.7566 22.1833 22.7543H22.182L15.9665 22.755H15.914L15.9029 22.8061L14.9742 27.1448C14.9244 27.3769 14.9408 27.6188 15.0211 27.8422C15.1015 28.0655 15.243 28.262 15.4292 28.4091C15.6154 28.5562 15.8391 28.6484 16.0749 28.675C16.3106 28.7015 16.5492 28.6616 16.7633 28.5597L28.6744 22.898C28.8797 22.8014 29.0534 22.6483 29.175 22.4567C29.2966 22.2651 29.3607 22.0421 29.3607 21.8152C29.3607 21.5885 29.2964 21.3665 29.175 21.1751Z"
+      stroke="url(#paint0_linear_send)"
+      strokeOpacity="0.8"
+      strokeWidth="0.13"
+    />
+    <Defs>
+      <LinearGradient
+        id="paint0_linear_send"
+        x1="18.4607"
+        y1="13.2486"
+        x2="22.6919"
+        y2="32.0167"
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop stopColor="white" />
+        <Stop offset="1" stopColor="white" stopOpacity="0" />
+      </LinearGradient>
+    </Defs>
+  </Svg>
+);
+
 /**
- * GlobalEditingModal - Modal with 2 states for global editing
+ * GlobalEditingModal - Modal with input states and toggleable upper section
  *
- * States:
- * - 'bulbState': Shows placeholder with "Drag the point to help Kimi understand better"
- * - 'slidersState': Shows placeholder with "Tweak these values for advanced changes"
+ * Input States:
+ * - 'textInput': Default state with send icon (ArrowSendIcon)
+ * - 'voicePrompt': Voice prompt state with mic icon (MicButtonIcon)
+ *
+ * Upper Section States:
+ * - 'bulbState': Shows XY Pad
+ * - 'slidersState': Shows Feature Slider
  */
 const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
+  // Input state: textInput (first state) or voicePrompt (second state)
+  const [inputState, setInputState] = useState("textInput");
+
+  // Upper section visibility (XY Pad / Sliders)
+  const [upperSectionVisible, setUpperSectionVisible] = useState(false);
+
+  // Modal state for upper section content (bulb = XY Pad, sliders = Feature Slider)
   const [modalState, setModalState] = useState("bulbState");
   const [promptText, setPromptText] = useState("");
+
+  // Animation value for upper section height
+  const upperSectionHeightAnim = useRef(new Animated.Value(0)).current;
 
   // XY Pad state management for bulb state
   const [xyPadValue, setXYPadValue] = useState({ x: 0, y: 0 });
@@ -149,29 +212,49 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
     }));
   };
 
+  // Animate upper section height when visibility changes
+  useEffect(() => {
+    const targetHeight = upperSectionVisible ? UPPER_SECTION_HEIGHT : 0;
+    Animated.spring(upperSectionHeightAnim, {
+      toValue: targetHeight,
+      useNativeDriver: false,
+      tension: 65,
+      friction: 11,
+    }).start();
+  }, [upperSectionVisible]);
+
   // Calculate modal height based on state
   const getModalHeight = () => {
-    if (modalState === "slidersState") {
-      // Taller when slider is shown, even taller when color mixer is selected
-      return selectedFeature === "colorMixer" ? 520 : 480;
+    // Base height without upper section
+    let baseHeight = 280;
+
+    // Add upper section height if visible
+    if (upperSectionVisible) {
+      if (modalState === "slidersState") {
+        // Taller when slider is shown, even taller when color mixer is selected
+        baseHeight += selectedFeature === "colorMixer" ? 260 : 220;
+      } else {
+        baseHeight += UPPER_SECTION_HEIGHT;
+      }
     }
-    return 460;
+
+    return baseHeight;
   };
 
   // Report height changes to parent for canvas animation
-  React.useEffect(() => {
+  useEffect(() => {
     if (onHeightChange) {
       const height = visible ? getModalHeight() : 0;
       onHeightChange(height);
     }
-  }, [visible, modalState, selectedFeature]);
+  }, [visible, modalState, selectedFeature, upperSectionVisible]);
 
   // Close modal when clicking "Global Editing" dropdown
   const handleHeaderClick = () => {
     onClose();
   };
 
-  // Toggle between states
+  // Toggle between bulb/sliders states
   const handleBulbPress = () => {
     setModalState("bulbState");
   };
@@ -180,9 +263,33 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
     setModalState("slidersState");
   };
 
-  // Placeholder send handler
+  // Handle Talk to Kimi button press - toggles input state
+  const handleTalkToKimiPress = () => {
+    if (inputState === "textInput") {
+      setInputState("voicePrompt");
+    } else {
+      setInputState("textInput");
+    }
+  };
+
+  // Handle send button press - reveals upper section
   const handleSend = () => {
     console.log("Send clicked:", promptText);
+    // Reveal the upper section (XY Pad / Sliders)
+    setUpperSectionVisible(true);
+  };
+
+  // Handle tick button press - reveals upper section (placeholder for AI/ML)
+  const handleTickPress = () => {
+    console.log("Tick clicked - revealing upper section");
+    setUpperSectionVisible(true);
+  };
+
+  // Get Talk to Kimi button label based on input state
+  const getTalkToKimiLabel = () => {
+    return inputState === "textInput"
+      ? "Talk to Kimi instead"
+      : "Chat with Kimi";
   };
 
   return (
@@ -192,47 +299,72 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
       height={getModalHeight()}
     >
       <View style={styles.container}>
+        {/* Talk to Kimi Button */}
+        <TalkToKimiButton
+          onPress={handleTalkToKimiPress}
+          label={getTalkToKimiLabel()}
+        />
+
         {/* Main Content */}
         <View style={styles.contentContainer}>
-          {/* Header Row with helper text */}
-          <View style={styles.helperRow}>
-            {modalState === "bulbState" ? (
-              <>
-                <BulbIcon size={15} color="rgba(255, 255, 255, 0.6)" />
-                <Text style={styles.helperText}>
-                  Touch the point to help Kimi understand better.
-                </Text>
-              </>
-            ) : (
-              <>
-                <SlidersVerticalIcon
-                  size={15}
-                  color="rgba(255, 255, 255, 0.6)"
-                />
-                <Text style={styles.helperText}>
-                  Tweak these values for advanced changes
-                </Text>
-              </>
-            )}
-          </View>
+          {/* Upper Section - Animated container for XY Pad / Sliders */}
+          <Animated.View
+            style={[
+              styles.upperSection,
+              {
+                height: upperSectionHeightAnim,
+                opacity: upperSectionHeightAnim.interpolate({
+                  inputRange: [
+                    0,
+                    UPPER_SECTION_HEIGHT * 0.5,
+                    UPPER_SECTION_HEIGHT,
+                  ],
+                  outputRange: [0, 0.5, 1],
+                }),
+                overflow: "hidden",
+              },
+            ]}
+          >
+            {/* Header Row with helper text */}
+            <View style={styles.helperRow}>
+              {modalState === "bulbState" ? (
+                <>
+                  <BulbIcon size={15} color="rgba(255, 255, 255, 0.6)" />
+                  <Text style={styles.helperText}>
+                    Touch the point to help Kimi understand better.
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <SlidersVerticalIcon
+                    size={15}
+                    color="rgba(255, 255, 255, 0.6)"
+                  />
+                  <Text style={styles.helperText}>
+                    Tweak these values for advanced changes
+                  </Text>
+                </>
+              )}
+            </View>
 
-          {/* Content based on state */}
-          {modalState === "bulbState" ? (
-            <XYPad
-              value={xyPadValue}
-              onValueChange={setXYPadValue}
-              dotColor="#8A2BE2"
-            />
-          ) : (
-            <FeatureSliderContainer
-              sliderValues={sliderValues}
-              onSliderValueChange={handleSliderValueChange}
-              selectedFeature={selectedFeature}
-              onFeatureSelect={setSelectedFeature}
-              selectedColorChannel={selectedColorChannel}
-              onColorChannelSelect={setSelectedColorChannel}
-            />
-          )}
+            {/* Content based on state */}
+            {modalState === "bulbState" ? (
+              <XYPad
+                value={xyPadValue}
+                onValueChange={setXYPadValue}
+                dotColor="#8A2BE2"
+              />
+            ) : (
+              <FeatureSliderContainer
+                sliderValues={sliderValues}
+                onSliderValueChange={handleSliderValueChange}
+                selectedFeature={selectedFeature}
+                onFeatureSelect={setSelectedFeature}
+                selectedColorChannel={selectedColorChannel}
+                onColorChannelSelect={setSelectedColorChannel}
+              />
+            )}
+          </Animated.View>
 
           {/* Bottom Controls Row */}
           <View style={styles.controlsRow}>
@@ -246,63 +378,70 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
               <DropdownIcon size={16} color={Colors.textAccent} />
             </TouchableOpacity>
 
-            {/* Toggle Buttons */}
-            <View style={styles.toggleContainer}>
-              {/* Bulb Button */}
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  modalState === "bulbState" && styles.toggleButtonActive,
-                ]}
-                onPress={handleBulbPress}
-                activeOpacity={0.7}
-              >
-                <BulbIcon
-                  size={16}
-                  color={modalState === "bulbState" ? "#1D1C1D" : "#E6E6E6"}
-                />
-              </TouchableOpacity>
+            {/* Toggle Buttons - only show when upper section is visible */}
+            {upperSectionVisible && (
+              <View style={styles.toggleContainer}>
+                {/* Bulb Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    modalState === "bulbState" && styles.toggleButtonActive,
+                  ]}
+                  onPress={handleBulbPress}
+                  activeOpacity={0.7}
+                >
+                  <BulbIcon
+                    size={16}
+                    color={modalState === "bulbState" ? "#1D1C1D" : "#E6E6E6"}
+                  />
+                </TouchableOpacity>
 
-              {/* Sliders Button */}
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  modalState === "slidersState" && styles.toggleButtonActive,
-                ]}
-                onPress={handleSlidersPress}
-                activeOpacity={0.7}
-              >
-                <SlidersVerticalIcon
-                  size={16}
-                  color={modalState === "slidersState" ? "#1D1C1D" : "#E6E6E6"}
-                />
-              </TouchableOpacity>
-            </View>
+                {/* Sliders Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    modalState === "slidersState" && styles.toggleButtonActive,
+                  ]}
+                  onPress={handleSlidersPress}
+                  activeOpacity={0.7}
+                >
+                  <SlidersVerticalIcon
+                    size={16}
+                    color={
+                      modalState === "slidersState" ? "#1D1C1D" : "#E6E6E6"
+                    }
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
-          {/* Static Chat History Section */}
-          <View style={styles.chatHistorySection}>
-            <View style={styles.historyItem}>
-              <CodeForkIcon size={16} color="rgba(255, 255, 255, 0.6)" />
-              <View style={styles.historyContent}>
-                <Text style={styles.historyText}>
-                  Gotcha! I have done those changes to your image. Can you play
-                  with the point to help me deliver a more accurate result?
-                </Text>
-                <View style={styles.historyTags}>
-                  <View style={styles.historyTag}>
-                    <Text style={styles.tagText}>Added Motion Blur</Text>
-                  </View>
-                  <View style={styles.historyTag}>
-                    <Text style={styles.tagText}>Increased Sharpness</Text>
-                  </View>
-                  <View style={styles.historyTag}>
-                    <Text style={styles.tagText}>5 more</Text>
+          {/* Static Chat History Section - only show when upper section is visible */}
+          {upperSectionVisible && (
+            <View style={styles.chatHistorySection}>
+              <View style={styles.historyItem}>
+                <CodeForkIcon size={16} color="rgba(255, 255, 255, 0.6)" />
+                <View style={styles.historyContent}>
+                  <Text style={styles.historyText}>
+                    Gotcha! I have done those changes to your image. Can you
+                    play with the point to help me deliver a more accurate
+                    result?
+                  </Text>
+                  <View style={styles.historyTags}>
+                    <View style={styles.historyTag}>
+                      <Text style={styles.tagText}>Added Motion Blur</Text>
+                    </View>
+                    <View style={styles.historyTag}>
+                      <Text style={styles.tagText}>Increased Sharpness</Text>
+                    </View>
+                    <View style={styles.historyTag}>
+                      <Text style={styles.tagText}>5 more</Text>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
-          </View>
+          )}
 
           {/* Text Input Row */}
           <View style={styles.inputRow}>
@@ -310,16 +449,26 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
               style={styles.textInput}
               value={promptText}
               onChangeText={setPromptText}
-              placeholder="Awesome! Now change the mood to something..."
+              placeholder={
+                inputState === "textInput"
+                  ? "Can you make this scene more gloomy"
+                  : "Awesome! Now change the mood to something..."
+              }
               placeholderTextColor="rgba(255, 255, 255, 0.6)"
               multiline
             />
             <TouchableOpacity
               style={styles.sendButton}
-              onPress={handleSend}
+              onPress={
+                inputState === "textInput" ? handleSend : handleTickPress
+              }
               activeOpacity={0.7}
             >
-              <MicButtonIcon size={44} color={Colors.aiPrimary} />
+              {inputState === "textInput" ? (
+                <ArrowSendIcon size={44} color={Colors.aiPrimary} />
+              ) : (
+                <MicButtonIcon size={44} color={Colors.aiPrimary} />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -342,9 +491,12 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     borderColor: "#FFFFFF",
     borderRadius: 24,
-    paddingTop: Spacing.xl,
+    paddingTop: Spacing.md,
     paddingHorizontal: Spacing.md,
     paddingBottom: Spacing.md,
+    gap: Spacing.md,
+  },
+  upperSection: {
     gap: Spacing.md,
   },
   helperRow: {
@@ -359,14 +511,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "rgba(255, 255, 255, 0.6)",
     letterSpacing: 0.28,
-  },
-  placeholderRectangle: {
-    width: "100%",
-    height: 175,
-    backgroundColor: "rgba(47, 44, 45, 0.9)",
-    borderWidth: 1.644,
-    borderColor: "#FFFFFF",
-    borderRadius: 20,
   },
   controlsRow: {
     flexDirection: "row",
