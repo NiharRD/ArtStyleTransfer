@@ -117,11 +117,13 @@ const XYPad = ({
   return (
     <TouchableWithoutFeedback onPress={handlePress}>
       <View style={styles.container} onLayout={onLayout}>
-        {/* Horizontal Grid Line */}
-        <View style={styles.horizontalLine} />
+        {/* Horizontal Grid Lines */}
+        <View style={[styles.horizontalLine, { top: "33%" }]} />
+        <View style={[styles.horizontalLine, { top: "66%" }]} />
 
-        {/* Vertical Grid Line */}
-        <View style={styles.verticalLine} />
+        {/* Vertical Grid Lines */}
+        <View style={[styles.verticalLine, { left: "33%" }]} />
+        <View style={[styles.verticalLine, { left: "66%" }]} />
 
         {/* Top Label - Inside */}
         <Text style={[styles.label, styles.labelTop]}>{labels.top}</Text>
@@ -169,7 +171,6 @@ const styles = StyleSheet.create({
   },
   horizontalLine: {
     position: "absolute",
-    top: "50%",
     left: 0,
     right: 0,
     height: 1,
@@ -177,7 +178,6 @@ const styles = StyleSheet.create({
   },
   verticalLine: {
     position: "absolute",
-    left: "50%",
     top: 0,
     bottom: 0,
     width: 1,
