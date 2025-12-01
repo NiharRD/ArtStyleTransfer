@@ -8,7 +8,7 @@ import {
 } from "../icons/IconComponents";
 import QuickActionButton from "./QuickActionButton";
 
-const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress }) => {
+const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress, onGlobalEditingPress }) => {
   const scrollViewRef = useRef(null);
 
   const handleActionPress = (actionId) => {
@@ -19,9 +19,14 @@ const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress }) => {
         }
         break;
       case "generate-mockup":
-      case "product-mockup":
         if (onGenerateMockupPress) {
           onGenerateMockupPress();
+        }
+        break;
+      case "global-editing-1":
+      case "global-editing-2":
+        if (onGlobalEditingPress) {
+          onGlobalEditingPress();
         }
         break;
       case "create":
@@ -70,12 +75,6 @@ const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress }) => {
       label: "Product\nMockup",
       isActive: true,
     },
-    // {
-    //   id: "global-editing-2",
-    //   icon: <CameraIcon size={28} color="#CCCCCC" />,
-    //   label: "Global\nEditing",
-    //   isActive: true,
-    // },
   ];
 
   return (

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
 import GenerateMockupModal from "../components/modals/GenerateMockupModal";
+import GlobalEditingModal from "../components/modals/GlobalEditingModal";
 import AIPromptButton from "../components/ui/AIPromptButton";
 import ControlBar from "../components/ui/ControlBar";
 import DrawerToggle from "../components/ui/DrawerToggle";
@@ -45,6 +46,8 @@ const HomeScreen = () => {
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
   const [generateMockupModalVisible, setGenerateMockupModalVisible] =
     useState(false);
+  const [globalEditingModalVisible, setGlobalEditingModalVisible] =
+    useState(false);
   const [currentModalHeight, setCurrentModalHeight] = useState(0);
 
   // Animated value for canvas height
@@ -60,7 +63,10 @@ const HomeScreen = () => {
   });
 
   // Check if any modal is open
-  const isModalOpen = artStyleModalVisible || generateMockupModalVisible;
+  const isModalOpen =
+    artStyleModalVisible ||
+    generateMockupModalVisible ||
+    globalEditingModalVisible;
 
   // Calculate canvas height based on modal height and suggestions visibility
   const calculateCanvasHeight = (modalHeight, modalOpen) => {
@@ -126,6 +132,14 @@ const HomeScreen = () => {
     setGenerateMockupModalVisible(false);
   };
 
+  const handleGlobalEditingPress = () => {
+    setGlobalEditingModalVisible(true);
+  };
+
+  const handleCloseGlobalEditingModal = () => {
+    setGlobalEditingModalVisible(false);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#191816" />
@@ -166,13 +180,15 @@ const HomeScreen = () => {
         </View>
 
         {/* Smart Suggestions - Hide when any modal is open */}
-        {!artStyleModalVisible && !generateMockupModalVisible && (
-          <SmartSuggestions
-            onSuggestionPress={(suggestion) => {
-              Alert.alert("Suggestion", `Selected: ${suggestion.label}`);
-            }}
-          />
-        )}
+        {!artStyleModalVisible &&
+          !generateMockupModalVisible &&
+          !globalEditingModalVisible && (
+            <SmartSuggestions
+              onSuggestionPress={(suggestion) => {
+                Alert.alert("Suggestion", `Selected: ${suggestion.label}`);
+              }}
+            />
+          )}
 
         {/* Bottom Section */}
         <View style={styles.bottomSection}>
@@ -182,19 +198,24 @@ const HomeScreen = () => {
           {/* Quick Actions Bar with AI Button */}
           <View style={styles.actionsContainer}>
             {/* Quick Actions Bar - Hide when any modal is open */}
-            {!artStyleModalVisible && !generateMockupModalVisible && (
-              <QuickActionsBar
-                onArtStylePress={handleArtStylePress}
-                onGenerateMockupPress={handleGenerateMockupPress}
-              />
-            )}
+            {!artStyleModalVisible &&
+              !generateMockupModalVisible &&
+              !globalEditingModalVisible && (
+                <QuickActionsBar
+                  onArtStylePress={handleArtStylePress}
+                  onGenerateMockupPress={handleGenerateMockupPress}
+                  onGlobalEditingPress={handleGlobalEditingPress}
+                />
+              )}
 
             {/* AI Prompt Button - Hide when any modal is open */}
-            {!artStyleModalVisible && !generateMockupModalVisible && (
-              <View style={styles.aiButtonContainer}>
-                <AIPromptButton onPress={handleAIPromptPress} />
-              </View>
-            )}
+            {!artStyleModalVisible &&
+              !generateMockupModalVisible &&
+              !globalEditingModalVisible && (
+                <View style={styles.aiButtonContainer}>
+                  <AIPromptButton onPress={handleAIPromptPress} />
+                </View>
+              )}
           </View>
 
           {/* Home Indicator */}
@@ -212,6 +233,13 @@ const HomeScreen = () => {
         <GenerateMockupModal
           visible={generateMockupModalVisible}
           onClose={handleCloseGenerateMockupModal}
+          onHeightChange={handleModalHeightChange}
+        />
+
+        {/* Global Editing Modal */}
+        <GlobalEditingModal
+          visible={globalEditingModalVisible}
+          onClose={handleCloseGlobalEditingModal}
           onHeightChange={handleModalHeightChange}
         />
       </View>
