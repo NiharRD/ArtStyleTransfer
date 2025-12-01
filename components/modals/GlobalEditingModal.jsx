@@ -22,6 +22,7 @@ import {
 } from "../../constants/Theme";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
+import XYPad from "./XYPad";
 
 /**
  * Icon Components
@@ -136,6 +137,9 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
   const [modalState, setModalState] = useState("bulbState");
   const [promptText, setPromptText] = useState("");
 
+  // XY Pad state management for bulb state
+  const [xyPadValue, setXYPadValue] = useState({ x: 0, y: 0 });
+
   // Slider state management for all features
   const [sliderValues, setSliderValues] = useState({
     brightness: 0,
@@ -219,7 +223,7 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
               <>
                 <BulbIcon size={15} color="rgba(255, 255, 255, 0.6)" />
                 <Text style={styles.helperText}>
-                  Drag the point to help Kimi understand better.
+                  Touch the point to help Kimi understand better.
                 </Text>
               </>
             ) : (
@@ -237,9 +241,11 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
 
           {/* Content based on state */}
           {modalState === "bulbState" ? (
-            <View style={styles.placeholderRectangle}>
-              {/* Empty placeholder for bulb state - to be implemented later */}
-            </View>
+            <XYPad
+              value={xyPadValue}
+              onValueChange={setXYPadValue}
+              dotColor="#8A2BE2"
+            />
           ) : (
             <FeatureSliderContainer
               sliderValues={sliderValues}
