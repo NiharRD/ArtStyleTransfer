@@ -6,6 +6,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Modal,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -22,6 +23,7 @@ import DrawerToggle from "../components/ui/DrawerToggle";
 import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
+import { baseUrl } from "../endPoints";
 
 const { width, height } = Dimensions.get("window");
 
@@ -37,6 +39,7 @@ const { width, height } = Dimensions.get("window");
  * - Smooth state transitions
  * - Image picker with blob-ready state for HTTP form data
  * - Loading overlay for async AI/ML operations
+ * - Global Editing with HTTP workflow for AI image processing
  */
 const DEFAULT_CANVAS_HEIGHT = 450;
 const DEFAULT_CANVAS_WIDTH = width - 32;
@@ -63,6 +66,19 @@ const HomeScreen = () => {
     isLoading: false, // Loading state
   });
 
+  // Iteration tracking for Global Editing
+  const [iterations, setIterations] = useState(1);
+  const [baseFilename, setBaseFilename] = useState("00_final.jpg");
+
+  // Session ID for Global Editing HTTP workflow
+  const [sessionIdGlobalEditing, setSessionIdGlobalEditing] = useState(null);
+
+  // Status modal for showing progress during HTTP operations
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    message: "",
+  });
+
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
   const [generateMockupModalVisible, setGenerateMockupModalVisible] =
     useState(false);
@@ -77,6 +93,9 @@ const HomeScreen = () => {
 
   // Animated value for loading overlay pulse effect
   const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+  // Animated value for status modal pulse
+  const statusPulseAnim = useRef(new Animated.Value(0.8)).current;
 
   // Interpolate width from height to maintain aspect ratio
   const canvasWidthAnim = canvasHeightAnim.interpolate({
@@ -114,6 +133,30 @@ const HomeScreen = () => {
       return () => pulseAnimation.stop();
     }
   }, [imageState.isLoading]);
+
+  // Pulse animation for status modal
+  useEffect(() => {
+    if (statusModal.visible) {
+      const statusAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(statusPulseAnim, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(statusPulseAnim, {
+            toValue: 0.8,
+            duration: 600,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      statusAnimation.start();
+      return () => statusAnimation.stop();
+    }
+  }, [statusModal.visible]);
 
   // Calculate canvas height based on modal height and suggestions visibility
   const calculateCanvasHeight = (modalHeight, modalOpen) => {
@@ -197,6 +240,11 @@ const HomeScreen = () => {
           blob: blob,
           isLoading: false,
         });
+
+        // Reset iteration tracking when new image is picked
+        setIterations(1);
+        setBaseFilename("00_final.jpg");
+        setSessionIdGlobalEditing(null);
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -251,6 +299,212 @@ const HomeScreen = () => {
    */
   const getImageBlob = () => imageState.blob;
 
+  /**
+   * Update base filename based on iteration number
+   * @param {number} iterationNum - The iteration number
+   * @returns {string} The formatted filename
+   */
+  const getFilenameForIteration = (iterationNum) => {
+    const paddedNum = String(iterationNum).padStart(2, "0");
+    return `${paddedNum}_final.jpg`;
+  };
+
+  /**
+   * Upload image and get session ID from server
+   * POST to baseUrl + "upload" with FormData
+   *
+   * @param {string} prompt - The user's prompt text
+   * @returns {Promise<string|null>} The session ID or null on failure
+   */
+  const uploadAndGetSessionId = async (prompt) => {
+    try {
+      setStatusModal({ visible: true, message: "Uploading image..." });
+
+      // Debug: Log upload URL
+      const uploadUrl = `${baseUrl}upload`;
+      console.log("=== Upload Debug ===");
+      console.log("Upload URL:", uploadUrl);
+      console.log("Prompt:", prompt);
+      console.log("Original image URI:", originalImageState.uri);
+      console.log("====================");
+
+      // Create FormData with file and prompt
+      const formData = new FormData();
+      formData.append("file", {
+        uri: originalImageState.uri,
+        type: "image/jpeg",
+        name: "original.jpg",
+      });
+      formData.append("prompt", prompt);
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("Upload response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Upload response:", data);
+
+      // Extract and store session ID
+      const sessionId = data.session_id;
+      setSessionIdGlobalEditing(sessionId);
+
+      return sessionId;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setStatusModal({ visible: false, message: "" });
+      Alert.alert("Upload Error", "Failed to upload image. Please try again.");
+      return null;
+    }
+  };
+
+  /**
+   * Generate edited image using session ID
+   * POST to baseUrl + "generate/{sessionId}"
+   *
+   * @param {string} sessionId - The session ID from upload
+   * @returns {Promise<boolean>} Success status
+   */
+  const generateImage = async (sessionId) => {
+    try {
+      setStatusModal({ visible: true, message: "Generating edit..." });
+
+      const response = await fetch(`${baseUrl}generate/${sessionId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Generate failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Generate response:", data);
+
+      if (data.status === "success" && data.image_url) {
+        // Update status to show loading result
+        setStatusModal({ visible: true, message: "Loading result..." });
+
+        // Debug: Log URL components
+        console.log("=== URL Debug ===");
+        console.log("baseUrl:", baseUrl);
+        console.log("data.image_url:", data.image_url);
+        console.log("starts with /:", data.image_url.startsWith("/"));
+
+        // Construct full image URL
+        const fullImageUrl = `${baseUrl}${
+          data.image_url.startsWith("/")
+            ? data.image_url.slice(1)
+            : data.image_url
+        }`;
+
+        console.log("fullImageUrl:", fullImageUrl);
+        console.log("=================");
+
+        // Update image state with new image
+        await updateImageFromResponse(fullImageUrl);
+
+        // Update iteration tracking
+        const newIteration = data.iteration || iterations + 1;
+        setIterations(newIteration);
+        setBaseFilename(getFilenameForIteration(newIteration));
+
+        setStatusModal({ visible: false, message: "" });
+        return true;
+      } else {
+        throw new Error("Invalid response from generate endpoint");
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+      setStatusModal({ visible: false, message: "" });
+      Alert.alert(
+        "Generation Error",
+        "Failed to generate edited image. Please try again."
+      );
+      return false;
+    }
+  };
+
+  /**
+   * Main handler for Global Editing send button
+   * Orchestrates the full HTTP workflow
+   *
+   * @param {string} prompt - The user's prompt text
+   * @returns {Promise<boolean>} Success status
+   */
+  const handleGlobalEditingSend = async (prompt) => {
+    // Validate that we have an image to work with
+    if (!originalImageState.uri || !originalImageState.blob) {
+      Alert.alert("No Image", "Please select an image before applying edits.");
+      return false;
+    }
+
+    // Validate prompt
+    if (!prompt || prompt.trim() === "") {
+      Alert.alert("No Prompt", "Please enter a prompt describing your edit.");
+      return false;
+    }
+
+    try {
+      // Set image loading state
+      setImageLoading(true);
+
+      // Step 1: Upload image and get session ID
+      const sessionId = await uploadAndGetSessionId(prompt);
+      if (!sessionId) {
+        setImageLoading(false);
+        return false;
+      }
+
+      // Step 2: Generate edited image
+      const success = await generateImage(sessionId);
+      if (!success) {
+        setImageLoading(false);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in global editing workflow:", error);
+      setStatusModal({ visible: false, message: "" });
+      setImageLoading(false);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+      return false;
+    }
+  };
+
+  /**
+   * Retry the last generation with the same session ID
+   * @returns {Promise<boolean>} Success status
+   */
+  const handleGlobalEditingRetry = async () => {
+    if (!sessionIdGlobalEditing) {
+      Alert.alert("Error", "No active session. Please start a new edit.");
+      return false;
+    }
+
+    try {
+      setImageLoading(true);
+      const success = await generateImage(sessionIdGlobalEditing);
+      return success;
+    } catch (error) {
+      console.error("Error retrying generation:", error);
+      setImageLoading(false);
+      return false;
+    }
+  };
+
   const handleBackPress = () => {
     // Navigate back or show projects list
     Alert.alert("Navigation", "Back to projects list");
@@ -296,13 +550,35 @@ const HomeScreen = () => {
   };
 
   // Loading Overlay Component
-  const LoadingOverlay = () => (
+  const LoadingOverlay = ({ message }) => (
     <Animated.View style={[styles.loadingOverlay, { opacity: pulseAnim }]}>
       <View style={styles.loadingContent}>
         <ActivityIndicator size="large" color="#FFFFFF" />
-        <Text style={styles.loadingText}>Processing...</Text>
+        <Text style={styles.loadingText}>{message || "Processing..."}</Text>
       </View>
     </Animated.View>
+  );
+
+  // Status Modal Component - Shows progress during HTTP operations
+  const StatusModalComponent = () => (
+    <Modal
+      visible={statusModal.visible}
+      transparent={true}
+      animationType="fade"
+      statusBarTranslucent={true}
+    >
+      <View style={styles.statusModalOverlay}>
+        <Animated.View
+          style={[
+            styles.statusModalContent,
+            { transform: [{ scale: statusPulseAnim }] },
+          ]}
+        >
+          <ActivityIndicator size="large" color="#8A2BE2" />
+          <Text style={styles.statusModalText}>{statusModal.message}</Text>
+        </Animated.View>
+      </View>
+    </Modal>
   );
 
   return (
@@ -334,7 +610,9 @@ const HomeScreen = () => {
                 resizeMode="cover"
               />
               {/* Loading overlay on top of image */}
-              {imageState.isLoading && <LoadingOverlay />}
+              {imageState.isLoading && (
+                <LoadingOverlay message={statusModal.message} />
+              )}
             </View>
           ) : (
             <Animated.View
@@ -344,7 +622,7 @@ const HomeScreen = () => {
               ]}
             >
               {imageState.isLoading ? (
-                <LoadingOverlay />
+                <LoadingOverlay message={statusModal.message} />
               ) : (
                 <TouchableOpacity
                   style={styles.pickImageButton}
@@ -429,7 +707,13 @@ const HomeScreen = () => {
           visible={globalEditingModalVisible}
           onClose={handleCloseGlobalEditingModal}
           onHeightChange={handleModalHeightChange}
+          onSendPrompt={handleGlobalEditingSend}
+          onRetry={handleGlobalEditingRetry}
+          isProcessing={imageState.isLoading}
         />
+
+        {/* Status Modal for progress updates */}
+        <StatusModalComponent />
       </View>
     </SafeAreaView>
   );
@@ -538,6 +822,30 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#FFFFFF",
     letterSpacing: 0.5,
+  },
+  // Status Modal Styles
+  statusModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statusModalContent: {
+    backgroundColor: "#2A2A28",
+    borderRadius: 16,
+    padding: 32,
+    alignItems: "center",
+    minWidth: 200,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  statusModalText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
+    textAlign: "center",
   },
   bottomSection: {
     paddingBottom: 20,

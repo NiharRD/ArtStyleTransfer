@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   StyleSheet,
   Text,
@@ -214,7 +215,14 @@ const RefineIcon = ({ size = 16, color = "#E6E6E6" }) => (
  * - 'bulbState': Shows XY Pad
  * - 'slidersState': Shows Feature Slider
  */
-const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
+const GlobalEditingModal = ({
+  visible,
+  onClose,
+  onHeightChange,
+  onSendPrompt,
+  onRetry,
+  isProcessing,
+}) => {
   // Input state: textInput (first state) or voicePrompt (second state)
   const [inputState, setInputState] = useState("textInput");
 
@@ -227,6 +235,9 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
   // Modal state for upper section content (bulb = XY Pad, sliders = Feature Slider)
   const [modalState, setModalState] = useState("bulbState");
   const [promptText, setPromptText] = useState("");
+
+  // Local processing state for send button
+  const [isSending, setIsSending] = useState(false);
 
   // Animation values
   const upperSectionHeightAnim = useRef(new Animated.Value(0)).current;
@@ -352,25 +363,54 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
     }
   };
 
-  // Handle send button press (in textInput state) - shows confirmation row
-  const handleSend = () => {
+  // Handle send button press (in textInput state) - calls API and shows confirmation row on success
+  const handleSend = async () => {
     console.log("Send clicked:", promptText);
-    if (inputState === "textInput") {
+    if (inputState === "textInput" && onSendPrompt) {
+      setIsSending(true);
+      try {
+        const success = await onSendPrompt(promptText);
+        if (success) {
+          // Show confirmation row only after successful generation
+          setConfirmationVisible(true);
+        }
+      } catch (error) {
+        console.error("Error sending prompt:", error);
+      } finally {
+        setIsSending(false);
+      }
+    } else if (inputState === "textInput") {
+      // Fallback if no handler provided
       setConfirmationVisible(true);
     }
   };
 
-  // Handle tick button press - reveals upper section
+  // Handle tick button press - reveals upper section (keep changes)
   const handleTickPress = () => {
     console.log("Tick clicked - revealing upper section");
     setConfirmationVisible(false);
     setUpperSectionVisible(true);
   };
 
-  // Handle retry button press - placeholder for AI retry
-  const handleRetryPress = () => {
-    console.log("Retry clicked - placeholder for AI retry");
-    setConfirmationVisible(false);
+  // Handle retry button press - calls retry API
+  const handleRetryPress = async () => {
+    console.log("Retry clicked - retrying generation");
+    if (onRetry) {
+      setIsSending(true);
+      try {
+        const success = await onRetry();
+        if (success) {
+          // Keep confirmation visible for another decision
+          setConfirmationVisible(true);
+        }
+      } catch (error) {
+        console.error("Error retrying:", error);
+      } finally {
+        setIsSending(false);
+      }
+    } else {
+      setConfirmationVisible(false);
+    }
   };
 
   // Handle refine button press - placeholder for AI refinement
@@ -572,18 +612,30 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
 
             {/* Retry Button (Purple) */}
             <TouchableOpacity
-              style={styles.retryButton}
+              style={[
+                styles.retryButton,
+                (isSending || isProcessing) && styles.buttonDisabled,
+              ]}
               onPress={handleRetryPress}
               activeOpacity={0.7}
+              disabled={isSending || isProcessing}
             >
-              <RefreshIcon size={28} color="white" />
+              {isSending || isProcessing ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <RefreshIcon size={28} color="white" />
+              )}
             </TouchableOpacity>
 
             {/* Tick/Check Button (Dark) */}
             <TouchableOpacity
-              style={styles.tickButton}
+              style={[
+                styles.tickButton,
+                (isSending || isProcessing) && styles.buttonDisabled,
+              ]}
               onPress={handleTickPress}
               activeOpacity={0.7}
+              disabled={isSending || isProcessing}
             >
               <CheckIcon size={28} color="white" />
             </TouchableOpacity>
@@ -617,11 +669,21 @@ const GlobalEditingModal = ({ visible, onClose, onHeightChange }) => {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.sendButton}
+                    style={[
+                      styles.sendButton,
+                      (isSending || isProcessing) && styles.sendButtonDisabled,
+                    ]}
                     onPress={handleSend}
                     activeOpacity={0.7}
+                    disabled={isSending || isProcessing}
                   >
-                    <ArrowSendIcon size={44} color={Colors.aiPrimary} />
+                    {isSending || isProcessing ? (
+                      <View style={styles.sendButtonLoading}>
+                        <ActivityIndicator size="small" color="#8A2BE2" />
+                      </View>
+                    ) : (
+                      <ArrowSendIcon size={44} color={Colors.aiPrimary} />
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -879,6 +941,20 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
     alignItems: "center",
+  },
+  sendButtonDisabled: {
+    opacity: 0.5,
+  },
+  sendButtonLoading: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(138, 43, 226, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
 });
 
