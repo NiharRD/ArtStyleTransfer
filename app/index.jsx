@@ -6,6 +6,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Image,
   Modal,
   SafeAreaView,
   StatusBar,
@@ -68,7 +69,14 @@ const HomeScreen = () => {
 
   // Iteration tracking for Global Editing
   const [iterations, setIterations] = useState(1);
-  const [baseFilename, setBaseFilename] = useState("00_final.jpg");
+  const [baseFilename, setBaseFilename] = useState("01_final.jpg");
+
+  // Keep baseFilename in sync with iterations
+  useEffect(() => {
+    const filename = getFilenameForIteration(iterations);
+    setBaseFilename(filename);
+    console.log("Base filename updated:", filename, "for iteration:", iterations);
+  }, [iterations]);
 
   // Session ID for Global Editing HTTP workflow
   const [sessionIdGlobalEditing, setSessionIdGlobalEditing] = useState(null);
@@ -78,6 +86,14 @@ const HomeScreen = () => {
     visible: false,
     message: "",
   });
+
+  // Semantic axes states for XYPad dynamic labels
+  const [semanticAxes, setSemanticAxes] = useState({
+    additionalProp1: null, // First axis name (e.g., "Bright-Dark")
+    additionalProp2: null, // Second axis name (e.g., "Moody-Airy")
+    labels: null, // Parsed labels for XYPad { left, right, top, bottom }
+  });
+  const [semanticLoading, setSemanticLoading] = useState(false);
 
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
   const [generateMockupModalVisible, setGenerateMockupModalVisible] =
@@ -264,16 +280,30 @@ const HomeScreen = () => {
       // Set loading state
       setImageState((prev) => ({ ...prev, isLoading: true }));
 
+      // Prefetch the image to ensure it's cached before displaying
+      console.log("Prefetching image:", newImageUri);
+      await Image.prefetch(newImageUri);
+      console.log("Image prefetched successfully");
+
       // Fetch and convert to blob
       const response = await fetch(newImageUri);
       const blob = await response.blob();
 
-      // Update state with new image
+      // Update state with new image (image is now cached and ready)
       setImageState({
         uri: newImageUri,
         blob: blob,
         isLoading: false,
       });
+
+      // Wait for React to process the state update and render
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve);
+        });
+      });
+
+      console.log("Image state updated and rendered");
     } catch (error) {
       console.error("Error updating image from response:", error);
       setImageState((prev) => ({ ...prev, isLoading: false }));
@@ -505,6 +535,105 @@ const HomeScreen = () => {
     }
   };
 
+  /**
+   * Fetch semantic axes from server for XYPad labels
+   * POST to baseUrl + "semantic/init/{sessionId}"
+   *
+   * @param {string} sessionId - The session ID
+   * @returns {Promise<object|null>} Parsed axes data or null on failure
+   */
+  const fetchSemanticAxes = async (sessionId) => {
+    try {
+      setSemanticLoading(true);
+      setStatusModal({ visible: true, message: "Loading semantic axes..." });
+
+      console.log("=== Semantic Init Debug ===");
+      console.log("Session ID:", sessionId);
+      const semanticUrl = `${baseUrl}semantic/init/${sessionId}`;
+      console.log("Semantic URL:", semanticUrl);
+
+      const response = await fetch(semanticUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Semantic response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`Semantic init failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Semantic response:", data);
+
+      if (data.axes && data.axes.length >= 2) {
+        // Extract axis names
+        const additionalProp1 = data.axes[0].name; // e.g., "Bright-Dark"
+        const additionalProp2 = data.axes[1].name; // e.g., "Moody-Airy"
+
+        // Parse axis names to get short labels
+        // First axis: "Bright-Dark" → left: "Bright", right: "Dark"
+        // Second axis: "Moody-Airy" → bottom: "Moody", top: "Airy"
+        const axis1Parts = additionalProp1.split("-");
+        const axis2Parts = additionalProp2.split("-");
+
+        const labels = {
+          left: axis1Parts[0] || "Day", // -X: first part of first axis (Bright)
+          right: axis1Parts[1] || "Night", // +X: second part of first axis (Dark)
+          bottom: axis2Parts[0] || "Gloomy", // -Y: first part of second axis (Moody)
+          top: axis2Parts[1] || "Joyful", // +Y: second part of second axis (Airy)
+        };
+
+        console.log("Parsed labels:", labels);
+        console.log("===========================");
+
+        setSemanticAxes({
+          additionalProp1,
+          additionalProp2,
+          labels,
+        });
+
+        setStatusModal({ visible: false, message: "" });
+        setSemanticLoading(false);
+        return { additionalProp1, additionalProp2, labels };
+      } else {
+        throw new Error("Invalid axes data in response");
+      }
+    } catch (error) {
+      console.error("Error fetching semantic axes:", error);
+      setStatusModal({ visible: false, message: "" });
+      setSemanticLoading(false);
+      Alert.alert(
+        "Semantic Error",
+        "Failed to load semantic axes. Using default labels."
+      );
+      return null;
+    }
+  };
+
+  /**
+   * Handle tick button press - fetch semantic axes and show XYPad
+   * Called when user accepts the generated changes
+   *
+   * @returns {Promise<boolean>} Success status
+   */
+  const handleSemanticInit = async () => {
+    if (!sessionIdGlobalEditing) {
+      Alert.alert("Error", "No active session.");
+      return false;
+    }
+
+    try {
+      const result = await fetchSemanticAxes(sessionIdGlobalEditing);
+      return result !== null;
+    } catch (error) {
+      console.error("Error in semantic init:", error);
+      return false;
+    }
+  };
+
   const handleBackPress = () => {
     // Navigate back or show projects list
     Alert.alert("Navigation", "Back to projects list");
@@ -710,6 +839,9 @@ const HomeScreen = () => {
           onSendPrompt={handleGlobalEditingSend}
           onRetry={handleGlobalEditingRetry}
           isProcessing={imageState.isLoading}
+          onTickPress={handleSemanticInit}
+          semanticLabels={semanticAxes.labels}
+          isSemanticLoading={semanticLoading}
         />
 
         {/* Status Modal for progress updates */}

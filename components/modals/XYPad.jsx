@@ -1,5 +1,11 @@
-import React, { useRef, useState, useEffect } from "react";
-import { Animated, StyleSheet, Text, TouchableWithoutFeedback, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 /**
  * XYPad - Interactive 2D touch pad for selecting values on two axes
@@ -10,24 +16,30 @@ import { Animated, StyleSheet, Text, TouchableWithoutFeedback, View } from "reac
  * - Four labels positioned INSIDE the pad at edges
  * - Normalized output values: X (-1 to +1), Y (-1 to +1)
  * - Smooth animated transitions when tapping
+ * - Dynamic labels from semantic axes API
  *
  * Props:
  * - value: { x, y } - Current values (-1 to 1)
  * - onValueChange: (newValue) => void - Callback when values change
  * - dotColor: string - Color for the draggable dot
+ * - labels: { top, bottom, left, right } - Custom labels for axes (optional)
  */
 const XYPad = ({
   value = { x: 0, y: 0 },
   onValueChange,
   dotColor = "#8A2BE2",
+  labels: customLabels,
 }) => {
-  // Dynamic labels state
-  const [labels] = useState({
+  // Default labels - used when no custom labels are provided
+  const defaultLabels = {
     top: "Joyful",
     bottom: "Gloomy",
     left: "Day",
     right: "Night",
-  });
+  };
+
+  // Use custom labels if provided, otherwise fall back to defaults
+  const labels = customLabels || defaultLabels;
 
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
@@ -78,8 +90,14 @@ const XYPad = ({
     if (effectiveWidth <= 0 || effectiveHeight <= 0) return null;
 
     // Clamp pixel positions (center dot on touch)
-    const clampedX = Math.max(0, Math.min(effectiveWidth, pixelX - DOT_SIZE / 2));
-    const clampedY = Math.max(0, Math.min(effectiveHeight, pixelY - DOT_SIZE / 2));
+    const clampedX = Math.max(
+      0,
+      Math.min(effectiveWidth, pixelX - DOT_SIZE / 2)
+    );
+    const clampedY = Math.max(
+      0,
+      Math.min(effectiveHeight, pixelY - DOT_SIZE / 2)
+    );
 
     // Convert to -1,1 range
     const normalizedX = (clampedX / effectiveWidth) * 2 - 1;
@@ -94,10 +112,29 @@ const XYPad = ({
   // Handle tap to select position
   const handlePress = (event) => {
     const { locationX, locationY } = event.nativeEvent;
-    
+
+    console.log("=== XYPad Touch ===");
+    console.log("Touch position (px):", { x: locationX, y: locationY });
+    console.log("Container size:", containerSize);
+
     if (containerSize.width === 0 || containerSize.height === 0) return;
 
     const newValues = getNormalizedValues(locationX, locationY, containerSize);
+
+    console.log("Normalized values:", newValues);
+    console.log("Labels:", labels);
+    console.log(
+      "X-axis:",
+      newValues?.x < 0 ? labels.left : labels.right,
+      `(${newValues?.x})`
+    );
+    console.log(
+      "Y-axis:",
+      newValues?.y < 0 ? labels.bottom : labels.top,
+      `(${newValues?.y})`
+    );
+    console.log("===================");
+
     if (newValues && onValueChange) {
       onValueChange(newValues);
     }

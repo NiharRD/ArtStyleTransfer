@@ -222,6 +222,9 @@ const GlobalEditingModal = ({
   onSendPrompt,
   onRetry,
   isProcessing,
+  onTickPress,
+  semanticLabels,
+  isSemanticLoading,
 }) => {
   // Input state: textInput (first state) or voicePrompt (second state)
   const [inputState, setInputState] = useState("textInput");
@@ -238,6 +241,9 @@ const GlobalEditingModal = ({
 
   // Local processing state for send button
   const [isSending, setIsSending] = useState(false);
+
+  // Local state for semantic loading
+  const [isLoadingSemantic, setIsLoadingSemantic] = useState(false);
 
   // Animation values
   const upperSectionHeightAnim = useRef(new Animated.Value(0)).current;
@@ -385,11 +391,30 @@ const GlobalEditingModal = ({
     }
   };
 
-  // Handle tick button press - reveals upper section (keep changes)
-  const handleTickPress = () => {
-    console.log("Tick clicked - revealing upper section");
+  // Handle tick button press - fetches semantic axes then reveals upper section (keep changes)
+  const handleTickPress = async () => {
+    console.log("Tick clicked - fetching semantic axes");
     setConfirmationVisible(false);
-    setUpperSectionVisible(true);
+
+    if (onTickPress) {
+      setIsLoadingSemantic(true);
+      try {
+        const success = await onTickPress();
+        if (success) {
+          // Show upper section only after semantic labels are loaded
+          setUpperSectionVisible(true);
+        }
+      } catch (error) {
+        console.error("Error loading semantic axes:", error);
+        // Show upper section anyway with default labels
+        setUpperSectionVisible(true);
+      } finally {
+        setIsLoadingSemantic(false);
+      }
+    } else {
+      // Fallback - just show upper section
+      setUpperSectionVisible(true);
+    }
   };
 
   // Handle retry button press - calls retry API
@@ -488,6 +513,7 @@ const GlobalEditingModal = ({
                 value={xyPadValue}
                 onValueChange={setXYPadValue}
                 dotColor="#8A2BE2"
+                labels={semanticLabels}
               />
             ) : (
               <FeatureSliderContainer
