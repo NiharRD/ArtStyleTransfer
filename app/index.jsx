@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
 import GenerateMockupModal from "../components/modals/GenerateMockupModal";
 import GlobalEditingModal from "../components/modals/GlobalEditingModal";
@@ -99,6 +100,29 @@ const HomeScreen = () => {
     labels: null, // Parsed labels for XYPad { left, right, top, bottom }
   });
   const [semanticLoading, setSemanticLoading] = useState(false);
+
+  // Filter values state for real-time image filtering
+  const [filterValues, setFilterValues] = useState({
+    saturation: 1, // 0-2, default 1
+    brightness: 1, // 0-5, default 1
+    contrast: 1, // -10 to 10, default 1
+    hue: 0, // 0-6.3, default 0
+    exposure: 0, // -2 to 2, default 0
+  });
+
+  // Check if filters are active (any value different from default)
+  const areFiltersActive =
+    filterValues.saturation !== 1 ||
+    filterValues.brightness !== 1 ||
+    filterValues.contrast !== 1 ||
+    filterValues.hue !== 0 ||
+    filterValues.exposure !== 0;
+
+  // Handler for filter value changes from GlobalEditingModal
+  const handleFilterChange = (newFilters) => {
+    setFilterValues(newFilters);
+    console.log("Filter values updated:", newFilters);
+  };
 
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
   const [generateMockupModalVisible, setGenerateMockupModalVisible] =
@@ -837,14 +861,32 @@ const HomeScreen = () => {
         <View style={styles.imageContainer}>
           {imageState.uri ? (
             <View style={styles.imageWrapper}>
-              <Animated.Image
-                source={{ uri: imageState.uri }}
-                style={[
-                  styles.image,
-                  { height: canvasHeightAnim, width: canvasWidthAnim },
-                ]}
-                resizeMode="cover"
-              />
+              {/* Use FilteredImage when filters are active, otherwise regular Animated.Image */}
+              {areFiltersActive ? (
+                <Animated.View
+                  style={[
+                    styles.filteredImageContainer,
+                    { height: canvasHeightAnim, width: canvasWidthAnim },
+                  ]}
+                >
+                  <FilteredImage
+                    uri={imageState.uri}
+                    filters={filterValues}
+                    width={DEFAULT_CANVAS_WIDTH}
+                    height={DEFAULT_CANVAS_HEIGHT}
+                    style={styles.image}
+                  />
+                </Animated.View>
+              ) : (
+                <Animated.Image
+                  source={{ uri: imageState.uri }}
+                  style={[
+                    styles.image,
+                    { height: canvasHeightAnim, width: canvasWidthAnim },
+                  ]}
+                  resizeMode="cover"
+                />
+              )}
               {/* Loading overlay on top of image */}
               {imageState.isLoading && (
                 <LoadingOverlay message={statusModal.message} />
@@ -950,6 +992,7 @@ const HomeScreen = () => {
           onSemanticEdit={handleSemanticEdit}
           semanticLabels={semanticAxes.labels}
           isSemanticLoading={semanticLoading}
+          onFilterChange={handleFilterChange}
         />
 
         {/* Status Modal for progress updates */}
@@ -997,6 +1040,10 @@ const styles = StyleSheet.create({
     width: width - 32,
     height: 450,
     borderRadius: 12,
+  },
+  filteredImageContainer: {
+    borderRadius: 12,
+    overflow: "hidden",
   },
   // Pick Image Button Styles
   pickImageButton: {
