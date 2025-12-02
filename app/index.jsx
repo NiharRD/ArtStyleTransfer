@@ -6,6 +6,8 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Image,
+  Modal,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -22,6 +24,7 @@ import DrawerToggle from "../components/ui/DrawerToggle";
 import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
+import { baseUrl } from "../endPoints";
 
 const { width, height } = Dimensions.get("window");
 
@@ -37,6 +40,7 @@ const { width, height } = Dimensions.get("window");
  * - Smooth state transitions
  * - Image picker with blob-ready state for HTTP form data
  * - Loading overlay for async AI/ML operations
+ * - Global Editing with HTTP workflow for AI image processing
  */
 const DEFAULT_CANVAS_HEIGHT = 450;
 const DEFAULT_CANVAS_WIDTH = width - 32;
@@ -63,6 +67,39 @@ const HomeScreen = () => {
     isLoading: false, // Loading state
   });
 
+  // Iteration tracking for Global Editing
+  const [iterations, setIterations] = useState(1);
+  const [baseFilename, setBaseFilename] = useState("01_final.jpg");
+
+  // Keep baseFilename in sync with iterations
+  useEffect(() => {
+    const filename = getFilenameForIteration(iterations);
+    setBaseFilename(filename);
+    console.log(
+      "Base filename updated:",
+      filename,
+      "for iteration:",
+      iterations
+    );
+  }, [iterations]);
+
+  // Session ID for Global Editing HTTP workflow
+  const [sessionIdGlobalEditing, setSessionIdGlobalEditing] = useState(null);
+
+  // Status modal for showing progress during HTTP operations
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    message: "",
+  });
+
+  // Semantic axes states for XYPad dynamic labels
+  const [semanticAxes, setSemanticAxes] = useState({
+    additionalProp1: null, // First axis name (e.g., "Bright-Dark")
+    additionalProp2: null, // Second axis name (e.g., "Moody-Airy")
+    labels: null, // Parsed labels for XYPad { left, right, top, bottom }
+  });
+  const [semanticLoading, setSemanticLoading] = useState(false);
+
   const [artStyleModalVisible, setArtStyleModalVisible] = useState(false);
   const [generateMockupModalVisible, setGenerateMockupModalVisible] =
     useState(false);
@@ -77,6 +114,9 @@ const HomeScreen = () => {
 
   // Animated value for loading overlay pulse effect
   const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+  // Animated value for status modal pulse
+  const statusPulseAnim = useRef(new Animated.Value(0.8)).current;
 
   // Interpolate width from height to maintain aspect ratio
   const canvasWidthAnim = canvasHeightAnim.interpolate({
@@ -114,6 +154,30 @@ const HomeScreen = () => {
       return () => pulseAnimation.stop();
     }
   }, [imageState.isLoading]);
+
+  // Pulse animation for status modal
+  useEffect(() => {
+    if (statusModal.visible) {
+      const statusAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(statusPulseAnim, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(statusPulseAnim, {
+            toValue: 0.8,
+            duration: 600,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      statusAnimation.start();
+      return () => statusAnimation.stop();
+    }
+  }, [statusModal.visible]);
 
   // Calculate canvas height based on modal height and suggestions visibility
   const calculateCanvasHeight = (modalHeight, modalOpen) => {
@@ -197,6 +261,16 @@ const HomeScreen = () => {
           blob: blob,
           isLoading: false,
         });
+
+        // Reset iteration tracking when new image is picked
+        setIterations(1);
+        setBaseFilename("01_final.jpg");
+        setSessionIdGlobalEditing(null);
+        setSemanticAxes({
+          additionalProp1: null,
+          additionalProp2: null,
+          labels: null,
+        });
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -216,16 +290,30 @@ const HomeScreen = () => {
       // Set loading state
       setImageState((prev) => ({ ...prev, isLoading: true }));
 
+      // Prefetch the image to ensure it's cached before displaying
+      console.log("Prefetching image:", newImageUri);
+      await Image.prefetch(newImageUri);
+      console.log("Image prefetched successfully");
+
       // Fetch and convert to blob
       const response = await fetch(newImageUri);
       const blob = await response.blob();
 
-      // Update state with new image
+      // Update state with new image (image is now cached and ready)
       setImageState({
         uri: newImageUri,
         blob: blob,
         isLoading: false,
       });
+
+      // Wait for React to process the state update and render
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve);
+        });
+      });
+
+      console.log("Image state updated and rendered");
     } catch (error) {
       console.error("Error updating image from response:", error);
       setImageState((prev) => ({ ...prev, isLoading: false }));
@@ -250,6 +338,408 @@ const HomeScreen = () => {
    * @returns {Blob|null} The current image blob or null
    */
   const getImageBlob = () => imageState.blob;
+
+  /**
+   * Update base filename based on iteration number
+   * @param {number} iterationNum - The iteration number
+   * @returns {string} The formatted filename
+   */
+  const getFilenameForIteration = (iterationNum) => {
+    const paddedNum = String(iterationNum).padStart(2, "0");
+    return `${paddedNum}_final.jpg`;
+  };
+
+  /**
+   * Upload image and get session ID from server
+   * POST to baseUrl + "upload" with FormData
+   *
+   * @param {string} prompt - The user's prompt text
+   * @returns {Promise<string|null>} The session ID or null on failure
+   */
+  const uploadAndGetSessionId = async (prompt) => {
+    try {
+      setStatusModal({ visible: true, message: "Uploading image..." });
+
+      // Debug: Log upload URL
+      const uploadUrl = `${baseUrl}upload`;
+      console.log("=== Upload Debug ===");
+      console.log("Upload URL:", uploadUrl);
+      console.log("Prompt:", prompt);
+      console.log("Original image URI:", originalImageState.uri);
+      console.log("====================");
+
+      // Create FormData with file and prompt
+      const formData = new FormData();
+      formData.append("file", {
+        uri: originalImageState.uri,
+        type: "image/jpeg",
+        name: "original.jpg",
+      });
+      formData.append("prompt", prompt);
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("Upload response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Upload response:", data);
+
+      // Extract and store session ID
+      const sessionId = data.session_id;
+      setSessionIdGlobalEditing(sessionId);
+
+      return sessionId;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setStatusModal({ visible: false, message: "" });
+      Alert.alert("Upload Error", "Failed to upload image. Please try again.");
+      return null;
+    }
+  };
+
+  /**
+   * Generate edited image using session ID
+   * POST to baseUrl + "generate/{sessionId}"
+   *
+   * @param {string} sessionId - The session ID from upload
+   * @returns {Promise<boolean>} Success status
+   */
+  const generateImage = async (sessionId) => {
+    try {
+      setStatusModal({ visible: true, message: "Generating edit..." });
+
+      const response = await fetch(`${baseUrl}generate/${sessionId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Generate failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Generate response:", data);
+
+      if (data.status === "success" && data.image_url) {
+        // Update status to show loading result
+        setStatusModal({ visible: true, message: "Loading result..." });
+
+        // Debug: Log URL components
+        console.log("=== URL Debug ===");
+        console.log("baseUrl:", baseUrl);
+        console.log("data.image_url:", data.image_url);
+        console.log("starts with /:", data.image_url.startsWith("/"));
+
+        // Construct full image URL
+        const fullImageUrl = `${baseUrl}${
+          data.image_url.startsWith("/")
+            ? data.image_url.slice(1)
+            : data.image_url
+        }`;
+
+        console.log("fullImageUrl:", fullImageUrl);
+        console.log("=================");
+
+        // Update image state with new image
+        await updateImageFromResponse(fullImageUrl);
+
+        // Update iteration tracking
+        const newIteration = data.iteration || iterations + 1;
+        setIterations(newIteration);
+        setBaseFilename(getFilenameForIteration(newIteration));
+
+        setStatusModal({ visible: false, message: "" });
+        return true;
+      } else {
+        throw new Error("Invalid response from generate endpoint");
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+      setStatusModal({ visible: false, message: "" });
+      Alert.alert(
+        "Generation Error",
+        "Failed to generate edited image. Please try again."
+      );
+      return false;
+    }
+  };
+
+  /**
+   * Main handler for Global Editing send button
+   * Orchestrates the full HTTP workflow
+   *
+   * @param {string} prompt - The user's prompt text
+   * @returns {Promise<boolean>} Success status
+   */
+  const handleGlobalEditingSend = async (prompt) => {
+    // Validate that we have an image to work with
+    if (!originalImageState.uri || !originalImageState.blob) {
+      Alert.alert("No Image", "Please select an image before applying edits.");
+      return false;
+    }
+
+    // Validate prompt
+    if (!prompt || prompt.trim() === "") {
+      Alert.alert("No Prompt", "Please enter a prompt describing your edit.");
+      return false;
+    }
+
+    try {
+      // Set image loading state
+      setImageLoading(true);
+
+      // Step 1: Upload image and get session ID
+      const sessionId = await uploadAndGetSessionId(prompt);
+      if (!sessionId) {
+        setImageLoading(false);
+        return false;
+      }
+
+      // Step 2: Generate edited image
+      const success = await generateImage(sessionId);
+      if (!success) {
+        setImageLoading(false);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in global editing workflow:", error);
+      setStatusModal({ visible: false, message: "" });
+      setImageLoading(false);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+      return false;
+    }
+  };
+
+  /**
+   * Retry the last generation with the same session ID
+   * @returns {Promise<boolean>} Success status
+   */
+  const handleGlobalEditingRetry = async () => {
+    if (!sessionIdGlobalEditing) {
+      Alert.alert("Error", "No active session. Please start a new edit.");
+      return false;
+    }
+
+    try {
+      setImageLoading(true);
+      const success = await generateImage(sessionIdGlobalEditing);
+      return success;
+    } catch (error) {
+      console.error("Error retrying generation:", error);
+      setImageLoading(false);
+      return false;
+    }
+  };
+
+  /**
+   * Fetch semantic axes from server for XYPad labels
+   * POST to baseUrl + "semantic/init/{sessionId}"
+   *
+   * @param {string} sessionId - The session ID
+   * @returns {Promise<object|null>} Parsed axes data or null on failure
+   */
+  const fetchSemanticAxes = async (sessionId) => {
+    try {
+      setSemanticLoading(true);
+      setStatusModal({ visible: true, message: "Loading semantic axes..." });
+
+      console.log("=== Semantic Init Debug ===");
+      console.log("Session ID:", sessionId);
+      const semanticUrl = `${baseUrl}semantic/init/${sessionId}`;
+      console.log("Semantic URL:", semanticUrl);
+
+      const response = await fetch(semanticUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Semantic response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`Semantic init failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Semantic response:", data);
+
+      if (data.axes && data.axes.length >= 2) {
+        // Extract axis names
+        const additionalProp1 = data.axes[0].name; // e.g., "Bright-Dark"
+        const additionalProp2 = data.axes[1].name; // e.g., "Moody-Airy"
+
+        // Parse axis names to get short labels
+        // First axis: "Bright-Dark" → left: "Bright", right: "Dark"
+        // Second axis: "Moody-Airy" → bottom: "Moody", top: "Airy"
+        const axis1Parts = additionalProp1.split("-");
+        const axis2Parts = additionalProp2.split("-");
+
+        const labels = {
+          left: axis1Parts[0] || "Day", // -X: first part of first axis (Bright)
+          right: axis1Parts[1] || "Night", // +X: second part of first axis (Dark)
+          bottom: axis2Parts[0] || "Gloomy", // -Y: first part of second axis (Moody)
+          top: axis2Parts[1] || "Joyful", // +Y: second part of second axis (Airy)
+        };
+
+        console.log("Parsed labels:", labels);
+        console.log("===========================");
+
+        setSemanticAxes({
+          additionalProp1,
+          additionalProp2,
+          labels,
+        });
+
+        setStatusModal({ visible: false, message: "" });
+        setSemanticLoading(false);
+        return { additionalProp1, additionalProp2, labels };
+      } else {
+        throw new Error("Invalid axes data in response");
+      }
+    } catch (error) {
+      console.error("Error fetching semantic axes:", error);
+      setStatusModal({ visible: false, message: "" });
+      setSemanticLoading(false);
+      Alert.alert(
+        "Semantic Error",
+        "Failed to load semantic axes. Using default labels."
+      );
+      return null;
+    }
+  };
+
+  /**
+   * Handle tick button press - fetch semantic axes and show XYPad
+   * Called when user accepts the generated changes
+   *
+   * @returns {Promise<boolean>} Success status
+   */
+  const handleSemanticInit = async () => {
+    if (!sessionIdGlobalEditing) {
+      Alert.alert("Error", "No active session.");
+      return false;
+    }
+
+    try {
+      const result = await fetchSemanticAxes(sessionIdGlobalEditing);
+      return result !== null;
+    } catch (error) {
+      console.error("Error in semantic init:", error);
+      return false;
+    }
+  };
+
+  /**
+   * Handle semantic edit POST request when XY pad is active
+   * POST to baseUrl + "semantic/edit/{sessionId}"
+   *
+   * @param {object} xyValues - The XY pad values { x, y } normalized from -1 to 1
+   * @returns {Promise<boolean>} Success status
+   */
+  const handleSemanticEdit = async (xyValues) => {
+    if (!sessionIdGlobalEditing) {
+      Alert.alert("Error", "No active session.");
+      return false;
+    }
+
+    if (!semanticAxes.additionalProp1 || !semanticAxes.additionalProp2) {
+      Alert.alert("Error", "Semantic axes not loaded. Please try again.");
+      return false;
+    }
+
+    try {
+      setImageLoading(true);
+      setStatusModal({ visible: true, message: "Applying semantic edit..." });
+
+      // Build request body using axis names as coordinate keys
+      // First semantic (additionalProp1) = X axis value
+      // Second semantic (additionalProp2) = Y axis value
+      const requestBody = {
+        coordinates: {
+          [semanticAxes.additionalProp1]: xyValues.x,
+          [semanticAxes.additionalProp2]: xyValues.y,
+        },
+        base_filename: baseFilename,
+      };
+
+      console.log("=== Semantic Edit Debug ===");
+      console.log("Session ID:", sessionIdGlobalEditing);
+      console.log("XY Values:", xyValues);
+      console.log("Request Body:", JSON.stringify(requestBody, null, 2));
+
+      const semanticEditUrl = `${baseUrl}semantic/edit/${sessionIdGlobalEditing}`;
+      console.log("Semantic Edit URL:", semanticEditUrl);
+
+      const response = await fetch(semanticEditUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log("Semantic edit response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`Semantic edit failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Semantic edit response:", data);
+
+      // Check for image_url in response (API doesn't return status field)
+      if (data.image_url) {
+        setStatusModal({ visible: true, message: "Loading result..." });
+
+        // Construct full image URL
+        const fullImageUrl = `${baseUrl}${
+          data.image_url.startsWith("/")
+            ? data.image_url.slice(1)
+            : data.image_url
+        }`;
+
+        console.log("Semantic edit fullImageUrl:", fullImageUrl);
+
+        // Update image state with new image
+        await updateImageFromResponse(fullImageUrl);
+
+        // Increment iteration for next edit
+        const newIteration = iterations + 1;
+        setIterations(newIteration);
+
+        console.log("===========================");
+        setStatusModal({ visible: false, message: "" });
+        setImageLoading(false);
+        return true;
+      } else {
+        throw new Error("No image_url in semantic edit response");
+      }
+    } catch (error) {
+      console.error("Error in semantic edit:", error);
+      setStatusModal({ visible: false, message: "" });
+      setImageLoading(false);
+      Alert.alert(
+        "Semantic Edit Error",
+        "Failed to apply semantic edit. Please try again."
+      );
+      return false;
+    }
+  };
 
   const handleBackPress = () => {
     // Navigate back or show projects list
@@ -296,13 +786,35 @@ const HomeScreen = () => {
   };
 
   // Loading Overlay Component
-  const LoadingOverlay = () => (
+  const LoadingOverlay = ({ message }) => (
     <Animated.View style={[styles.loadingOverlay, { opacity: pulseAnim }]}>
       <View style={styles.loadingContent}>
         <ActivityIndicator size="large" color="#FFFFFF" />
-        <Text style={styles.loadingText}>Processing...</Text>
+        <Text style={styles.loadingText}>{message || "Processing..."}</Text>
       </View>
     </Animated.View>
+  );
+
+  // Status Modal Component - Shows progress during HTTP operations
+  const StatusModalComponent = () => (
+    <Modal
+      visible={statusModal.visible}
+      transparent={true}
+      animationType="fade"
+      statusBarTranslucent={true}
+    >
+      <View style={styles.statusModalOverlay}>
+        <Animated.View
+          style={[
+            styles.statusModalContent,
+            { transform: [{ scale: statusPulseAnim }] },
+          ]}
+        >
+          <ActivityIndicator size="large" color="#8A2BE2" />
+          <Text style={styles.statusModalText}>{statusModal.message}</Text>
+        </Animated.View>
+      </View>
+    </Modal>
   );
 
   return (
@@ -334,7 +846,9 @@ const HomeScreen = () => {
                 resizeMode="cover"
               />
               {/* Loading overlay on top of image */}
-              {imageState.isLoading && <LoadingOverlay />}
+              {imageState.isLoading && (
+                <LoadingOverlay message={statusModal.message} />
+              )}
             </View>
           ) : (
             <Animated.View
@@ -344,7 +858,7 @@ const HomeScreen = () => {
               ]}
             >
               {imageState.isLoading ? (
-                <LoadingOverlay />
+                <LoadingOverlay message={statusModal.message} />
               ) : (
                 <TouchableOpacity
                   style={styles.pickImageButton}
@@ -429,7 +943,17 @@ const HomeScreen = () => {
           visible={globalEditingModalVisible}
           onClose={handleCloseGlobalEditingModal}
           onHeightChange={handleModalHeightChange}
+          onSendPrompt={handleGlobalEditingSend}
+          onRetry={handleGlobalEditingRetry}
+          isProcessing={imageState.isLoading}
+          onTickPress={handleSemanticInit}
+          onSemanticEdit={handleSemanticEdit}
+          semanticLabels={semanticAxes.labels}
+          isSemanticLoading={semanticLoading}
         />
+
+        {/* Status Modal for progress updates */}
+        <StatusModalComponent />
       </View>
     </SafeAreaView>
   );
@@ -538,6 +1062,30 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#FFFFFF",
     letterSpacing: 0.5,
+  },
+  // Status Modal Styles
+  statusModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statusModalContent: {
+    backgroundColor: "#2A2A28",
+    borderRadius: 16,
+    padding: 32,
+    alignItems: "center",
+    minWidth: 200,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  statusModalText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
+    textAlign: "center",
   },
   bottomSection: {
     paddingBottom: 20,
