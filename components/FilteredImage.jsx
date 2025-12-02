@@ -1,5 +1,6 @@
+import { Asset } from "expo-asset";
 import { GLView } from "expo-gl";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 
 /**
@@ -220,14 +221,12 @@ const FilteredImage = ({
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-      // Load the image
-      const asset = await Image.resolveAssetSource({ uri: imageUri });
+      // Load the image asset
+      const asset = Asset.fromURI(imageUri);
+      await asset.downloadAsync();
       
-      // For expo-gl, we need to use a special approach to load textures
-      // Since direct texture loading can be complex, we'll use a workaround
-      // by creating a 1x1 placeholder first
-      const pixel = new Uint8Array([128, 128, 128, 255]);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+      // Load texture from asset
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, asset);
 
       textureRef.current = texture;
       setTextureLoaded(true);
@@ -324,10 +323,7 @@ const FilteredImage = ({
         style={[
           styles.fallbackImage,
           { width, height },
-          // Apply basic filter approximations using Image tintColor/opacity
-          {
-            opacity: Math.min(1, activeFilters.brightness),
-          },
+          { width, height },
         ]}
         resizeMode="cover"
       />
@@ -355,7 +351,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    opacity: 0, // Hidden until fully implemented with texture loading
+    opacity: 1,
   },
 });
 
