@@ -75,7 +75,12 @@ const HomeScreen = () => {
   useEffect(() => {
     const filename = getFilenameForIteration(iterations);
     setBaseFilename(filename);
-    console.log("Base filename updated:", filename, "for iteration:", iterations);
+    console.log(
+      "Base filename updated:",
+      filename,
+      "for iteration:",
+      iterations
+    );
   }, [iterations]);
 
   // Session ID for Global Editing HTTP workflow
@@ -259,8 +264,13 @@ const HomeScreen = () => {
 
         // Reset iteration tracking when new image is picked
         setIterations(1);
-        setBaseFilename("00_final.jpg");
+        setBaseFilename("01_final.jpg");
         setSessionIdGlobalEditing(null);
+        setSemanticAxes({
+          additionalProp1: null,
+          additionalProp2: null,
+          labels: null,
+        });
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -634,6 +644,103 @@ const HomeScreen = () => {
     }
   };
 
+  /**
+   * Handle semantic edit POST request when XY pad is active
+   * POST to baseUrl + "semantic/edit/{sessionId}"
+   *
+   * @param {object} xyValues - The XY pad values { x, y } normalized from -1 to 1
+   * @returns {Promise<boolean>} Success status
+   */
+  const handleSemanticEdit = async (xyValues) => {
+    if (!sessionIdGlobalEditing) {
+      Alert.alert("Error", "No active session.");
+      return false;
+    }
+
+    if (!semanticAxes.additionalProp1 || !semanticAxes.additionalProp2) {
+      Alert.alert("Error", "Semantic axes not loaded. Please try again.");
+      return false;
+    }
+
+    try {
+      setImageLoading(true);
+      setStatusModal({ visible: true, message: "Applying semantic edit..." });
+
+      // Build request body using axis names as coordinate keys
+      // First semantic (additionalProp1) = X axis value
+      // Second semantic (additionalProp2) = Y axis value
+      const requestBody = {
+        coordinates: {
+          [semanticAxes.additionalProp1]: xyValues.x,
+          [semanticAxes.additionalProp2]: xyValues.y,
+        },
+        base_filename: baseFilename,
+      };
+
+      console.log("=== Semantic Edit Debug ===");
+      console.log("Session ID:", sessionIdGlobalEditing);
+      console.log("XY Values:", xyValues);
+      console.log("Request Body:", JSON.stringify(requestBody, null, 2));
+
+      const semanticEditUrl = `${baseUrl}semantic/edit/${sessionIdGlobalEditing}`;
+      console.log("Semantic Edit URL:", semanticEditUrl);
+
+      const response = await fetch(semanticEditUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log("Semantic edit response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`Semantic edit failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Semantic edit response:", data);
+
+      // Check for image_url in response (API doesn't return status field)
+      if (data.image_url) {
+        setStatusModal({ visible: true, message: "Loading result..." });
+
+        // Construct full image URL
+        const fullImageUrl = `${baseUrl}${
+          data.image_url.startsWith("/")
+            ? data.image_url.slice(1)
+            : data.image_url
+        }`;
+
+        console.log("Semantic edit fullImageUrl:", fullImageUrl);
+
+        // Update image state with new image
+        await updateImageFromResponse(fullImageUrl);
+
+        // Increment iteration for next edit
+        const newIteration = iterations + 1;
+        setIterations(newIteration);
+
+        console.log("===========================");
+        setStatusModal({ visible: false, message: "" });
+        setImageLoading(false);
+        return true;
+      } else {
+        throw new Error("No image_url in semantic edit response");
+      }
+    } catch (error) {
+      console.error("Error in semantic edit:", error);
+      setStatusModal({ visible: false, message: "" });
+      setImageLoading(false);
+      Alert.alert(
+        "Semantic Edit Error",
+        "Failed to apply semantic edit. Please try again."
+      );
+      return false;
+    }
+  };
+
   const handleBackPress = () => {
     // Navigate back or show projects list
     Alert.alert("Navigation", "Back to projects list");
@@ -840,6 +947,7 @@ const HomeScreen = () => {
           onRetry={handleGlobalEditingRetry}
           isProcessing={imageState.isLoading}
           onTickPress={handleSemanticInit}
+          onSemanticEdit={handleSemanticEdit}
           semanticLabels={semanticAxes.labels}
           isSemanticLoading={semanticLoading}
         />

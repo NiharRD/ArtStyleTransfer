@@ -223,6 +223,7 @@ const GlobalEditingModal = ({
   onRetry,
   isProcessing,
   onTickPress,
+  onSemanticEdit,
   semanticLabels,
   isSemanticLoading,
 }) => {
@@ -370,8 +371,38 @@ const GlobalEditingModal = ({
   };
 
   // Handle send button press (in textInput state) - calls API and shows confirmation row on success
+  // When XY pad is visible, routes to semantic edit instead of regular prompt send
   const handleSend = async () => {
     console.log("Send clicked:", promptText);
+    console.log(
+      "Upper section visible:",
+      upperSectionVisible,
+      "Modal state:",
+      modalState
+    );
+
+    // Check if XY pad is active (upper section visible and in bulb state)
+    if (upperSectionVisible && modalState === "bulbState" && onSemanticEdit) {
+      console.log(
+        "XY Pad active - routing to semantic edit with values:",
+        xyPadValue
+      );
+      setIsSending(true);
+      try {
+        const success = await onSemanticEdit(xyPadValue);
+        if (success) {
+          console.log("Semantic edit successful");
+          // Optionally show confirmation or keep XY pad visible for further edits
+        }
+      } catch (error) {
+        console.error("Error in semantic edit:", error);
+      } finally {
+        setIsSending(false);
+      }
+      return;
+    }
+
+    // Regular prompt send flow
     if (inputState === "textInput" && onSendPrompt) {
       setIsSending(true);
       try {
