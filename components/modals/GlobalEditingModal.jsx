@@ -950,6 +950,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingBottom: Spacing.md,
   },
   inputRow: {
     flexDirection: "row",
@@ -962,8 +963,9 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.base,
     color: Colors.textPrimary,
     letterSpacing: 0.16,
-    minHeight: 40,
-    maxHeight: 60,
+    minHeight: 60,
+    maxHeight: 100,
+    textAlignVertical: "top",
   },
   textInputDisabled: {
     opacity: 0.5,
