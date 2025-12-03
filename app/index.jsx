@@ -1,18 +1,19 @@
+import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    Image,
-    Keyboard,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
+  Keyboard,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
@@ -25,6 +26,26 @@ import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
 import { artStyleBaseUrl, baseUrl } from "../endPoints";
+
+const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+const SYSTEM_PROMPT = "RULES:\n"  +
+       " - Return EXACTLY 1  suggestion and the best one .\n"
+        "-  suggestion short and natural, as if a user wrote it.\n"
+        "- NO numbers, NO technical terms, NO percentages, NO stops.\n"
+        "- NO crop or composition instructions.\n"
+        "- Suggestions MUST relate only to exposure, contrast, tone, temperature, tint, "
+        "highlights, shadows, whites, blacks, saturation, vibrance, or general color feel.\n"
+        "- Style should match examples like:\n"
+        "  • 'Make the image feel warmer'\n"
+        "  • 'Increase vibrance for more life'\n"
+        "  • 'Soften strong highlights'\n"
+        "  • 'Lift shadows to reveal detail'\n"
+        "- Each suggestion must be applicable through editing parameters (exposure, contrast, temperature, tint, saturation...)\n"
+        "- Return the result in JSON format.\n"
+        "- NO additional fields. ONLY:\n"
+        "{ \"suggestions\": [ ... ] }\n"
+    
+"  "
 
 const { width, height } = Dimensions.get("window");
 
@@ -129,6 +150,7 @@ const HomeScreen = () => {
   const [globalEditingModalVisible, setGlobalEditingModalVisible] =
     useState(false);
   const [currentModalHeight, setCurrentModalHeight] = useState(0);
+  const [generatedPrompt, setGeneratedPrompt] = useState("");
 
   // Animated value for canvas height
   const canvasHeightAnim = useRef(
@@ -184,6 +206,95 @@ const HomeScreen = () => {
   const CANVAS_ASPECT_RATIO = [DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT];
 
   /**
+   * Generate prompt from image using OpenAI
+   */
+  const generatePromptFromImage = async (base64Image) => {
+    if (!base64Image) return;
+    
+    try {
+      console.log("Generating prompt from image using OpenAI...");
+      
+      const response = await axios.post(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "system",
+              content: SYSTEM_PROMPT
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Generate a prompt for this image in JSON format."
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:image/jpeg;base64,${base64Image}`
+                  }
+                }
+              ]
+            }
+          ],
+          response_format: { type: "json_object" }
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${OPENAI_API_KEY}`
+          }
+        }
+      );
+      
+      const content = response.data.choices[0].message.content;
+      console.log("Generated prompt raw:", content);
+      
+      try {
+        // Clean up markdown code blocks if present
+        const cleanedContent = content.replace(/```json/g, "").replace(/```/g, "").trim();
+        const json = JSON.parse(cleanedContent);
+        
+        if (json.suggestions && Array.isArray(json.suggestions) && json.suggestions.length > 0) {
+          const suggestion = json.suggestions[0];
+          console.log("Parsed suggestion:", suggestion);
+          setGeneratedPrompt(suggestion);
+        } else if (json.prompt) {
+          console.log("Parsed prompt key:", json.prompt);
+          setGeneratedPrompt(json.prompt);
+        } else if (json.suggestion) {
+          console.log("Parsed suggestion key:", json.suggestion);
+          setGeneratedPrompt(json.suggestion);
+        } else {
+          console.warn("No known keys found in JSON, using raw content");
+          // Try to use the first string value found in the object
+          const values = Object.values(json);
+          const stringValue = values.find(v => typeof v === 'string');
+          if (stringValue) {
+             setGeneratedPrompt(stringValue);
+          } else {
+             setGeneratedPrompt(cleanedContent);
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to parse JSON, using raw text:", e);
+        // Try to strip quotes if it looks like a simple string
+        const cleaned = content.replace(/^"|"$/g, '').trim();
+        setGeneratedPrompt(cleaned);
+      }
+
+    } catch (error) {
+      console.error("Error generating prompt:", error);
+      if (error.response) {
+        console.error("Error response:", JSON.stringify(error.response.data, null, 2));
+      }
+      Alert.alert("Error", "Failed to generate prompt from image.");
+    }
+  };
+
+  /**
    * Pick an image from the device gallery
    * Converts the image to blob for HTTP form data compatibility
    * Crops image to match canvas aspect ratio
@@ -208,6 +319,7 @@ const HomeScreen = () => {
         allowsEditing: true,
         aspect: CANVAS_ASPECT_RATIO, // Lock crop to canvas aspect ratio
         quality: 1,
+        base64: true, // Request base64 for OpenAI
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -244,6 +356,11 @@ const HomeScreen = () => {
           additionalProp2: null,
           labels: null,
         });
+
+        // Generate prompt from the new image
+        if (selectedAsset.base64) {
+          generatePromptFromImage(selectedAsset.base64);
+        }
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -1037,6 +1154,7 @@ const HomeScreen = () => {
           semanticLabels={semanticAxes.labels}
           isSemanticLoading={semanticLoading}
           onFilterChange={handleFilterChange}
+          initialPrompt={generatedPrompt}
         />
 
         {/* Status Modal for progress updates - REMOVED */}
