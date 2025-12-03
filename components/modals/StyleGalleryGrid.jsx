@@ -1,5 +1,4 @@
-import React from "react";
-import { StyleSheet, TouchableOpacity, View, Image } from "react-native";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Colors, Spacing } from "../../constants/Theme";
 
 /**
@@ -12,15 +11,11 @@ import { Colors, Spacing } from "../../constants/Theme";
  */
 const StyleGalleryGrid = ({ onStyleSelect, selectedStyleId }) => {
   // Style reference images from assets
+  // Style reference images from assets
   const styleImages = [
-    { id: 1, name: "First Style", source: require("../../assets/images/referenceStyles/First.png") },
-    { id: 2, name: "Second Style", source: require("../../assets/images/referenceStyles/second.png") },
-    { id: 3, name: "Third Style", source: require("../../assets/images/referenceStyles/third.png") },
-    { id: 4, name: "Fourth Style", source: require("../../assets/images/referenceStyles/forth.png") },
-    { id: 5, name: "Fifth Style", source: require("../../assets/images/referenceStyles/First.png") },
-    { id: 6, name: "Sixth Style", source: require("../../assets/images/referenceStyles/second.png") },
-    { id: 7, name: "Seventh Style", source: require("../../assets/images/referenceStyles/third.png") },
-    { id: 8, name: "Eighth Style", source: require("../../assets/images/referenceStyles/forth.png") },
+    { id: 1, name: "Impression Sunrise", source: require("../../assets/images/artStylereference/Impression,_Sunrise.jpg") },
+    { id: 2, name: "The Scream", source: require("../../assets/images/artStylereference/The_Scream.jpg") },
+    { id: 3, name: "Cafe Terrace", source: require("../../assets/images/artStylereference/cafe_terrace_at_night.jpg") },
   ];
 
   const handleStylePress = (style) => {
