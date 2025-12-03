@@ -2,18 +2,18 @@ import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Image,
-  Keyboard,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Image,
+    Keyboard,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
@@ -1038,6 +1038,7 @@ const HomeScreen = () => {
           subtitle="Synced just now"
           onBackPress={handleBackPress}
           onMenuPress={handleMenuPress}
+          onResetPress={handleReset}
         />
 
         {/* Control Bar */}
