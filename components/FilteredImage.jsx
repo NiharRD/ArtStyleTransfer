@@ -162,8 +162,6 @@ const FilteredImage = ({
   uri,
   filters = {},
   style,
-  width = 300,
-  height = 300,
 }) => {
   const glRef = useRef(null);
   const programRef = useRef(null);
@@ -332,21 +330,17 @@ const FilteredImage = ({
   }
 
   return (
-    <View style={[styles.container, style, { width, height }]}>
+    <View style={[styles.container, style]}>
       {/* Fallback image for when GL is not ready or loading */}
       <Image
         source={{ uri }}
-        style={[
-          styles.fallbackImage,
-          { width, height },
-          { width, height },
-        ]}
+        style={[styles.fallbackImage, StyleSheet.absoluteFill]}
         resizeMode="cover"
       />
       
       {/* GL Surface overlay */}
       <GLView
-        style={[styles.glView, { width, height }]}
+        style={[styles.glView, StyleSheet.absoluteFill]}
         onContextCreate={onContextCreate}
       />
     </View>

@@ -917,9 +917,7 @@ const HomeScreen = () => {
                   <FilteredImage
                     uri={imageState.uri}
                     filters={filterValues}
-                    width={DEFAULT_CANVAS_WIDTH}
-                    height={DEFAULT_CANVAS_HEIGHT}
-                    style={styles.image}
+                    style={{ width: "100%", height: "100%" }}
                   />
                 </Animated.View>
               ) : (
