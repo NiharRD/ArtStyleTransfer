@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import {
+    Keyboard,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import {
@@ -136,6 +137,11 @@ const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend }) => 
       const height = visible ? getModalHeight() : 0;
       onHeightChange(height);
     }
+
+    // Dismiss keyboard when modal closes
+    if (!visible) {
+      Keyboard.dismiss();
+    }
   }, [visible, modalState]);
 
   // State transition handlers
@@ -154,6 +160,7 @@ const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend }) => 
   };
 
   const handleHeaderClick = () => {
+    Keyboard.dismiss();
     onClose();
   };
 
@@ -163,9 +170,10 @@ const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend }) => 
     console.log("Refine clicked");
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (onSend) {
-      onSend(promptText, selectedStyle);
+      await onSend(promptText, selectedStyle);
+      Keyboard.dismiss();
     }
   };
 

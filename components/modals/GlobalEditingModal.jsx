@@ -1,26 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Svg, {
-    Defs,
-    G,
-    LinearGradient,
-    Path,
-    Rect,
-    Stop,
+  Defs,
+  G,
+  LinearGradient,
+  Path,
+  Rect,
+  Stop,
 } from "react-native-svg";
 import {
-    BorderRadius,
-    Colors,
-    Spacing,
-    Typography,
+  BorderRadius,
+  Colors,
+  Spacing,
+  Typography,
 } from "../../constants/Theme";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
@@ -337,6 +338,7 @@ const GlobalEditingModal = ({
 
   // Close modal when clicking "Global Editing" dropdown
   const handleHeaderClick = () => {
+    Keyboard.dismiss();
     onClose();
   };
 
@@ -389,6 +391,7 @@ const GlobalEditingModal = ({
         console.error("Error in semantic edit:", error);
       } finally {
         setIsSending(false);
+        Keyboard.dismiss();
       }
       return;
     }
@@ -406,6 +409,7 @@ const GlobalEditingModal = ({
         console.error("Error sending prompt:", error);
       } finally {
         setIsSending(false);
+        Keyboard.dismiss();
       }
     } else if (inputState === "textInput") {
       // Fallback if no handler provided
@@ -432,6 +436,7 @@ const GlobalEditingModal = ({
         setUpperSectionVisible(true);
       } finally {
         setIsLoadingSemantic(false);
+        Keyboard.dismiss();
       }
     } else {
       // Fallback - just show upper section
@@ -454,6 +459,7 @@ const GlobalEditingModal = ({
         console.error("Error retrying:", error);
       } finally {
         setIsSending(false);
+        Keyboard.dismiss();
       }
     } else {
       setConfirmationVisible(false);
@@ -546,6 +552,7 @@ const GlobalEditingModal = ({
               />
             )}
           </Animated.View>
+
 
           {/* Bottom Controls Row */}
           <View style={styles.controlsRow}>
