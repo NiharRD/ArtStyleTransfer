@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import {
-  BorderRadius,
-  Colors,
-  Spacing,
-  Typography,
+    BorderRadius,
+    Colors,
+    Spacing,
+    Typography,
 } from "../../constants/Theme";
 import ModalContainer from "./ModalContainer";
 import SelectedStyleChip from "./SelectedStyleChip";
@@ -111,7 +111,7 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
  * - 'gallery': Style gallery grid with search
  * - 'textWithStyle': Text input with selected style chip
  */
-const ArtStyleTransferModal = ({ visible, onClose, onHeightChange }) => {
+const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend }) => {
   const [modalState, setModalState] = useState("textOnly");
   const [promptText, setPromptText] = useState("");
   const [selectedStyle, setSelectedStyle] = useState(null);
@@ -164,8 +164,9 @@ const ArtStyleTransferModal = ({ visible, onClose, onHeightChange }) => {
   };
 
   const handleSend = () => {
-    // TODO: AI prompt processing
-    console.log("Send clicked:", promptText, selectedStyle);
+    if (onSend) {
+      onSend(promptText, selectedStyle);
+    }
   };
 
   const handleFindSimilar = () => {

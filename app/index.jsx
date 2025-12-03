@@ -25,7 +25,7 @@ import DrawerToggle from "../components/ui/DrawerToggle";
 import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
-import { baseUrl } from "../endPoints";
+import { artStyleBaseUrl, baseUrl } from "../endPoints";
 
 const { width, height } = Dimensions.get("window");
 
@@ -764,6 +764,121 @@ const HomeScreen = () => {
     }
   };
 
+  /**
+   * Handle Art Style Transfer send button
+   * POST to artStyleBaseUrl + "generate"
+   *
+   * @param {string} prompt - The user's prompt text
+   * @param {object} style - The selected style object
+   * @returns {Promise<boolean>} Success status
+   */
+  const handleArtStyleTransferSend = async (prompt, style) => {
+    // Validate prompt
+    if (!prompt || prompt.trim() === "") {
+      Alert.alert("No Prompt", "Please enter a prompt describing your edit.");
+      return false;
+    }
+
+    // Validate style selection
+    if (!style) {
+      Alert.alert("No Style", "Please select an art style.");
+      return false;
+    }
+
+    try {
+      setImageLoading(true);
+      setStatusModal({ visible: true, message: "Applying art style..." });
+
+      // Map style ID to artwork and artist names
+      let artworkName = "";
+      let artistName = "";
+
+      switch (style.id) {
+        case 1: // Impression Sunrise
+          artworkName = "impression_sunshine";
+          artistName = "monet";
+          break;
+        case 2: // The Scream
+          artworkName = "the_scream";
+          artistName = "edward_munch";
+          break;
+        case 3: // Cafe Terrace
+          artworkName = "cafe_terrace_at_night";
+          artistName = "gough";
+          break;
+        default:
+          console.warn("Unknown style ID:", style.id);
+          artworkName = "impression_sunshine"; // Default
+          artistName = "monet";
+      }
+
+      const requestBody = {
+        artwork_name: artworkName,
+        artist_name: artistName,
+        prompt: prompt,
+        negative_prompt: "string",
+        num_inference_steps: 50,
+        guidance_scale: 7,
+      };
+
+      console.log("=== Art Style Transfer Debug ===");
+      console.log("Request Body:", JSON.stringify(requestBody, null, 2));
+
+      const generateUrl = `${artStyleBaseUrl}/generate`;
+      console.log("Generate URL:", generateUrl);
+
+      const response = await fetch(generateUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log("Art Style response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`Art Style transfer failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Art Style response:", data);
+
+      if (data.status === "success" && data.image_url_refined) {
+        setStatusModal({ visible: true, message: "Loading result..." });
+
+        // Construct full image URL
+        const fullImageUrl = `${artStyleBaseUrl}${
+          data.image_url_refined.startsWith("/")
+            ? data.image_url_refined
+            : "/" + data.image_url_refined
+        }`;
+
+        console.log("Art Style fullImageUrl:", fullImageUrl);
+
+        // Update image state with new image
+        await updateImageFromResponse(fullImageUrl);
+
+        console.log("===========================");
+        setStatusModal({ visible: false, message: "" });
+        setImageLoading(false);
+        setArtStyleModalVisible(false); // Close modal on success
+        return true;
+      } else {
+        throw new Error("Invalid response from art style endpoint");
+      }
+    } catch (error) {
+      console.error("Error in art style transfer:", error);
+      setStatusModal({ visible: false, message: "" });
+      setImageLoading(false);
+      Alert.alert(
+        "Art Style Error",
+        "Failed to apply art style. Please try again."
+      );
+      return false;
+    }
+  };
+
   const handleBackPress = () => {
     // Navigate back or show projects list
     Alert.alert("Navigation", "Back to projects list");
@@ -970,6 +1085,7 @@ const HomeScreen = () => {
           visible={artStyleModalVisible}
           onClose={handleCloseArtStyleModal}
           onHeightChange={handleModalHeightChange}
+          onSend={handleArtStyleTransferSend}
         />
 
         {/* Generate Mockup Modal */}
