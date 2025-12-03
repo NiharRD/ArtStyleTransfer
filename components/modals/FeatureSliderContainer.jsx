@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import FeatureButton, { FEATURE_NAMES } from "./FeatureButton";
 import RulerSlider from "./RulerSlider";
@@ -16,35 +16,35 @@ const ROW_PADDING = 4;
 export const FILTER_CONFIGS = {
   saturation: {
     name: "Saturation",
-    minValue: 0,
-    maxValue: 2,
-    defaultValue: 1,
-    step: 0.01,
-    description: "Controls the intensity of colors (0 = grayscale, 2 = vibrant)",
+    minValue: -100,
+    maxValue: 100,
+    defaultValue: 0,
+    step: 1,
+    description: "Controls the intensity of colors",
   },
   brightness: {
     name: "Brightness",
-    minValue: 0,
-    maxValue: 5,
-    defaultValue: 1,
-    step: 0.05,
-    description: "Adjusts the overall lightness (0 = black, 5 = white)",
+    minValue: -100,
+    maxValue: 100,
+    defaultValue: 0,
+    step: 1,
+    description: "Adjusts the overall lightness",
   },
   contrast: {
     name: "Contrast",
-    minValue: -10,
-    maxValue: 10,
-    defaultValue: 1,
-    step: 0.1,
+    minValue: -100,
+    maxValue: 100,
+    defaultValue: 0,
+    step: 1,
     description: "Difference between light and dark areas",
   },
   hue: {
     name: "Hue",
     minValue: 0,
-    maxValue: 6.3,
+    maxValue: 100,
     defaultValue: 0,
-    step: 0.1,
-    description: "Rotates color hue (0 to 2π radians)",
+    step: 1,
+    description: "Rotates color hue",
   },
   exposure: {
     name: "Exposure",

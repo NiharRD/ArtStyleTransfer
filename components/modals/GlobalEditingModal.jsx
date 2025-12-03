@@ -1,26 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Svg, {
-    Defs,
-    G,
-    LinearGradient,
-    Path,
-    Rect,
-    Stop,
+  Defs,
+  G,
+  LinearGradient,
+  Path,
+  Rect,
+  Stop,
 } from "react-native-svg";
 import {
-    BorderRadius,
-    Colors,
-    Spacing,
-    Typography,
+  BorderRadius,
+  Colors,
+  Spacing,
+  Typography,
 } from "../../constants/Theme";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
@@ -28,7 +29,7 @@ import TalkToKimiButton from "./TalkToKimiButton";
 import XYPad from "./XYPad";
 
 // Constants for animation
-const UPPER_SECTION_HEIGHT = 220;
+const UPPER_SECTION_HEIGHT = 250;
 const CONFIRMATION_ROW_HEIGHT = 70;
 
 /**
@@ -256,13 +257,16 @@ const GlobalEditingModal = ({
 
   // Slider state management for GL filter features
   const [sliderValues, setSliderValues] = useState({
-    saturation: 1, // 0-2, default 1
-    brightness: 1, // 0-5, default 1
-    contrast: 1, // -10 to 10, default 1
-    hue: 0, // 0-6.3, default 0
+    saturation: 0, // -100 to 100, default 0
+    brightness: 0, // -100 to 100, default 0
+    contrast: 0, // -100 to 100, default 0
+    hue: 0, // 0 to 100, default 0
     exposure: 0, // -2 to 2, default 0
   });
   const [selectedFeature, setSelectedFeature] = useState("saturation");
+
+  // Check if any slider has been modified
+  const areSlidersUsed = Object.values(sliderValues).some((value) => value !== 0);
 
   // Handler for slider value changes - also notifies parent
   const handleSliderValueChange = (feature, value) => {
@@ -302,7 +306,7 @@ const GlobalEditingModal = ({
 
   // Calculate modal height based on all states
   const getModalHeight = () => {
-    let baseHeight = 220; // Base height with controls row + text input + actions row
+    let baseHeight = 265; // Base height with controls row + text input + actions row
 
     // Add confirmation row height if visible
     if (confirmationVisible) {
@@ -316,8 +320,6 @@ const GlobalEditingModal = ({
       } else {
         baseHeight += UPPER_SECTION_HEIGHT;
       }
-      // Add chat history section height when upper section is visible
-      baseHeight += 80;
     }
 
     return baseHeight;
@@ -339,6 +341,7 @@ const GlobalEditingModal = ({
 
   // Close modal when clicking "Global Editing" dropdown
   const handleHeaderClick = () => {
+    Keyboard.dismiss();
     onClose();
   };
 
@@ -391,6 +394,7 @@ const GlobalEditingModal = ({
         console.error("Error in semantic edit:", error);
       } finally {
         setIsSending(false);
+        Keyboard.dismiss();
       }
       return;
     }
@@ -408,6 +412,7 @@ const GlobalEditingModal = ({
         console.error("Error sending prompt:", error);
       } finally {
         setIsSending(false);
+        Keyboard.dismiss();
       }
     } else if (inputState === "textInput") {
       // Fallback if no handler provided
@@ -434,6 +439,7 @@ const GlobalEditingModal = ({
         setUpperSectionVisible(true);
       } finally {
         setIsLoadingSemantic(false);
+        Keyboard.dismiss();
       }
     } else {
       // Fallback - just show upper section
@@ -456,6 +462,7 @@ const GlobalEditingModal = ({
         console.error("Error retrying:", error);
       } finally {
         setIsSending(false);
+        Keyboard.dismiss();
       }
     } else {
       setConfirmationVisible(false);
@@ -540,14 +547,23 @@ const GlobalEditingModal = ({
                 labels={semanticLabels}
               />
             ) : (
-              <FeatureSliderContainer
-                sliderValues={sliderValues}
-                onSliderValueChange={handleSliderValueChange}
-                selectedFeature={selectedFeature}
-                onFeatureSelect={setSelectedFeature}
-              />
+              <>
+                <FeatureSliderContainer
+                  sliderValues={sliderValues}
+                  onSliderValueChange={handleSliderValueChange}
+                  selectedFeature={selectedFeature}
+                  onFeatureSelect={setSelectedFeature}
+                />
+                {/* Warning text when sliders are used */}
+                {areSlidersUsed && (
+                  <Text style={styles.warningText}>
+                    Can't use semantic edit after using manually sliders
+                  </Text>
+                )}
+              </>
             )}
           </Animated.View>
+
 
           {/* Bottom Controls Row */}
           <View style={styles.controlsRow}>
@@ -569,9 +585,11 @@ const GlobalEditingModal = ({
                   style={[
                     styles.toggleButton,
                     modalState === "bulbState" && styles.toggleButtonActive,
+                    areSlidersUsed && styles.buttonDisabled,
                   ]}
                   onPress={handleBulbPress}
                   activeOpacity={0.7}
+                  disabled={areSlidersUsed}
                 >
                   <BulbIcon
                     size={16}
@@ -599,32 +617,7 @@ const GlobalEditingModal = ({
             )}
           </View>
 
-          {/* Static Chat History Section - only show when upper section is visible */}
-          {upperSectionVisible && (
-            <View style={styles.chatHistorySection}>
-              <View style={styles.historyItem}>
-                <CodeForkIcon size={16} color="rgba(255, 255, 255, 0.6)" />
-                <View style={styles.historyContent}>
-                  <Text style={styles.historyText}>
-                    Gotcha! I have done those changes to your image. Can you
-                    play with the point to help me deliver a more accurate
-                    result?
-                  </Text>
-                  <View style={styles.historyTags}>
-                    <View style={styles.historyTag}>
-                      <Text style={styles.tagText}>Added Motion Blur</Text>
-                    </View>
-                    <View style={styles.historyTag}>
-                      <Text style={styles.tagText}>Increased Sharpness</Text>
-                    </View>
-                    <View style={styles.historyTag}>
-                      <Text style={styles.tagText}>5 more</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </View>
-          )}
+
 
           {/* Confirmation Row - "Keep these changes?" */}
           <Animated.View
@@ -771,20 +764,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     paddingHorizontal: 12,
-    paddingBottom: 8,
-    paddingTop: Spacing.xs,
-    gap: Spacing.xs,
-    marginBottom: 25,
+    paddingBottom: 4,
+    paddingTop: Spacing.sm,
+    gap: Spacing.sm,
   },
   contentContainer: {
     backgroundColor: "#1D1C1D",
     borderWidth: 0,
     borderColor: "#FFFFFF",
     borderRadius: 24,
-    paddingTop: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.sm,
-    gap: Spacing.sm,
+    paddingTop: Spacing.md,
+    paddingHorizontal: Spacing.xxl,
+    paddingBottom: Spacing.xxl,
+    gap: Spacing.md,
   },
   upperSection: {
     gap: Spacing.md,
@@ -801,6 +793,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "rgba(255, 255, 255, 0.6)",
     letterSpacing: 0.28,
+  },
+  warningText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.5)",
+    textAlign: "center",
+    marginTop: 4,
   },
   controlsRow: {
     flexDirection: "row",
@@ -957,13 +956,12 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   textInput: {
-    flex: 1,
     fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.base,
     color: Colors.textPrimary,
-    letterSpacing: 0.16,
-    minHeight: 40,
-    maxHeight: 60,
+    minHeight: 60,
+    maxHeight: 100,
+    textAlignVertical: "top",
   },
   textInputDisabled: {
     opacity: 0.5,

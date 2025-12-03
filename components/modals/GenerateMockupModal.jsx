@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import {
+  Keyboard,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import {
@@ -140,6 +141,11 @@ const GenerateMockupModal = ({ visible, onClose, onHeightChange }) => {
       const height = visible ? getModalHeight() : 0;
       onHeightChange(height);
     }
+
+    // Dismiss keyboard when modal closes
+    if (!visible) {
+      Keyboard.dismiss();
+    }
   }, [visible, modalState]);
 
   // State transition handlers
@@ -171,6 +177,7 @@ const GenerateMockupModal = ({ visible, onClose, onHeightChange }) => {
   };
 
   const handleHeaderClick = () => {
+    Keyboard.dismiss();
     onClose();
   };
 
@@ -192,6 +199,7 @@ const GenerateMockupModal = ({ visible, onClose, onHeightChange }) => {
   const handleSend = () => {
     // TODO: AI prompt processing
     console.log("Send clicked:", promptText, productImage, selectedBackground);
+    Keyboard.dismiss();
   };
 
   const handleAddYourOwn = () => {
@@ -447,8 +455,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.modalBorder,
     borderRadius: 24,
     paddingTop: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.md,
+    paddingHorizontal: Spacing.xxl,
+    paddingBottom: Spacing.xxl,
     gap: Spacing.md,
   },
   headerRow: {

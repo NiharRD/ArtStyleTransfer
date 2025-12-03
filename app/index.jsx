@@ -1,19 +1,18 @@
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Easing,
-  Image,
-  Modal,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Image,
+    Keyboard,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
@@ -103,18 +102,18 @@ const HomeScreen = () => {
 
   // Filter values state for real-time image filtering
   const [filterValues, setFilterValues] = useState({
-    saturation: 1, // 0-2, default 1
-    brightness: 1, // 0-5, default 1
-    contrast: 1, // -10 to 10, default 1
-    hue: 0, // 0-6.3, default 0
+    saturation: 0, // -100 to 100, default 0
+    brightness: 0, // -100 to 100, default 0
+    contrast: 0, // -100 to 100, default 0
+    hue: 0, // 0 to 100, default 0
     exposure: 0, // -2 to 2, default 0
   });
 
   // Check if filters are active (any value different from default)
   const areFiltersActive =
-    filterValues.saturation !== 1 ||
-    filterValues.brightness !== 1 ||
-    filterValues.contrast !== 1 ||
+    filterValues.saturation !== 0 ||
+    filterValues.brightness !== 0 ||
+    filterValues.contrast !== 0 ||
     filterValues.hue !== 0 ||
     filterValues.exposure !== 0;
 
@@ -136,11 +135,7 @@ const HomeScreen = () => {
     new Animated.Value(DEFAULT_CANVAS_HEIGHT)
   ).current;
 
-  // Animated value for loading overlay pulse effect
-  const pulseAnim = useRef(new Animated.Value(0.3)).current;
 
-  // Animated value for status modal pulse
-  const statusPulseAnim = useRef(new Animated.Value(0.8)).current;
 
   // Interpolate width from height to maintain aspect ratio
   const canvasWidthAnim = canvasHeightAnim.interpolate({
@@ -155,53 +150,7 @@ const HomeScreen = () => {
     generateMockupModalVisible ||
     globalEditingModalVisible;
 
-  // Pulse animation for loading overlay
-  useEffect(() => {
-    if (imageState.isLoading) {
-      const pulseAnimation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 0.6,
-            duration: 800,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 0.3,
-            duration: 800,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      pulseAnimation.start();
-      return () => pulseAnimation.stop();
-    }
-  }, [imageState.isLoading]);
 
-  // Pulse animation for status modal
-  useEffect(() => {
-    if (statusModal.visible) {
-      const statusAnimation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(statusPulseAnim, {
-            toValue: 1,
-            duration: 600,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(statusPulseAnim, {
-            toValue: 0.8,
-            duration: 600,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      statusAnimation.start();
-      return () => statusAnimation.stop();
-    }
-  }, [statusModal.visible]);
 
   // Calculate canvas height based on modal height and suggestions visibility
   const calculateCanvasHeight = (modalHeight, modalOpen) => {
@@ -508,6 +457,7 @@ const HomeScreen = () => {
    * @returns {Promise<boolean>} Success status
    */
   const handleGlobalEditingSend = async (prompt) => {
+    Keyboard.dismiss();
     // Validate that we have an image to work with
     if (!originalImageState.uri || !originalImageState.blob) {
       Alert.alert("No Image", "Please select an image before applying edits.");
@@ -654,6 +604,7 @@ const HomeScreen = () => {
    * @returns {Promise<boolean>} Success status
    */
   const handleSemanticInit = async () => {
+    Keyboard.dismiss();
     if (!sessionIdGlobalEditing) {
       Alert.alert("Error", "No active session.");
       return false;
@@ -676,6 +627,7 @@ const HomeScreen = () => {
    * @returns {Promise<boolean>} Success status
    */
   const handleSemanticEdit = async (xyValues) => {
+    Keyboard.dismiss();
     if (!sessionIdGlobalEditing) {
       Alert.alert("Error", "No active session.");
       return false;
@@ -773,6 +725,7 @@ const HomeScreen = () => {
    * @returns {Promise<boolean>} Success status
    */
   const handleArtStyleTransferSend = async (prompt, style) => {
+    Keyboard.dismiss();
     // Validate prompt
     if (!prompt || prompt.trim() === "") {
       Alert.alert("No Prompt", "Please enter a prompt describing your edit.");
@@ -925,34 +878,12 @@ const HomeScreen = () => {
 
   // Loading Overlay Component
   const LoadingOverlay = ({ message }) => (
-    <Animated.View style={[styles.loadingOverlay, { opacity: pulseAnim }]}>
+    <View style={styles.loadingOverlay}>
       <View style={styles.loadingContent}>
         <ActivityIndicator size="large" color="#FFFFFF" />
         <Text style={styles.loadingText}>{message || "Processing..."}</Text>
       </View>
-    </Animated.View>
-  );
-
-  // Status Modal Component - Shows progress during HTTP operations
-  const StatusModalComponent = () => (
-    <Modal
-      visible={statusModal.visible}
-      transparent={true}
-      animationType="fade"
-      statusBarTranslucent={true}
-    >
-      <View style={styles.statusModalOverlay}>
-        <Animated.View
-          style={[
-            styles.statusModalContent,
-            { transform: [{ scale: statusPulseAnim }] },
-          ]}
-        >
-          <ActivityIndicator size="large" color="#8A2BE2" />
-          <Text style={styles.statusModalText}>{statusModal.message}</Text>
-        </Animated.View>
-      </View>
-    </Modal>
+    </View>
   );
 
   return (
@@ -986,9 +917,7 @@ const HomeScreen = () => {
                   <FilteredImage
                     uri={imageState.uri}
                     filters={filterValues}
-                    width={DEFAULT_CANVAS_WIDTH}
-                    height={DEFAULT_CANVAS_HEIGHT}
-                    style={styles.image}
+                    style={{ width: "100%", height: "100%" }}
                   />
                 </Animated.View>
               ) : (
@@ -1002,7 +931,7 @@ const HomeScreen = () => {
                 />
               )}
               {/* Loading overlay on top of image */}
-              {imageState.isLoading && (
+              {(imageState.isLoading || statusModal.visible) && (
                 <LoadingOverlay message={statusModal.message} />
               )}
             </View>
@@ -1013,7 +942,7 @@ const HomeScreen = () => {
                 { height: canvasHeightAnim, width: canvasWidthAnim },
               ]}
             >
-              {imageState.isLoading ? (
+              {(imageState.isLoading || statusModal.visible) ? (
                 <LoadingOverlay message={statusModal.message} />
               ) : (
                 <TouchableOpacity
@@ -1110,8 +1039,8 @@ const HomeScreen = () => {
           onFilterChange={handleFilterChange}
         />
 
-        {/* Status Modal for progress updates */}
-        <StatusModalComponent />
+        {/* Status Modal for progress updates - REMOVED */}
+        {/* <StatusModalComponent /> */}
       </View>
     </SafeAreaView>
   );
@@ -1210,7 +1139,7 @@ const styles = StyleSheet.create({
   // Loading Overlay Styles
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(25, 24, 22, 0.85)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dimmed background
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 12,
