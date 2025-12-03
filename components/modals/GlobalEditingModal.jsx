@@ -1,26 +1,26 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Animated,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import Svg, {
-  Defs,
-  G,
-  LinearGradient,
-  Path,
-  Rect,
-  Stop,
+    Defs,
+    G,
+    LinearGradient,
+    Path,
+    Rect,
+    Stop,
 } from "react-native-svg";
 import {
-  BorderRadius,
-  Colors,
-  Spacing,
-  Typography,
+    BorderRadius,
+    Colors,
+    Spacing,
+    Typography,
 } from "../../constants/Theme";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
@@ -694,12 +694,16 @@ const GlobalEditingModal = ({
             /* First State: Text input with actions row below */
             <View style={styles.stateContent}>
               <TextInput
-                style={styles.textInput}
+                style={[
+                  styles.textInput,
+                  upperSectionVisible && styles.textInputDisabled,
+                ]}
                 value={promptText}
                 onChangeText={setPromptText}
                 placeholder="Can you make this scene more gloomy"
                 placeholderTextColor="rgba(255, 255, 255, 0.6)"
                 multiline
+                editable={!upperSectionVisible}
               />
 
               <View style={styles.actionsRow}>
@@ -960,6 +964,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.16,
     minHeight: 40,
     maxHeight: 60,
+  },
+  textInputDisabled: {
+    opacity: 0.5,
+    color: "rgba(255, 255, 255, 0.4)",
   },
   rightActions: {
     flexDirection: "row",
