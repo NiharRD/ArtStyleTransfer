@@ -265,6 +265,9 @@ const GlobalEditingModal = ({
   });
   const [selectedFeature, setSelectedFeature] = useState("saturation");
 
+  // Check if any slider has been modified
+  const areSlidersUsed = Object.values(sliderValues).some((value) => value !== 0);
+
   // Handler for slider value changes - also notifies parent
   const handleSliderValueChange = (feature, value) => {
     const newValues = {
@@ -544,12 +547,20 @@ const GlobalEditingModal = ({
                 labels={semanticLabels}
               />
             ) : (
-              <FeatureSliderContainer
-                sliderValues={sliderValues}
-                onSliderValueChange={handleSliderValueChange}
-                selectedFeature={selectedFeature}
-                onFeatureSelect={setSelectedFeature}
-              />
+              <>
+                <FeatureSliderContainer
+                  sliderValues={sliderValues}
+                  onSliderValueChange={handleSliderValueChange}
+                  selectedFeature={selectedFeature}
+                  onFeatureSelect={setSelectedFeature}
+                />
+                {/* Warning text when sliders are used */}
+                {areSlidersUsed && (
+                  <Text style={styles.warningText}>
+                    Can't use semantic edit after using manually sliders
+                  </Text>
+                )}
+              </>
             )}
           </Animated.View>
 
@@ -574,9 +585,11 @@ const GlobalEditingModal = ({
                   style={[
                     styles.toggleButton,
                     modalState === "bulbState" && styles.toggleButtonActive,
+                    areSlidersUsed && styles.buttonDisabled,
                   ]}
                   onPress={handleBulbPress}
                   activeOpacity={0.7}
+                  disabled={areSlidersUsed}
                 >
                   <BulbIcon
                     size={16}
@@ -780,6 +793,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "rgba(255, 255, 255, 0.6)",
     letterSpacing: 0.28,
+  },
+  warningText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.5)",
+    textAlign: "center",
+    marginTop: 4,
   },
   controlsRow: {
     flexDirection: "row",
