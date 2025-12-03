@@ -297,16 +297,6 @@ const HomeScreen = () => {
         
         setSmartSuggestions(newSuggestions);
 
-        const promptText = [
-          main.movie_style_suggestion,
-          main.mood_suggestion,
-          main.color_focus_suggestion,
-          main.other_main_suggestion
-        ].filter(Boolean).join(". ");
-        
-        console.log("Constructed prompt from main suggestions:", promptText);
-        setGeneratedPrompt(promptText);
-
       } catch (e) {
         console.warn("Validation or parsing failed:", e);
         // Fallback or error handling
@@ -314,7 +304,7 @@ const HomeScreen = () => {
              console.error("Zod Validation Errors:", e.errors);
              Alert.alert("Error", "AI response format was invalid.");
         }
-        setGeneratedPrompt(content);
+        // setGeneratedPrompt(content); // REMOVED: Do not auto-fill modal
       }
 
     } catch (error) {
