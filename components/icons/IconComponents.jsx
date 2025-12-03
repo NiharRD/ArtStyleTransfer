@@ -30,3 +30,5 @@ export { default as BranchIcon } from "./BranchIcon";
 export { default as DotsIcon } from "./DotsIcon";
 export { default as DropdownIcon } from "./DropdownIcon";
 export { default as MasterIcon } from "./MasterIcon";
+export { default as ResetIcon } from "./ResetIcon";
+

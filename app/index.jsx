@@ -2,18 +2,18 @@ import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    Image,
-    Keyboard,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
+  Keyboard,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
@@ -981,6 +981,65 @@ const HomeScreen = () => {
   const handleMenuPress = () => {
     // Open menu with project options
     Alert.alert("Menu", "Project options menu");
+  };
+
+  /**
+   * Handle Reset Button Press
+   * Resets the app to its initial state
+   */
+  const handleReset = () => {
+    Alert.alert(
+      "Reset App",
+      "Are you sure? This will clear all data and reset the app to its initial state.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Reset",
+          style: "destructive",
+          onPress: () => {
+            // Reset all states
+            setImageState({
+              uri: null,
+              blob: null,
+              isLoading: false,
+            });
+            setOriginalImageState({
+              uri: null,
+              blob: null,
+              isLoading: false,
+            });
+            setIterations(1);
+            setBaseFilename("01_final.jpg");
+            setSessionIdGlobalEditing(null);
+            setGeneratedPrompt("");
+            setSmartSuggestions([]);
+            setFilterValues({
+              saturation: 0,
+              brightness: 0,
+              contrast: 0,
+              hue: 0,
+              exposure: 0,
+            });
+            setSemanticAxes({
+              additionalProp1: null,
+              additionalProp2: null,
+              labels: null,
+            });
+            setSemanticLoading(false);
+            
+            // Close any open modals
+            setArtStyleModalVisible(false);
+            setGenerateMockupModalVisible(false);
+            setGlobalEditingModalVisible(false);
+            
+            console.log("App reset to initial state");
+          },
+        },
+      ]
+    );
   };
 
   const handleAIPromptPress = () => {
