@@ -28,24 +28,30 @@ import SmartSuggestions from "../components/ui/SmartSuggestions";
 import { artStyleBaseUrl, baseUrl } from "../endPoints";
 
 const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
-const SYSTEM_PROMPT = "RULES:\n"  +
-       " - Return EXACTLY 1  suggestion and the best one .\n"
-        "-  suggestion short and natural, as if a user wrote it.\n"
-        "- NO numbers, NO technical terms, NO percentages, NO stops.\n"
-        "- NO crop or composition instructions.\n"
-        "- Suggestions MUST relate only to exposure, contrast, tone, temperature, tint, "
-        "highlights, shadows, whites, blacks, saturation, vibrance, or general color feel.\n"
-        "- Style should match examples like:\n"
-        "  • 'Make the image feel warmer'\n"
-        "  • 'Increase vibrance for more life'\n"
-        "  • 'Soften strong highlights'\n"
-        "  • 'Lift shadows to reveal detail'\n"
-        "- Each suggestion must be applicable through editing parameters (exposure, contrast, temperature, tint, saturation...)\n"
-        "- Return the result in JSON format.\n"
-        "- NO additional fields. ONLY:\n"
-        "{ \"suggestions\": [ ... ] }\n"
-    
-"  "
+const format_instructions = "Return a JSON object with a 'suggestions' array of strings.";
+
+const SYSTEM_PROMPT = "Analyze the image carefully and return ONLY natural, human-friendly " +
+        "enhancement suggestions in JSON.\n\n" +
+
+        "FORMAT:\n" +
+        format_instructions +
+        "\n\n" +
+
+        "RULES:\n" +
+        "- Return EXACTLY 15 suggestions.\n" +
+        "- Keep each suggestion short and natural, as if a user wrote it.\n" +
+        "- NO numbers, NO technical terms, NO percentages, NO stops.\n" +
+        "- NO crop or composition instructions.\n" +
+        "- Suggestions MUST relate only to exposure, contrast, tone, temperature, tint, " +
+        "highlights, shadows, whites, blacks, saturation, vibrance, or general color feel.\n" +
+        "- Style should match examples like:\n" +
+        "  • 'Make the image feel warmer'\n" +
+        "  • 'Increase vibrance for more life'\n" +
+        "  • 'Soften strong highlights'\n" +
+        "  • 'Lift shadows to reveal detail'\n" +
+        "- Each suggestion must be applicable through editing parameters (exposure, contrast, temperature, tint, saturation...)\n" +
+        "- NO additional fields. ONLY:\n" +
+        "{ \"suggestions\": [ ... ] }\n";
 
 const { width, height } = Dimensions.get("window");
 
