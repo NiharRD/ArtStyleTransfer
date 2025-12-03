@@ -256,10 +256,10 @@ const GlobalEditingModal = ({
 
   // Slider state management for GL filter features
   const [sliderValues, setSliderValues] = useState({
-    saturation: 1, // 0-2, default 1
-    brightness: 1, // 0-5, default 1
-    contrast: 1, // -10 to 10, default 1
-    hue: 0, // 0-6.3, default 0
+    saturation: 0, // -100 to 100, default 0
+    brightness: 0, // -100 to 100, default 0
+    contrast: 0, // -100 to 100, default 0
+    hue: 0, // 0 to 100, default 0
     exposure: 0, // -2 to 2, default 0
   });
   const [selectedFeature, setSelectedFeature] = useState("saturation");

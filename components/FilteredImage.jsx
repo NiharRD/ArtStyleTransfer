@@ -23,9 +23,9 @@ import { Image, StyleSheet, View } from "react-native";
 
 // Default filter values
 const DEFAULT_FILTERS = {
-  saturation: 1,
-  brightness: 1,
-  contrast: 1,
+  saturation: 0,
+  brightness: 0,
+  contrast: 0,
   hue: 0,
   exposure: 0,
 };
@@ -294,10 +294,26 @@ const FilteredImage = ({
     const hueLoc = gl.getUniformLocation(program, "uHue");
     const exposureLoc = gl.getUniformLocation(program, "uExposure");
 
-    gl.uniform1f(saturationLoc, activeFilters.saturation);
-    gl.uniform1f(brightnessLoc, activeFilters.brightness);
-    gl.uniform1f(contrastLoc, activeFilters.contrast);
-    gl.uniform1f(hueLoc, activeFilters.hue);
+    // Map UI values (-100 to 100) to Shader values
+    // Saturation: -100 -> 0.0, 0 -> 1.0, 100 -> 2.0
+    const saturationVal = 1.0 + activeFilters.saturation / 100.0;
+
+    // Brightness: -100 -> 0.5, 0 -> 1.0, 100 -> 1.5
+    const brightnessVal = 1.0 + (activeFilters.brightness / 100.0) * 0.5;
+
+    // Contrast: -100 -> 0.5, 0 -> 1.0, 100 -> 1.8
+    const contrastVal =
+      activeFilters.contrast < 0
+        ? 1.0 + (activeFilters.contrast / 100.0) * 0.5
+        : 1.0 + (activeFilters.contrast / 100.0) * 0.8;
+
+    // Hue: 0 -> 0, 100 -> 2PI
+    const hueVal = (activeFilters.hue / 100.0) * 6.28318530718;
+
+    gl.uniform1f(saturationLoc, saturationVal);
+    gl.uniform1f(brightnessLoc, brightnessVal);
+    gl.uniform1f(contrastLoc, contrastVal);
+    gl.uniform1f(hueLoc, hueVal);
     gl.uniform1f(exposureLoc, activeFilters.exposure);
 
     // Clear and draw
@@ -361,34 +377,34 @@ export default FilteredImage;
 export const FILTER_CONFIGS = {
   saturation: {
     name: "Saturation",
-    minValue: 0,
-    maxValue: 2,
-    defaultValue: 1,
-    step: 0.01,
+    minValue: -100,
+    maxValue: 100,
+    defaultValue: 0,
+    step: 1,
     description: "Controls the intensity of colors",
   },
   brightness: {
     name: "Brightness",
-    minValue: 0,
-    maxValue: 5,
-    defaultValue: 1,
-    step: 0.05,
+    minValue: -100,
+    maxValue: 100,
+    defaultValue: 0,
+    step: 1,
     description: "Adjusts the overall lightness",
   },
   contrast: {
     name: "Contrast",
-    minValue: -10,
-    maxValue: 10,
-    defaultValue: 1,
-    step: 0.1,
+    minValue: -100,
+    maxValue: 100,
+    defaultValue: 0,
+    step: 1,
     description: "Difference between light/dark areas",
   },
   hue: {
     name: "Hue",
     minValue: 0,
-    maxValue: 6.3,
+    maxValue: 100,
     defaultValue: 0,
-    step: 0.1,
+    step: 1,
     description: "Rotates color colors (tint)",
   },
   exposure: {
