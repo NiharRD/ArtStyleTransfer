@@ -27,31 +27,35 @@ import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
 import { artStyleBaseUrl, baseUrl } from "../endPoints";
 
-const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
-const format_instructions = "Return a JSON object with a 'suggestions' array of strings.";
+const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
+const SYSTEM_PROMPT = `Analyze the image carefully and return ONLY a single JSON object containing exactly 4 main suggestions (one for each category: Movie Style, Mood, Color Focus, Other) and exactly 15 general suggestions, all in natural human language.
 
-const SYSTEM_PROMPT = "Analyze the image carefully and return ONLY natural, human-friendly " +
-        "enhancement suggestions in JSON.\n\n" +
+*STRICT FORMAT INSTRUCTIONS*:
+Return a JSON object with this structure:
+{
+  "main_suggestions": {
+    "movie_style_suggestion": "string",
+    "mood_suggestion": "string",
+    "color_focus_suggestion": "string",
+    "other_main_suggestion": "string"
+  },
+  "normal_suggestions": [
+    "string",
+    "string",
+    ... (15 items)
+  ]
+}
 
-        "FORMAT:\n" +
-        format_instructions +
-        "\n\n" +
-
-        "RULES:\n" +
-        "- Return EXACTLY 15 suggestions.\n" +
-        "- Keep each suggestion short and natural, as if a user wrote it.\n" +
-        "- NO numbers, NO technical terms, NO percentages, NO stops.\n" +
-        "- NO crop or composition instructions.\n" +
-        "- Suggestions MUST relate only to exposure, contrast, tone, temperature, tint, " +
-        "highlights, shadows, whites, blacks, saturation, vibrance, or general color feel.\n" +
-        "- Style should match examples like:\n" +
-        "  • 'Make the image feel warmer'\n" +
-        "  • 'Increase vibrance for more life'\n" +
-        "  • 'Soften strong highlights'\n" +
-        "  • 'Lift shadows to reveal detail'\n" +
-        "- Each suggestion must be applicable through editing parameters (exposure, contrast, temperature, tint, saturation...)\n" +
-        "- NO additional fields. ONLY:\n" +
-        "{ \"suggestions\": [ ... ] }\n";
+*RULES FOR ALL 19 SUGGESTIONS*:
+- The output MUST contain exactly one main_suggestions object with 4 fields, and one normal_suggestions list with exactly 15 elements.
+- Keep each suggestion short and natural, as if a user wrote it.
+- NO numbers, NO technical terms, NO percentages, NO stops.
+- NO crop or composition instructions.
+- Suggestions MUST relate only to exposure, contrast, tone, temperature, tint, highlights, shadows, whites, blacks, saturation, vibrance, or general color feel.
+- Style should match examples like:
+  • Main: 'Give this photo a dark, cinematic grade like a Christopher Nolan film.'
+  • Normal: 'Slightly reduce the overall exposure to add drama.'
+`;
 
 const { width, height } = Dimensions.get("window");
 
@@ -181,27 +185,32 @@ const HomeScreen = () => {
 
 
   // Calculate canvas height based on modal height and suggestions visibility
-  const calculateCanvasHeight = (modalHeight, modalOpen) => {
+  const calculateCanvasHeight = (modalHeight, modalOpen, hasImage) => {
     if (modalHeight > 0) {
       // Modal is open - shrink proportionally to modal height (50% of modal height)
       const shrinkAmount = modalHeight * 0.5;
       const newHeight = DEFAULT_CANVAS_HEIGHT - shrinkAmount;
       return Math.max(newHeight, MIN_CANVAS_HEIGHT);
     }
-    // No modal open - use canvas height with suggestions
-    return CANVAS_WITH_SUGGESTIONS;
+    // No modal open
+    // If image is loaded, suggestions are visible, so shrink canvas
+    if (hasImage) {
+      return CANVAS_WITH_SUGGESTIONS;
+    }
+    // No image, no suggestions, use full height
+    return DEFAULT_CANVAS_HEIGHT;
   };
 
   // Animate canvas height when modal height changes or modal visibility changes
   useEffect(() => {
-    const targetHeight = calculateCanvasHeight(currentModalHeight, isModalOpen);
+    const targetHeight = calculateCanvasHeight(currentModalHeight, isModalOpen, !!imageState.uri);
     Animated.spring(canvasHeightAnim, {
       toValue: targetHeight,
       useNativeDriver: false, // Height cannot use native driver
       tension: 65,
       friction: 11,
     }).start();
-  }, [currentModalHeight, isModalOpen]);
+  }, [currentModalHeight, isModalOpen, imageState.uri]);
 
   // Handler for modal height changes
   const handleModalHeightChange = (height) => {
@@ -211,84 +220,89 @@ const HomeScreen = () => {
   // Canvas aspect ratio for image cropping (width:height)
   const CANVAS_ASPECT_RATIO = [DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT];
 
+  // Suggestions loading state
+  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
+  const [smartSuggestions, setSmartSuggestions] = useState([]);
+
   /**
-   * Generate prompt from image using OpenAI
+   * Generate prompt from image using Gemini (via Axios)
    */
   const generatePromptFromImage = async (base64Image) => {
     if (!base64Image) return;
     
+    setIsSuggestionsLoading(true);
+    setSmartSuggestions([]); // Clear previous suggestions
+    
     try {
-      console.log("Generating prompt from image using OpenAI...");
+      console.log("Generating prompt from image using Gemini...");
       
       const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_API_KEY}`,
         {
-          model: "gpt-4o",
-          messages: [
+          contents: [
             {
-              role: "system",
-              content: SYSTEM_PROMPT
-            },
-            {
-              role: "user",
-              content: [
+              parts: [
+                { text: SYSTEM_PROMPT },
                 {
-                  type: "text",
-                  text: "Generate a prompt for this image in JSON format."
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:image/jpeg;base64,${base64Image}`
+                  inline_data: {
+                    mime_type: "image/jpeg",
+                    data: base64Image
                   }
                 }
               ]
             }
           ],
-          response_format: { type: "json_object" }
+          generationConfig: {
+            response_mime_type: "application/json"
+          }
         },
         {
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${OPENAI_API_KEY}`
+            "Content-Type": "application/json"
           }
         }
       );
       
-      const content = response.data.choices[0].message.content;
+      const content = response.data.candidates[0].content.parts[0].text;
       console.log("Generated prompt raw:", content);
       
       try {
-        // Clean up markdown code blocks if present
-        const cleanedContent = content.replace(/```json/g, "").replace(/```/g, "").trim();
-        const json = JSON.parse(cleanedContent);
+        const json = JSON.parse(content);
         
-        if (json.suggestions && Array.isArray(json.suggestions) && json.suggestions.length > 0) {
-          const suggestion = json.suggestions[0];
-          console.log("Parsed suggestion:", suggestion);
-          setGeneratedPrompt(suggestion);
-        } else if (json.prompt) {
-          console.log("Parsed prompt key:", json.prompt);
-          setGeneratedPrompt(json.prompt);
-        } else if (json.suggestion) {
-          console.log("Parsed suggestion key:", json.suggestion);
-          setGeneratedPrompt(json.suggestion);
+        // Extract main suggestions to form a comprehensive prompt
+        if (json.main_suggestions) {
+          const main = json.main_suggestions;
+          
+          // Set Smart Suggestions from main suggestions
+          const newSuggestions = [
+            { id: "movie", label: main.movie_style_suggestion },
+            { id: "mood", label: main.mood_suggestion },
+            { id: "color", label: main.color_focus_suggestion },
+            { id: "other", label: main.other_main_suggestion },
+          ].filter(item => item.label); // Filter out empty suggestions
+          
+          setSmartSuggestions(newSuggestions);
+
+          const promptText = [
+            main.movie_style_suggestion,
+            main.mood_suggestion,
+            main.color_focus_suggestion,
+            main.other_main_suggestion
+          ].filter(Boolean).join(". ");
+          
+          console.log("Constructed prompt from main suggestions:", promptText);
+          setGeneratedPrompt(promptText);
+        } else if (json.normal_suggestions && json.normal_suggestions.length > 0) {
+          // Fallback to first normal suggestion
+          setGeneratedPrompt(json.normal_suggestions[0]);
         } else {
-          console.warn("No known keys found in JSON, using raw content");
-          // Try to use the first string value found in the object
-          const values = Object.values(json);
-          const stringValue = values.find(v => typeof v === 'string');
-          if (stringValue) {
-             setGeneratedPrompt(stringValue);
-          } else {
-             setGeneratedPrompt(cleanedContent);
-          }
+          console.warn("Unexpected JSON structure");
+          setGeneratedPrompt(content);
         }
+
       } catch (e) {
         console.warn("Failed to parse JSON, using raw text:", e);
-        // Try to strip quotes if it looks like a simple string
-        const cleaned = content.replace(/^"|"$/g, '').trim();
-        setGeneratedPrompt(cleaned);
+        setGeneratedPrompt(content);
       }
 
     } catch (error) {
@@ -297,6 +311,8 @@ const HomeScreen = () => {
         console.error("Error response:", JSON.stringify(error.response.data, null, 2));
       }
       Alert.alert("Error", "Failed to generate prompt from image.");
+    } finally {
+      setIsSuggestionsLoading(false);
     }
   };
 
@@ -325,7 +341,9 @@ const HomeScreen = () => {
         allowsEditing: true,
         aspect: CANVAS_ASPECT_RATIO, // Lock crop to canvas aspect ratio
         quality: 1,
-        base64: true, // Request base64 for OpenAI
+        aspect: CANVAS_ASPECT_RATIO, // Lock crop to canvas aspect ratio
+        quality: 1,
+        base64: true, // Request base64 for Gemini
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -1097,6 +1115,9 @@ const HomeScreen = () => {
               onSuggestionPress={(suggestion) => {
                 Alert.alert("Suggestion", `Selected: ${suggestion.label}`);
               }}
+              isLoading={isSuggestionsLoading}
+              isVisible={!!imageState.uri}
+              suggestions={smartSuggestions}
             />
           )}
 
