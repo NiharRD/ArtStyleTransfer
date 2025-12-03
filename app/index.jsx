@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { z } from "zod";
 import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
 import GenerateMockupModal from "../components/modals/GenerateMockupModal";
@@ -28,7 +29,7 @@ import SmartSuggestions from "../components/ui/SmartSuggestions";
 import { artStyleBaseUrl, baseUrl } from "../endPoints";
 
 const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
-const SYSTEM_PROMPT = `Analyze the image carefully and return ONLY a single JSON object containing exactly 4 main suggestions (one for each category: Movie Style, Mood, Color Focus, Other) and exactly 15 general suggestions, all in natural human language.
+const SYSTEM_PROMPT = `Analyze the image carefully and return ONLY a single JSON object containing exactly 4 main suggestions only in 4 to 6 strictly words (one for each category: Movie Style, Mood, Color Focus, Other) and exactly 15 general suggestions, all in natural human language.
 
 *STRICT FORMAT INSTRUCTIONS*:
 Return a JSON object with this structure:
@@ -52,10 +53,22 @@ Return a JSON object with this structure:
 - NO numbers, NO technical terms, NO percentages, NO stops.
 - NO crop or composition instructions.
 - Suggestions MUST relate only to exposure, contrast, tone, temperature, tint, highlights, shadows, whites, blacks, saturation, vibrance, or general color feel.
+- main suggestions must be strictly 4 to 6 words each.
 - Style should match examples like:
   • Main: 'Give this photo a dark, cinematic grade like a Christopher Nolan film.'
   • Normal: 'Slightly reduce the overall exposure to add drama.'
 `;
+
+// Define Zod schema for suggestions
+const SuggestionSchema = z.object({
+  main_suggestions: z.object({
+    movie_style_suggestion: z.string(),
+    mood_suggestion: z.string(),
+    color_focus_suggestion: z.string(),
+    other_main_suggestion: z.string(),
+  }),
+  normal_suggestions: z.array(z.string()),
+});
 
 const { width, height } = Dimensions.get("window");
 
@@ -267,41 +280,40 @@ const HomeScreen = () => {
       console.log("Generated prompt raw:", content);
       
       try {
+        // Parse JSON first
         const json = JSON.parse(content);
         
-        // Extract main suggestions to form a comprehensive prompt
-        if (json.main_suggestions) {
-          const main = json.main_suggestions;
-          
-          // Set Smart Suggestions from main suggestions
-          const newSuggestions = [
-            { id: "movie", label: main.movie_style_suggestion },
-            { id: "mood", label: main.mood_suggestion },
-            { id: "color", label: main.color_focus_suggestion },
-            { id: "other", label: main.other_main_suggestion },
-          ].filter(item => item.label); // Filter out empty suggestions
-          
-          setSmartSuggestions(newSuggestions);
+        // Validate with Zod
+        const validatedData = SuggestionSchema.parse(json);
+        const main = validatedData.main_suggestions;
+        
+        // Set Smart Suggestions from main suggestions
+        const newSuggestions = [
+          { id: "movie", label: main.movie_style_suggestion },
+          { id: "mood", label: main.mood_suggestion },
+          { id: "color", label: main.color_focus_suggestion },
+          { id: "other", label: main.other_main_suggestion },
+        ].filter(item => item.label); // Filter out empty suggestions
+        
+        setSmartSuggestions(newSuggestions);
 
-          const promptText = [
-            main.movie_style_suggestion,
-            main.mood_suggestion,
-            main.color_focus_suggestion,
-            main.other_main_suggestion
-          ].filter(Boolean).join(". ");
-          
-          console.log("Constructed prompt from main suggestions:", promptText);
-          setGeneratedPrompt(promptText);
-        } else if (json.normal_suggestions && json.normal_suggestions.length > 0) {
-          // Fallback to first normal suggestion
-          setGeneratedPrompt(json.normal_suggestions[0]);
-        } else {
-          console.warn("Unexpected JSON structure");
-          setGeneratedPrompt(content);
-        }
+        const promptText = [
+          main.movie_style_suggestion,
+          main.mood_suggestion,
+          main.color_focus_suggestion,
+          main.other_main_suggestion
+        ].filter(Boolean).join(". ");
+        
+        console.log("Constructed prompt from main suggestions:", promptText);
+        setGeneratedPrompt(promptText);
 
       } catch (e) {
-        console.warn("Failed to parse JSON, using raw text:", e);
+        console.warn("Validation or parsing failed:", e);
+        // Fallback or error handling
+        if (e instanceof z.ZodError) {
+             console.error("Zod Validation Errors:", e.errors);
+             Alert.alert("Error", "AI response format was invalid.");
+        }
         setGeneratedPrompt(content);
       }
 
