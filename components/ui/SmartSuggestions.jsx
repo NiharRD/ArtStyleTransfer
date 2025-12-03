@@ -1,4 +1,3 @@
-import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import SuggestionChip from "./SuggestionChip";
@@ -28,7 +27,7 @@ const instagramIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="non
 </svg>`;
 
 // Suggestion data
-const suggestions = [
+const hardcodedSuggestions = [
   {
     id: "transform-portrait",
     label: "Transform image into digital potrait",
@@ -51,6 +50,8 @@ const suggestions = [
   },
 ];
 
+import { Skeleton } from "moti/skeleton";
+
 /**
  * SmartSuggestions - AI-powered suggestion chips section
  *
@@ -58,8 +59,9 @@ const suggestions = [
  * - Header with "Smart suggestions" text
  * - Horizontally scrollable rows of suggestion chips
  * - Glass effect styling
+ * - Loading skeleton state
  */
-const SmartSuggestions = ({ onSuggestionPress }) => {
+const SmartSuggestions = ({ onSuggestionPress, isLoading = false, isVisible = true, suggestions: dynamicSuggestions = [] }) => {
   const handleSuggestionPress = (suggestion) => {
     if (onSuggestionPress) {
       onSuggestionPress(suggestion);
@@ -67,6 +69,17 @@ const SmartSuggestions = ({ onSuggestionPress }) => {
       console.log("Suggestion pressed:", suggestion.label);
     }
   };
+
+  if (!isVisible) return null;
+
+  // Use dynamic suggestions if available, otherwise fallback to hardcoded (or empty if desired)
+  // The user requested to use dynamic suggestions "in place of" hardcoded ones.
+  // If dynamic suggestions are present, we use them.
+  // If not present (e.g. initial load before AI), we might still show hardcoded or nothing.
+  // Given the flow: Image Loaded -> Loading -> Dynamic Suggestions.
+  // So if we have dynamic suggestions, we show them.
+  
+  const displaySuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : hardcodedSuggestions;
 
   return (
     <View style={styles.container}>
@@ -76,37 +89,54 @@ const SmartSuggestions = ({ onSuggestionPress }) => {
         <Text style={styles.headerText}>Smart suggestions</Text>
       </View>
 
-      {/* First row of suggestions */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {suggestions.slice(0, 2).map((suggestion) => (
-          <SuggestionChip
-            key={suggestion.id}
-            label={suggestion.label}
-            icon={suggestion.icon}
-            onPress={() => handleSuggestionPress(suggestion)}
-          />
-        ))}
-      </ScrollView>
+      {isLoading ? (
+        // Skeleton Loading State
+        <View style={{ gap: 8 }}>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Skeleton colorMode="dark" width={150} height={32} radius={16} />
+            <Skeleton colorMode="dark" width={120} height={32} radius={16} />
+          </View>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Skeleton colorMode="dark" width={130} height={32} radius={16} />
+            <Skeleton colorMode="dark" width={140} height={32} radius={16} />
+          </View>
+        </View>
+      ) : (
+        // Loaded State
+        <>
+          {/* First row of suggestions */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {displaySuggestions.slice(0, 2).map((suggestion) => (
+              <SuggestionChip
+                key={suggestion.id}
+                label={suggestion.label}
+                icon={suggestion.icon} // Will be undefined for dynamic suggestions, which is handled by SuggestionChip
+                onPress={() => handleSuggestionPress(suggestion)}
+              />
+            ))}
+          </ScrollView>
 
-      {/* Second row of suggestions */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {suggestions.slice(2).map((suggestion) => (
-          <SuggestionChip
-            key={suggestion.id}
-            label={suggestion.label}
-            icon={suggestion.icon}
-            onPress={() => handleSuggestionPress(suggestion)}
-          />
-        ))}
-      </ScrollView>
+          {/* Second row of suggestions */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {displaySuggestions.slice(2).map((suggestion) => (
+              <SuggestionChip
+                key={suggestion.id}
+                label={suggestion.label}
+                icon={suggestion.icon}
+                onPress={() => handleSuggestionPress(suggestion)}
+              />
+            ))}
+          </ScrollView>
+        </>
+      )}
     </View>
   );
 };

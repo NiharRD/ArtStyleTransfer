@@ -228,6 +228,7 @@ const GlobalEditingModal = ({
   semanticLabels,
   isSemanticLoading,
   onFilterChange, // Callback for filter value changes
+  initialPrompt, // Initial prompt text
 }) => {
   // Input state: textInput (first state) or voicePrompt (second state)
   const [inputState, setInputState] = useState("textInput");
@@ -240,7 +241,14 @@ const GlobalEditingModal = ({
 
   // Modal state for upper section content (bulb = XY Pad, sliders = Feature Slider)
   const [modalState, setModalState] = useState("bulbState");
-  const [promptText, setPromptText] = useState("");
+  const [promptText, setPromptText] = useState(initialPrompt || "");
+
+  // Update prompt text when initialPrompt changes
+  useEffect(() => {
+    if (initialPrompt) {
+      setPromptText(initialPrompt);
+    }
+  }, [initialPrompt]);
 
   // Local processing state for send button
   const [isSending, setIsSending] = useState(false);

@@ -1,4 +1,3 @@
-import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 
@@ -33,23 +32,23 @@ const SuggestionChip = ({ label, icon, onPress }) => {
 const styles = StyleSheet.create({
   container: {
     borderRadius: 34,
-    backgroundColor: "rgba(82, 82, 82, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.15)", // Lighter glass effect
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
-    opacity: 0.9,
+    shadowOpacity: 0.3, // Enhanced shadow
+    shadowRadius: 6,
+    elevation: 6,
   },
   innerContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
+    paddingHorizontal: 12, // Increased padding
+    paddingVertical: 8,
+    // Removed inner dark background for cleaner look
     borderRadius: 21,
-    height: 29,
   },
   iconContainer: {
     width: 14,
@@ -59,10 +58,11 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: "System",
-    fontSize: 16,
-    color: "#E6E6E6",
+    fontSize: 15, // Slightly adjusted size
+    fontWeight: "500", // Added weight for contrast
+    color: "#FFFFFF", // Pure white for better contrast
     letterSpacing: -0.23,
-    lineHeight: 17,
+    lineHeight: 18,
   },
 });
 
