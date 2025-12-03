@@ -1,19 +1,19 @@
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Easing,
-  Image,
-  Modal,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Easing,
+    Image,
+    Modal,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
