@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
 import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
@@ -27,7 +28,6 @@ import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
 import { artStyleBaseUrl, baseUrl } from "../endPoints";
-
 const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 const SYSTEM_PROMPT = `Analyze the image carefully and return ONLY a single JSON object containing exactly 4 main suggestions only in 4 to 6 strictly words (one for each category: Movie Style, Mood, Color Focus, Other) and exactly 15 general suggestions, all in natural human language.
 
@@ -103,6 +103,42 @@ const HomeScreen = () => {
     blob: null, // Blob object ready for FormData
     isLoading: false, // Loading state for async operations
   });
+
+  const llm = useLLM({
+    model: LLAMA3_2_1B_SPINQUANT,
+    contextWindowLength: 512, // Adjust as needed (e.g., 128 to 512)
+  });
+
+  const [isModelReady, setIsModelReady] = useState(false);
+  const [modelLoadingError, setModelLoadingError] = useState(null);
+
+  useEffect(() => {
+    const initModel = async () => {
+      try {
+        if (!isModelReady) {
+          console.log("Loading LLM model...");
+          // The useLLM hook might handle loading internally or expose a load method.
+          // Based on typical patterns and the user request "loads automatically when it start",
+          // we'll assume the hook or a method needs to be called or it does it on init.
+          // If the library requires an explicit load call:
+          // await llm.load(); 
+          
+          // However, often these hooks return a 'loading' state or similar.
+          // If 'useLLM' returns an object with 'load' function:
+           if (llm.load) {
+             await llm.load();
+           }
+          
+          setIsModelReady(true);
+          console.log("LLM model loaded and ready.");
+        }
+      } catch (error) {
+        console.error("Failed to load LLM model:", error);
+        setModelLoadingError(error.message);
+      }
+    };
+    initModel();
+  }, []);
 
   // Original image state - stores the initially picked image for AI reference
   const [originalImageState, setOriginalImageState] = useState({
