@@ -1,5 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -742,9 +742,8 @@ const HomeScreen = () => {
         // Update image state with new image
         await updateImageFromResponse(fullImageUrl);
 
-        // Increment iteration for next edit
-        const newIteration = iterations + 1;
-        setIterations(newIteration);
+        // Keep same iteration for semantic edits
+        console.log("Semantic edit applied. Iteration remains:", iterations);
 
         console.log("===========================");
         setStatusModal({ visible: false, message: "" });
