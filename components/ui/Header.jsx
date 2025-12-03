@@ -1,12 +1,12 @@
-import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { BackIcon, DotsIcon } from "../icons/IconComponents";
+import { BackIcon, DotsIcon, ResetIcon } from "../icons/IconComponents";
 
 const Header = ({
   title = "Untitled Project 1",
   subtitle = "Synced just now",
   onBackPress,
   onMenuPress,
+  onResetPress,
 }) => {
   return (
     <View style={styles.container}>
@@ -25,13 +25,23 @@ const Header = ({
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={onMenuPress}
-        activeOpacity={0.7}
-      >
-        <DotsIcon size={20} color="#BFBFBF" />
-      </TouchableOpacity>
+      <View style={{ flexDirection: "row", gap: 16 }}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={onResetPress}
+          activeOpacity={0.7}
+        >
+          <ResetIcon size={20} color="#BFBFBF" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={onMenuPress}
+          activeOpacity={0.7}
+        >
+          <DotsIcon size={20} color="#BFBFBF" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
