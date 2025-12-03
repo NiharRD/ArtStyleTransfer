@@ -369,8 +369,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.modalBorder,
     borderRadius: 24,
     paddingTop: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.md,
+    paddingHorizontal: Spacing.xxl,
+    paddingBottom: Spacing.xxl,
     gap: Spacing.md,
   },
   headerRow: {

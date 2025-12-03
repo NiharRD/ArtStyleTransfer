@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import {
-  BorderRadius,
-  Colors,
-  Spacing,
-  Typography,
+    BorderRadius,
+    Colors,
+    Spacing,
+    Typography,
 } from "../../constants/Theme";
 import BackgroundGalleryGrid from "./BackgroundGalleryGrid";
 import ModalContainer from "./ModalContainer";
@@ -447,8 +447,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.modalBorder,
     borderRadius: 24,
     paddingTop: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.md,
+    paddingHorizontal: Spacing.xxl,
+    paddingBottom: Spacing.xxl,
     gap: Spacing.md,
   },
   headerRow: {
