@@ -28,7 +28,7 @@ import TalkToKimiButton from "./TalkToKimiButton";
 import XYPad from "./XYPad";
 
 // Constants for animation
-const UPPER_SECTION_HEIGHT = 220;
+const UPPER_SECTION_HEIGHT = 250;
 const CONFIRMATION_ROW_HEIGHT = 70;
 
 /**
@@ -316,8 +316,6 @@ const GlobalEditingModal = ({
       } else {
         baseHeight += UPPER_SECTION_HEIGHT;
       }
-      // Add chat history section height when upper section is visible
-      baseHeight += 80;
     }
 
     return baseHeight;
@@ -599,32 +597,7 @@ const GlobalEditingModal = ({
             )}
           </View>
 
-          {/* Static Chat History Section - only show when upper section is visible */}
-          {upperSectionVisible && (
-            <View style={styles.chatHistorySection}>
-              <View style={styles.historyItem}>
-                <CodeForkIcon size={16} color="rgba(255, 255, 255, 0.6)" />
-                <View style={styles.historyContent}>
-                  <Text style={styles.historyText}>
-                    Gotcha! I have done those changes to your image. Can you
-                    play with the point to help me deliver a more accurate
-                    result?
-                  </Text>
-                  <View style={styles.historyTags}>
-                    <View style={styles.historyTag}>
-                      <Text style={styles.tagText}>Added Motion Blur</Text>
-                    </View>
-                    <View style={styles.historyTag}>
-                      <Text style={styles.tagText}>Increased Sharpness</Text>
-                    </View>
-                    <View style={styles.historyTag}>
-                      <Text style={styles.tagText}>5 more</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </View>
-          )}
+
 
           {/* Confirmation Row - "Keep these changes?" */}
           <Animated.View
