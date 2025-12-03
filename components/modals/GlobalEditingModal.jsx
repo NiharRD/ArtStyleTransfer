@@ -226,6 +226,7 @@ const GlobalEditingModal = ({
   onSemanticEdit,
   semanticLabels,
   isSemanticLoading,
+  onFilterChange, // Callback for filter value changes
 }) => {
   // Input state: textInput (first state) or voicePrompt (second state)
   const [inputState, setInputState] = useState("textInput");
@@ -253,36 +254,28 @@ const GlobalEditingModal = ({
   // XY Pad state management for bulb state
   const [xyPadValue, setXYPadValue] = useState({ x: 0, y: 0 });
 
-  // Slider state management for all features
+  // Slider state management for GL filter features
   const [sliderValues, setSliderValues] = useState({
-    brightness: 0,
-    contrast: 0,
-    exposure: 0,
-    highlights: 0,
-    shadows: 0,
-    whites: 0,
-    blacks: 0,
-    saturation: 0,
-    vibrance: 5,
-    colorMixer: {
-      red: 0,
-      orange: 0,
-      yellow: 0,
-      green: 0,
-      cyan: 0,
-      blue: 0,
-      purple: 0,
-    },
+    saturation: 1, // 0-2, default 1
+    brightness: 1, // 0-5, default 1
+    contrast: 1, // -10 to 10, default 1
+    hue: 0, // 0-6.3, default 0
+    exposure: 0, // -2 to 2, default 0
   });
-  const [selectedFeature, setSelectedFeature] = useState("vibrance");
-  const [selectedColorChannel, setSelectedColorChannel] = useState("red");
+  const [selectedFeature, setSelectedFeature] = useState("saturation");
 
-  // Handler for slider value changes
+  // Handler for slider value changes - also notifies parent
   const handleSliderValueChange = (feature, value) => {
-    setSliderValues((prev) => ({
-      ...prev,
+    const newValues = {
+      ...sliderValues,
       [feature]: value,
-    }));
+    };
+    setSliderValues(newValues);
+    
+    // Notify parent of filter changes for real-time preview
+    if (onFilterChange) {
+      onFilterChange(newValues);
+    }
   };
 
   // Animate upper section height when visibility changes
@@ -319,7 +312,7 @@ const GlobalEditingModal = ({
     // Add upper section height if visible
     if (upperSectionVisible) {
       if (modalState === "slidersState") {
-        baseHeight += selectedFeature === "colorMixer" ? 260 : 220;
+        baseHeight += 220; // Fixed height for slider section
       } else {
         baseHeight += UPPER_SECTION_HEIGHT;
       }
@@ -552,8 +545,6 @@ const GlobalEditingModal = ({
                 onSliderValueChange={handleSliderValueChange}
                 selectedFeature={selectedFeature}
                 onFeatureSelect={setSelectedFeature}
-                selectedColorChannel={selectedColorChannel}
-                onColorChannelSelect={setSelectedColorChannel}
               />
             )}
           </Animated.View>

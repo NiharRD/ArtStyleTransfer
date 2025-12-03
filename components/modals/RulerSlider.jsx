@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -9,20 +9,17 @@ import Animated, {
 } from "react-native-reanimated";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const SLIDER_WIDTH = SCREEN_WIDTH - 64; // Account for container padding
-const LINE_COUNT = 41; // Number of ruler lines (for -100 to +100, step 5)
-const LINE_SPACING = SLIDER_WIDTH / (LINE_COUNT - 1);
-const VALUE_RANGE = 200; // -100 to +100
-const PIXELS_PER_UNIT = (SLIDER_WIDTH * 2) / VALUE_RANGE; // More range for smoother scrolling
+const SLIDER_WIDTH = SCREEN_WIDTH - 64;
+const MAX_LINES = 41; // Fixed number of lines to prevent performance issues
 
 /**
  * RulerSlider - Interactive ruler-style slider with gesture handling
  *
  * Features:
- * - 41 vertical ruler lines with varying heights
+ * - Dynamic ruler lines based on value range
  * - Fixed center indicator (orange/dynamic color)
  * - Pan gesture for value adjustment
- * - Value range: -100 to +100
+ * - Configurable min/max values, step size, and default value
  * - Spring animation on release
  * - Displays "Feature Name • Value" label
  */
@@ -31,60 +28,114 @@ const RulerSlider = ({
   onValueChange,
   featureName = "Vibrance",
   accentColor = "#ffa500",
+  minValue = -100,
+  maxValue = 100,
+  step = 1,
+  defaultValue = 0,
+  decimalPlaces,
 }) => {
+  // Calculate derived values based on props
+  const config = useMemo(() => {
+    const valueRange = maxValue - minValue;
+    // Fixed line count to prevent performance issues
+    const lineCount = MAX_LINES;
+    const lineSpacing = SLIDER_WIDTH / (lineCount - 1);
+    const pixelsPerUnit = (SLIDER_WIDTH * 2) / Math.max(valueRange, 0.001); // Prevent division by zero
+
+    // Auto-calculate decimal places based on step if not provided
+    let autoDecimalPlaces = 0;
+    if (decimalPlaces !== undefined) {
+      autoDecimalPlaces = decimalPlaces;
+    } else if (step > 0 && step < 1) {
+      autoDecimalPlaces = Math.min(4, Math.ceil(-Math.log10(step)));
+    }
+
+    return {
+      valueRange: Math.max(valueRange, 0.001),
+      lineCount,
+      lineSpacing,
+      pixelsPerUnit,
+      decimalPlaces: autoDecimalPlaces,
+      centerValue: defaultValue,
+    };
+  }, [minValue, maxValue, step, defaultValue, decimalPlaces]);
+
   // Shared value for ruler position (offset from center)
-  const translateX = useSharedValue(-value * PIXELS_PER_UNIT);
+  const translateX = useSharedValue(0);
   const startX = useSharedValue(0);
+
+  // Store config values for worklet access
+  const pixelsPerUnit = config.pixelsPerUnit;
+  const centerValue = config.centerValue;
 
   // Update translation when value prop changes externally
   React.useEffect(() => {
-    translateX.value = withSpring(-value * PIXELS_PER_UNIT, {
-      damping: 20,
-      stiffness: 200,
-    });
-  }, [value]);
+    const newTranslate = -(value - centerValue) * pixelsPerUnit;
+    if (isFinite(newTranslate)) {
+      translateX.value = withSpring(newTranslate, {
+        damping: 20,
+        stiffness: 200,
+      });
+    }
+  }, [value, centerValue, pixelsPerUnit]);
 
-  // Callback to update parent value
+  // Callback to update parent value (runs on JS thread)
   const updateValue = useCallback(
     (newValue) => {
-      if (onValueChange) {
-        // Clamp value to range
-        const clampedValue = Math.max(-100, Math.min(100, Math.round(newValue)));
-        onValueChange(clampedValue);
+      if (onValueChange && isFinite(newValue)) {
+        // Clamp value to range and round to step
+        const clampedValue = Math.max(minValue, Math.min(maxValue, newValue));
+        const steppedValue = Math.round(clampedValue / step) * step;
+        // Round to avoid floating point issues
+        const roundedValue = Number(steppedValue.toFixed(config.decimalPlaces));
+        onValueChange(roundedValue);
       }
     },
-    [onValueChange]
+    [onValueChange, minValue, maxValue, step, config.decimalPlaces]
   );
 
-  // Pan gesture handler
+  // Pan gesture handler - calculations done inline to avoid worklet issues
   const panGesture = Gesture.Pan()
     .onStart(() => {
+      "worklet";
       startX.value = translateX.value;
     })
     .onUpdate((event) => {
+      "worklet";
       // Calculate new position
       const newTranslateX = startX.value + event.translationX;
-      // Clamp to value range
-      const maxTranslate = 100 * PIXELS_PER_UNIT;
+
+      // Calculate bounds (inline to avoid callback issues)
+      const minTranslate = -(maxValue - centerValue) * pixelsPerUnit;
+      const maxTranslate = -(minValue - centerValue) * pixelsPerUnit;
+
       const clampedTranslate = Math.max(
-        -maxTranslate,
+        minTranslate,
         Math.min(maxTranslate, newTranslateX)
       );
       translateX.value = clampedTranslate;
 
-      // Calculate and report new value
-      const newValue = -clampedTranslate / PIXELS_PER_UNIT;
+      // Calculate new value
+      const newValue = centerValue - clampedTranslate / pixelsPerUnit;
       runOnJS(updateValue)(newValue);
     })
     .onEnd(() => {
-      // Snap to nearest integer with spring animation
-      const currentValue = -translateX.value / PIXELS_PER_UNIT;
-      const snappedValue = Math.round(currentValue);
-      translateX.value = withSpring(-snappedValue * PIXELS_PER_UNIT, {
+      "worklet";
+      // Calculate current value
+      const currentValue = centerValue - translateX.value / pixelsPerUnit;
+      const snappedValue = Math.round(currentValue / step) * step;
+      const clampedSnapped = Math.max(
+        minValue,
+        Math.min(maxValue, snappedValue)
+      );
+
+      // Animate to snapped position
+      const snappedTranslate = -(clampedSnapped - centerValue) * pixelsPerUnit;
+      translateX.value = withSpring(snappedTranslate, {
         damping: 20,
         stiffness: 200,
       });
-      runOnJS(updateValue)(snappedValue);
+      runOnJS(updateValue)(clampedSnapped);
     });
 
   // Animated style for the ruler
@@ -92,16 +143,20 @@ const RulerSlider = ({
     transform: [{ translateX: translateX.value }],
   }));
 
-  // Generate ruler lines
-  const renderRulerLines = () => {
+  // Generate ruler lines - fixed count for performance
+  const renderRulerLines = useMemo(() => {
     const lines = [];
-    const totalLines = LINE_COUNT * 3; // Extra lines for scrolling
-    const centerOffset = (totalLines * LINE_SPACING) / 2;
+    const totalLines = MAX_LINES * 3; // Extra lines for scrolling
+    const centerOffset = (totalLines * config.lineSpacing) / 2;
+    const majorLineStep = 5;
+    const lineValueStep = config.valueRange / (MAX_LINES - 1);
 
     for (let i = 0; i < totalLines; i++) {
-      const lineValue = (i - Math.floor(totalLines / 2)) * 5;
-      const isMajor = lineValue % 25 === 0;
-      const isZero = lineValue === 0;
+      const lineIndex = i - Math.floor(totalLines / 2);
+      const lineValue = config.centerValue + lineIndex * lineValueStep;
+
+      const isMajor = Math.abs(lineIndex) % majorLineStep === 0;
+      const isDefault = Math.abs(lineValue - defaultValue) < lineValueStep / 2;
 
       let lineHeight = 20;
       let lineColor = "#666666";
@@ -111,7 +166,7 @@ const RulerSlider = ({
         lineHeight = 30;
         lineColor = "#888888";
       }
-      if (isZero) {
+      if (isDefault) {
         lineHeight = 35;
         lineColor = "#999999";
         lineWidth = 2.5;
@@ -126,14 +181,23 @@ const RulerSlider = ({
               height: lineHeight,
               backgroundColor: lineColor,
               width: lineWidth,
-              left: i * LINE_SPACING - centerOffset + SLIDER_WIDTH / 2,
+              left: i * config.lineSpacing - centerOffset + SLIDER_WIDTH / 2,
             },
           ]}
         />
       );
     }
     return lines;
-  };
+  }, [config, defaultValue]);
+
+  // Format value for display
+  const displayValue = useMemo(() => {
+    if (!isFinite(value)) return "0";
+    if (config.decimalPlaces === 0) {
+      return Math.round(value).toString();
+    }
+    return value.toFixed(config.decimalPlaces);
+  }, [value, config.decimalPlaces]);
 
   return (
     <View style={styles.container}>
@@ -144,7 +208,7 @@ const RulerSlider = ({
         </Text>
         <View style={[styles.labelDot, { backgroundColor: accentColor }]} />
         <Text style={[styles.valueText, { color: "rgba(255, 255, 255, 0.6)" }]}>
-          {value}
+          {displayValue}
         </Text>
       </View>
 
@@ -153,7 +217,7 @@ const RulerSlider = ({
         {/* Scrollable Ruler */}
         <GestureDetector gesture={panGesture}>
           <Animated.View style={[styles.rulerWrapper, rulerStyle]}>
-            {renderRulerLines()}
+            {renderRulerLines}
           </Animated.View>
         </GestureDetector>
 
@@ -229,4 +293,3 @@ const styles = StyleSheet.create({
 });
 
 export default RulerSlider;
-

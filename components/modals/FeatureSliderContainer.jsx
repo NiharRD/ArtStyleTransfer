@@ -1,10 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
-import FeatureButton, {
-  ColorChannelButton,
-  COLOR_CHANNELS,
-  FEATURE_NAMES,
-} from "./FeatureButton";
+import FeatureButton, { FEATURE_NAMES } from "./FeatureButton";
 import RulerSlider from "./RulerSlider";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -13,38 +9,77 @@ const BUTTON_GAP = 8;
 const CONTAINER_PADDING = 8;
 const ROW_PADDING = 4;
 
-// Feature list in order (Vibrance at 4th position for better UX on open)
+/**
+ * Filter configurations with value ranges for each feature
+ * These match the GL shader filter parameters
+ */
+export const FILTER_CONFIGS = {
+  saturation: {
+    name: "Saturation",
+    minValue: 0,
+    maxValue: 2,
+    defaultValue: 1,
+    step: 0.01,
+    description: "Controls the intensity of colors (0 = grayscale, 2 = vibrant)",
+  },
+  brightness: {
+    name: "Brightness",
+    minValue: 0,
+    maxValue: 5,
+    defaultValue: 1,
+    step: 0.05,
+    description: "Adjusts the overall lightness (0 = black, 5 = white)",
+  },
+  contrast: {
+    name: "Contrast",
+    minValue: -10,
+    maxValue: 10,
+    defaultValue: 1,
+    step: 0.1,
+    description: "Difference between light and dark areas",
+  },
+  hue: {
+    name: "Hue",
+    minValue: 0,
+    maxValue: 6.3,
+    defaultValue: 0,
+    step: 0.1,
+    description: "Rotates color hue (0 to 2π radians)",
+  },
+  exposure: {
+    name: "Exposure",
+    minValue: -2,
+    maxValue: 2,
+    defaultValue: 0,
+    step: 0.05,
+    description: "Adjusts overall exposure",
+  },
+};
+
+// Feature list - only GL filter features
 const FEATURES = [
+  "saturation",
   "brightness",
   "contrast",
+  "hue",
   "exposure",
-  "vibrance",
-  "highlights",
-  "shadows",
-  "whites",
-  "blacks",
-  "saturation",
-  "colorMixer",
 ];
 
-// Color channels in order
-const COLOR_CHANNEL_LIST = [
-  "red",
-  "orange",
-  "yellow",
-  "green",
-  "cyan",
-  "blue",
-  "purple",
-];
+// Accent colors for different filter types
+const FILTER_ACCENT_COLORS = {
+  saturation: "#4CAF50", // Green
+  brightness: "#FFC107", // Amber
+  contrast: "#9C27B0", // Purple
+  hue: "#E91E63", // Pink
+  exposure: "#FF5722", // Deep orange
+};
 
 /**
  * FeatureSliderContainer - Main container for image editing sliders
  *
  * Features:
  * - Horizontal scrollable feature selection row
- * - Color channel row (when Color Mixer selected)
- * - Interactive ruler slider
+ * - Interactive ruler slider with dynamic value ranges
  * - State management for all features
  * - Auto-scrolls to center the active button
  */
@@ -53,15 +88,12 @@ const FeatureSliderContainer = ({
   onSliderValueChange,
   selectedFeature,
   onFeatureSelect,
-  selectedColorChannel,
-  onColorChannelSelect,
 }) => {
   const featureScrollRef = useRef(null);
-  const colorScrollRef = useRef(null);
 
   // Calculate scroll position to center a button
-  const calculateScrollPosition = (index, totalItems) => {
-    const containerWidth = SCREEN_WIDTH - 24 - CONTAINER_PADDING * 2; // Account for modal padding
+  const calculateScrollPosition = (index) => {
+    const containerWidth = SCREEN_WIDTH - 24 - CONTAINER_PADDING * 2;
     const buttonCenter = index * (BUTTON_WIDTH + BUTTON_GAP) + BUTTON_WIDTH / 2 + ROW_PADDING;
     const scrollX = buttonCenter - containerWidth / 2;
     return Math.max(0, scrollX);
@@ -71,59 +103,38 @@ const FeatureSliderContainer = ({
   useEffect(() => {
     const featureIndex = FEATURES.indexOf(selectedFeature);
     if (featureIndex !== -1 && featureScrollRef.current) {
-      const scrollX = calculateScrollPosition(featureIndex, FEATURES.length);
+      const scrollX = calculateScrollPosition(featureIndex);
       featureScrollRef.current.scrollTo({ x: scrollX, animated: true });
     }
   }, [selectedFeature]);
 
-  // Scroll to center the active color channel button
-  useEffect(() => {
-    if (selectedFeature === "colorMixer") {
-      const channelIndex = COLOR_CHANNEL_LIST.indexOf(selectedColorChannel);
-      if (channelIndex !== -1 && colorScrollRef.current) {
-        const scrollX = calculateScrollPosition(channelIndex, COLOR_CHANNEL_LIST.length);
-        colorScrollRef.current.scrollTo({ x: scrollX, animated: true });
-      }
-    }
-  }, [selectedColorChannel, selectedFeature]);
-  // Get current value based on selected feature and channel
+  // Get filter configuration for current feature
+  const getFilterConfig = () => {
+    return FILTER_CONFIGS[selectedFeature] || FILTER_CONFIGS.saturation;
+  };
+
+  // Get current value for selected feature
   const getCurrentValue = () => {
-    if (selectedFeature === "colorMixer") {
-      return sliderValues.colorMixer[selectedColorChannel];
-    }
-    return sliderValues[selectedFeature];
+    const config = getFilterConfig();
+    return sliderValues[selectedFeature] ?? config.defaultValue;
   };
 
   // Get current feature name for display
   const getFeatureName = () => {
-    if (selectedFeature === "colorMixer") {
-      return (
-        selectedColorChannel.charAt(0).toUpperCase() +
-        selectedColorChannel.slice(1)
-      );
-    }
-    return FEATURE_NAMES[selectedFeature];
+    return FEATURE_NAMES[selectedFeature] || getFilterConfig().name;
   };
 
   // Get accent color based on selection
   const getAccentColor = () => {
-    if (selectedFeature === "colorMixer") {
-      return COLOR_CHANNELS[selectedColorChannel];
-    }
-    return "#ffa500"; // Default orange
+    return FILTER_ACCENT_COLORS[selectedFeature] || "#ffa500";
   };
 
   // Handle value change from slider
   const handleValueChange = (newValue) => {
-    if (selectedFeature === "colorMixer") {
-      onSliderValueChange("colorMixer", {
-        ...sliderValues.colorMixer,
-        [selectedColorChannel]: newValue,
-      });
-    } else {
-      onSliderValueChange(selectedFeature, newValue);
-    }
+    onSliderValueChange(selectedFeature, newValue);
   };
+
+  const config = getFilterConfig();
 
   return (
     <View style={styles.container}>
@@ -144,32 +155,16 @@ const FeatureSliderContainer = ({
         ))}
       </ScrollView>
 
-      {/* Color Channel Row (only when Color Mixer selected) */}
-      {selectedFeature === "colorMixer" && (
-        <ScrollView
-          ref={colorScrollRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.colorRow}
-        >
-          {COLOR_CHANNEL_LIST.map((channel) => (
-            <ColorChannelButton
-              key={channel}
-              color={COLOR_CHANNELS[channel]}
-              colorName={channel}
-              isActive={selectedColorChannel === channel}
-              onPress={() => onColorChannelSelect(channel)}
-            />
-          ))}
-        </ScrollView>
-      )}
-
-      {/* Ruler Slider */}
+      {/* Ruler Slider with dynamic range based on feature */}
       <RulerSlider
         value={getCurrentValue()}
         onValueChange={handleValueChange}
         featureName={getFeatureName()}
         accentColor={getAccentColor()}
+        minValue={config.minValue}
+        maxValue={config.maxValue}
+        step={config.step}
+        defaultValue={config.defaultValue}
       />
     </View>
   );
@@ -192,13 +187,6 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 4,
   },
-  colorRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 4,
-  },
 });
 
 export default FeatureSliderContainer;
-
