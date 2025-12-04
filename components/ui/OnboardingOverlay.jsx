@@ -30,8 +30,9 @@ const TOOLTIP_POSITIONS = {
   },
   "infinite-view": {
     top: 100,
-    right: 80,
-    arrowRight: 30,
+    left: 16, // Align to left edge with padding
+    right: 16, // Constrain width
+    arrowRight: 80, // Point to infinite view icon
   },
   "quick-actions": {
     bottom: 160,
