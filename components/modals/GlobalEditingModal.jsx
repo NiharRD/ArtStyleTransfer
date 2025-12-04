@@ -801,8 +801,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingTop: Spacing.md,
     paddingHorizontal: Spacing.xxl,
-    paddingBottom: Spacing.xxl,
-    gap: Spacing.md,
+    paddingBottom: Spacing.lg,
+    gap: Spacing.xs,
   },
   upperSection: {
     gap: Spacing.md,

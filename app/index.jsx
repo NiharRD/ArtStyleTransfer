@@ -90,7 +90,7 @@ const { width, height } = Dimensions.get("window");
  */
 const DEFAULT_CANVAS_HEIGHT = 450;
 const DEFAULT_CANVAS_WIDTH = width - 32;
-const MIN_CANVAS_HEIGHT = 200;
+const MIN_CANVAS_HEIGHT = 150;
 const SUGGESTIONS_HEIGHT = 100; // Height reserved for suggestions section
 // Calculate min width to maintain aspect ratio
 const MIN_CANVAS_WIDTH =
@@ -346,7 +346,7 @@ const HomeScreen = () => {
       // We want the canvas to be strictly above the modal content to avoid overlap
       const headerHeight = 80; // Reduced to make canvas taller and tighter
       const bottomOffset = 40; // ModalContainer bottom offset
-      const separatorSpace = 10; // Reduced visual breathing room
+      const separatorSpace = 0; // Reduced visual breathing room
 
       // Calculate available height for the canvas
       const availableHeight = height - headerHeight - bottomOffset - modalHeight - separatorSpace;
