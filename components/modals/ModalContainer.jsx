@@ -4,6 +4,7 @@ import {
     Easing,
     Keyboard,
     Platform,
+    Pressable,
     StyleSheet,
     View
 } from "react-native";
@@ -24,6 +25,7 @@ const ModalContainer = ({ visible, onClose, children, height = 400 }) => {
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const [shouldRender, setShouldRender] = useState(visible);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -56,6 +58,7 @@ const ModalContainer = ({ visible, onClose, children, height = 400 }) => {
 
     const onShow = (e) => {
       const keyboardHeight = e.endCoordinates.height;
+      setIsKeyboardVisible(true);
 
       Animated.parallel([
         Animated.timing(keyboardOffset, {
@@ -73,6 +76,8 @@ const ModalContainer = ({ visible, onClose, children, height = 400 }) => {
     };
 
     const onHide = (e) => {
+      setIsKeyboardVisible(false);
+
       Animated.parallel([
         Animated.timing(keyboardOffset, {
           toValue: 0,
@@ -97,17 +102,29 @@ const ModalContainer = ({ visible, onClose, children, height = 400 }) => {
     };
   }, []);
 
+  // Dismiss keyboard when tapping backdrop
+  const handleBackdropPress = () => {
+    if (isKeyboardVisible) {
+      Keyboard.dismiss();
+    }
+  };
+
   if (!shouldRender) {
     return null;
   }
 
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
-      {/* Backdrop for dimming effect */}
-      <Animated.View
-        style={[styles.backdrop, { opacity: backdropOpacity }]}
-        pointerEvents="none"
-      />
+      {/* Backdrop for dimming effect - tappable to dismiss keyboard */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={handleBackdropPress}
+        pointerEvents={isKeyboardVisible ? "auto" : "none"}
+      >
+        <Animated.View
+          style={[styles.backdrop, { opacity: backdropOpacity }]}
+        />
+      </Pressable>
 
       <Animated.View
         style={[

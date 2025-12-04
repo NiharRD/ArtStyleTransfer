@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Keyboard, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Colors, Typography } from '../../constants/Theme';
 import { useGhostSuggestion } from '../../hooks/useGhostSuggestion';
 
@@ -131,6 +131,25 @@ const GhostTextInput = memo(({
   ...props
 }) => {
   const { suggestion, isLoading } = useGhostSuggestion(value, llm, modelReady);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // Listen for keyboard show/hide to stop placeholder animations
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showListener = Keyboard.addListener(showEvent, () => {
+      setIsKeyboardVisible(true);
+    });
+    const hideListener = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
 
   const handleAcceptSuggestion = useCallback(() => {
     if (suggestion && onChangeText) {
@@ -142,7 +161,8 @@ const GhostTextInput = memo(({
     }
   }, [suggestion, value, onChangeText, onSuggestionAccept]);
 
-  const showPlaceholder = !value || value.length === 0;
+  // Hide placeholder when keyboard is visible OR when there's text
+  const showPlaceholder = (!value || value.length === 0) && !isKeyboardVisible;
 
   // Extract text-related styles from the passed style prop
   const flatStyle = StyleSheet.flatten(style) || {};
