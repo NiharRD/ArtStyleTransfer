@@ -3,18 +3,18 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    Image,
-    Keyboard,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
+  Keyboard,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
@@ -108,7 +108,8 @@ const HomeScreen = () => {
 
   const llm = useLLM({
     model: LLAMA3_2_1B_SPINQUANT,
-    contextWindowLength: 512, // Adjust as needed (e.g., 128 to 512)
+    contextWindowLength: 1024, // Adjust as needed (e.g., 128 to 512),
+    
   });
 
   const [isModelReady, setIsModelReady] = useState(false);
@@ -373,6 +374,7 @@ const HomeScreen = () => {
   // Suggestions loading state
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [smartSuggestions, setSmartSuggestions] = useState([]);
+  const [allSuggestions, setAllSuggestions] = useState([]);
 
   /**
    * Generate prompt from image using Gemini (via Axios)
@@ -433,6 +435,14 @@ const HomeScreen = () => {
         ].filter(item => item.label); // Filter out empty suggestions
 
         setSmartSuggestions(newSuggestions);
+
+        // Combine all suggestions for Ghost Text context
+        const allContext = [
+            ...newSuggestions.map(s => s.label),
+            ...(validatedData.normal_suggestions || [])
+        ];
+        console.log("Setting allSuggestions with count:", allContext.length);
+        setAllSuggestions(allContext);
 
       } catch (e) {
         console.warn("Validation or parsing failed:", e);
@@ -1366,6 +1376,7 @@ const HomeScreen = () => {
         {/* Art Style Transfer Modal */}
         {/* Art Style Transfer Modal */}
         {/* Art Style Transfer Modal */}
+        {/* Art Style Transfer Modal */}
         <ArtStyleTransferModal
           visible={artStyleModalVisible}
           onClose={handleCloseArtStyleModal}
@@ -1373,7 +1384,7 @@ const HomeScreen = () => {
           onSend={handleArtStyleTransferSend}
           llm={llm}
           modelReady={isModelReady}
-          suggestions={smartSuggestions.map(s => s.label)}
+          suggestions={allSuggestions}
         />
 
         {/* Generate Mockup Modal */}
@@ -1383,7 +1394,7 @@ const HomeScreen = () => {
           onHeightChange={handleModalHeightChange}
           llm={llm}
           modelReady={isModelReady}
-          suggestions={smartSuggestions.map(s => s.label)}
+          suggestions={allSuggestions}
         />
 
         {/* Global Editing Modal */}
@@ -1402,7 +1413,7 @@ const HomeScreen = () => {
           initialPrompt={generatedPrompt}
           llm={llm}
           modelReady={isModelReady}
-          suggestions={smartSuggestions.map(s => s.label)}
+          suggestions={allSuggestions}
         />
 
         {/* Status Modal for progress updates - REMOVED */}

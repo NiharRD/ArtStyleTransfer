@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
  * @param {number} debounceTime - Time in ms to wait before generating (default 1000ms)
  * @returns {object} { suggestion, isLoading }
  */
-export const useGhostSuggestion = (text, llm, modelReady, debounceTime = 1000) => {
+export const useGhostSuggestion = (text, llm, modelReady, suggestions = [], debounceTime = 1000) => {
   const [suggestion, setSuggestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const timeoutRef = useRef(null);
@@ -90,19 +90,38 @@ export const useGhostSuggestion = (text, llm, modelReady, debounceTime = 1000) =
         console.log("Generating ghost suggestion for:", text);
 
         // Construct prompt for autocomplete
+        let systemContent = `### Role
+You are a text completion assistant for an image editor.
+
+### Task
+Complete the user's sentence naturally. Use the "Style Suggestions" below to guide the mood and tone.
+
+### Constraints
+1. Output ONLY the completion text.
+2. Do NOT repeat the user's input.
+3. Start exactly where the user left off.
+4. Keep it strictly short (maximum 6 words).`;
+
+        console.log("--- Ghost Suggestion Debug ---");
+        console.log("Input:", text);
+        console.log("Suggestions received:", suggestions);
+
+        if (suggestions && suggestions.length > 0) {
+            // Format suggestions as a clean list for better model comprehension
+            systemContent += `\n\n### Style Suggestions\n- ${suggestions.join('\n- ')}`;
+        } else {
+            console.log("No suggestions to append.");
+        }
+
+        console.log("System Content:", systemContent);
+
         const messages = [
-          { 
-            role: 'system', 
-            content: ' (exactly 4 words).' 
-          },
+          { role: 'system', content: systemContent },
           { role: 'user', content: text }
         ];
-
-        // console.log("Calling llm.generate...");
         
-        // Prevent crash if model is already generating (since we removed interruption)
         if (llm.isGenerating) {
-          console.log("Model is busy generating, skipping new request.");
+          console.log("Model busy, skipping.");
           setIsLoading(false);
           return;
         }
@@ -131,10 +150,10 @@ export const useGhostSuggestion = (text, llm, modelReady, debounceTime = 1000) =
         if (completion) {
             let trimmedCompletion = completion.trim();
             
-            // Enforce 4 words limit client-side
+            // Enforce 6 words limit client-side
             const words = trimmedCompletion.split(/\s+/);
-            if (words.length > 4) {
-                trimmedCompletion = words.slice(0, 4).join(' ');
+            if (words.length > 6) {
+                trimmedCompletion = words.slice(0, 6).join(' ');
             }
 
             // Handle space logic:
