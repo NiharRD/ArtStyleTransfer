@@ -2,19 +2,20 @@ import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Image,
-  Keyboard,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Image,
+    Keyboard,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
+import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
 import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
@@ -27,7 +28,6 @@ import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
 import { artStyleBaseUrl, baseUrl } from "../endPoints";
-
 const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 const SYSTEM_PROMPT = `Analyze the image carefully and return ONLY a single JSON object containing exactly 4 main suggestions only in 4 to 6 strictly words (one for each category: Movie Style, Mood, Color Focus, Other) and exactly 15 general suggestions, all in natural human language.
 
@@ -103,6 +103,67 @@ const HomeScreen = () => {
     blob: null, // Blob object ready for FormData
     isLoading: false, // Loading state for async operations
   });
+
+  const llm = useLLM({
+    model: LLAMA3_2_1B_SPINQUANT,
+    contextWindowLength: 512, // Adjust as needed (e.g., 128 to 512)
+  });
+
+  const [isModelReady, setIsModelReady] = useState(false);
+  const [modelLoadingError, setModelLoadingError] = useState(null);
+
+  useEffect(() => {
+    const initModel = async () => {
+      try {
+        if (!isModelReady) {
+          console.log("--- LLM Initialization Start ---");
+          console.log("Checking model status...");
+          console.log("LLM Object Keys:", Object.keys(llm));
+          console.log("Type of llm.load:", typeof llm.load);
+          
+          // The useLLM hook's load function typically handles downloading if the model isn't cached.
+          if (typeof llm.load === 'function') {
+             console.log("Initiating model download/load sequence...");
+             const startTime = Date.now();
+             
+             await llm.load();
+             
+             const duration = Date.now() - startTime;
+             console.log(`Model operation completed in ${duration}ms`);
+             console.log("CONFIRMATION: Model has been downloaded (if missing) and loaded into memory.");
+           } else {
+             console.log("WARNING: llm.load is not a function. Model might not be loaded correctly.");
+           }
+          
+          setIsModelReady(true);
+          console.log("--- LLM Ready for Inference ---");
+        }
+      } catch (error) {
+        console.error("CRITICAL ERROR: Failed to download or load LLM model:", error);
+        setModelLoadingError(error.message);
+      }
+    };
+    initModel();
+  }, []);
+
+  // Monitor download progress
+  useEffect(() => {
+    if (llm.downloadProgress !== undefined && llm.downloadProgress < 1) {
+      const progress = (llm.downloadProgress * 100).toFixed(1);
+      console.log(`Downloading model: ${progress}%`);
+    }
+  }, [llm.downloadProgress]);
+
+  // Cleanup: Interrupt generation if the user leaves the screen or component unmounts
+  // Cleanup: Interrupt generation if the user leaves the screen or component unmounts - REMOVED per user request
+  // useEffect(() => {
+  //   return () => {
+  //     if (llm && llm.isGenerating) {
+  //       console.log("Interrupting LLM generation on cleanup...");
+  //       llm.interrupt();
+  //     }
+  //   };
+  // }, [llm]);
 
   // Original image state - stores the initially picked image for AI reference
   const [originalImageState, setOriginalImageState] = useState({
@@ -1216,11 +1277,16 @@ const HomeScreen = () => {
         </View>
 
         {/* Art Style Transfer Modal */}
+        {/* Art Style Transfer Modal */}
+        {/* Art Style Transfer Modal */}
         <ArtStyleTransferModal
           visible={artStyleModalVisible}
           onClose={handleCloseArtStyleModal}
           onHeightChange={handleModalHeightChange}
           onSend={handleArtStyleTransferSend}
+          llm={llm}
+          modelReady={isModelReady}
+          suggestions={smartSuggestions.map(s => s.label)}
         />
 
         {/* Generate Mockup Modal */}
@@ -1228,6 +1294,9 @@ const HomeScreen = () => {
           visible={generateMockupModalVisible}
           onClose={handleCloseGenerateMockupModal}
           onHeightChange={handleModalHeightChange}
+          llm={llm}
+          modelReady={isModelReady}
+          suggestions={smartSuggestions.map(s => s.label)}
         />
 
         {/* Global Editing Modal */}
@@ -1244,10 +1313,18 @@ const HomeScreen = () => {
           isSemanticLoading={semanticLoading}
           onFilterChange={handleFilterChange}
           initialPrompt={generatedPrompt}
+          llm={llm}
+          modelReady={isModelReady}
+          suggestions={smartSuggestions.map(s => s.label)}
         />
 
         {/* Status Modal for progress updates - REMOVED */}
         {/* <StatusModalComponent /> */}
+
+        {/* Download Progress Overlay */}
+        {llm.downloadProgress !== undefined && llm.downloadProgress < 1 && (
+          <LoadingOverlay message={`Downloading AI Model: ${(llm.downloadProgress * 100).toFixed(0)}%`} />
+        )}
       </View>
     </SafeAreaView>
   );

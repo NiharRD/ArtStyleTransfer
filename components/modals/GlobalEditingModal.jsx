@@ -1,28 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  Keyboard,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Animated,
+    Keyboard,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import Svg, {
-  Defs,
-  G,
-  LinearGradient,
-  Path,
-  Rect,
-  Stop,
+    Defs,
+    G,
+    LinearGradient,
+    Path,
+    Rect,
+    Stop,
 } from "react-native-svg";
 import {
-  BorderRadius,
-  Colors,
-  Spacing,
-  Typography,
+    BorderRadius,
+    Colors,
+    Spacing,
+    Typography,
 } from "../../constants/Theme";
+import GhostTextInput from "../ui/GhostTextInput";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
 import TalkToKimiButton from "./TalkToKimiButton";
@@ -229,6 +229,8 @@ const GlobalEditingModal = ({
   isSemanticLoading,
   onFilterChange, // Callback for filter value changes
   initialPrompt, // Initial prompt text
+  llm,
+  modelReady,
 }) => {
   // Input state: textInput (first state) or voicePrompt (second state)
   const [inputState, setInputState] = useState("textInput");
@@ -694,7 +696,7 @@ const GlobalEditingModal = ({
           {inputState === "textInput" ? (
             /* First State: Text input with actions row below */
             <View style={styles.stateContent}>
-              <TextInput
+              <GhostTextInput
                 style={[
                   styles.textInput,
                   upperSectionVisible && styles.textInputDisabled,
@@ -705,6 +707,8 @@ const GlobalEditingModal = ({
                 placeholderTextColor="rgba(255, 255, 255, 0.6)"
                 multiline
                 editable={!upperSectionVisible}
+                llm={llm}
+                modelReady={modelReady}
               />
 
               <View style={styles.actionsRow}>
@@ -744,13 +748,15 @@ const GlobalEditingModal = ({
           ) : (
             /* Second State: Voice prompt with mic button inline */
             <View style={styles.inputRow}>
-              <TextInput
+              <GhostTextInput
                 style={styles.textInput}
                 value={promptText}
                 onChangeText={setPromptText}
                 placeholder="Awesome! Now change the mood to something..."
                 placeholderTextColor="rgba(255, 255, 255, 0.6)"
                 multiline
+                llm={llm}
+                modelReady={modelReady}
               />
               <TouchableOpacity
                 style={styles.sendButton}

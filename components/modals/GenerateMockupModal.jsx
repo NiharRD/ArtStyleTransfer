@@ -1,19 +1,19 @@
 import React, { useState } from "react";
 import {
-  Keyboard,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Keyboard,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import {
-  BorderRadius,
-  Colors,
-  Spacing,
-  Typography,
+    BorderRadius,
+    Colors,
+    Spacing,
+    Typography,
 } from "../../constants/Theme";
+import GhostTextInput from "../ui/GhostTextInput";
 import BackgroundGalleryGrid from "./BackgroundGalleryGrid";
 import ModalContainer from "./ModalContainer";
 import ProductImageChip from "./ProductImageChip";
@@ -113,7 +113,7 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
  * - 'backgroundGallery': Background grid with categories + search bar
  * - 'allSelected': Both product + background thumbnails + circular reference button
  */
-const GenerateMockupModal = ({ visible, onClose, onHeightChange }) => {
+const GenerateMockupModal = ({ visible, onClose, onHeightChange, llm, modelReady }) => {
   const [modalState, setModalState] = useState("textOnly");
   const [promptText, setPromptText] = useState("");
   const [productImage, setProductImage] = useState(null);
@@ -246,13 +246,15 @@ const GenerateMockupModal = ({ visible, onClose, onHeightChange }) => {
           {/* State 1: Text Only */}
           {modalState === "textOnly" && (
             <View style={styles.stateContent}>
-              <TextInput
+              <GhostTextInput
                 style={styles.textInput}
                 value={promptText}
                 onChangeText={setPromptText}
                 placeholder="Can you make this scene more gloomy"
                 placeholderTextColor="#949494"
                 multiline
+                llm={llm}
+                modelReady={modelReady}
               />
 
               <View style={styles.actionsRow}>
@@ -296,13 +298,15 @@ const GenerateMockupModal = ({ visible, onClose, onHeightChange }) => {
                 isPlaceholder={!productImage?.source}
               />
 
-              <TextInput
+              <GhostTextInput
                 style={styles.textInput}
                 value={promptText}
                 onChangeText={setPromptText}
                 placeholder="Can you make this scene more gloomy"
                 placeholderTextColor="#949494"
                 multiline
+                llm={llm}
+                modelReady={modelReady}
               />
 
               <View style={styles.actionsRow}>
@@ -395,13 +399,15 @@ const GenerateMockupModal = ({ visible, onClose, onHeightChange }) => {
                 />
               </View>
 
-              <TextInput
+              <GhostTextInput
                 style={styles.textInput}
                 value={promptText}
                 onChangeText={setPromptText}
                 placeholder="Can you make this scene more gloomy"
                 placeholderTextColor="#949494"
                 multiline
+                llm={llm}
+                modelReady={modelReady}
               />
 
               <View style={styles.actionsRow}>
