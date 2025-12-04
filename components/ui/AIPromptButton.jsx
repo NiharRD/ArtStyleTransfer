@@ -1,7 +1,9 @@
 import { Image, StyleSheet, TouchableOpacity } from "react-native";
+import { Layout } from "../../constants/Theme";
 
 /**
  * AI Prompt Button - Uses PNG icon from assets
+ * Based on Figma design (97px size)
  */
 const AIPromptButton = ({ onPress }) => {
   return (
@@ -21,15 +23,14 @@ const AIPromptButton = ({ onPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: 100,
-    height: 100,
+    width: Layout.aiButtonSize,
+    height: Layout.aiButtonSize,
     justifyContent: "center",
     alignItems: "center",
-    paddingBottom: 27.5,
   },
   icon: {
-    width: 100,
-    height: 100,
+    width: Layout.aiButtonSize,
+    height: Layout.aiButtonSize,
   },
 });
 

@@ -411,9 +411,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cancelButtonText: {
+    fontFamily: Typography.fontFamily.medium,
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "500",
   },
   headerText: {
     fontFamily: Typography.fontFamily.regular,

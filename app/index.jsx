@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -27,6 +28,7 @@ import DrawerToggle from "../components/ui/DrawerToggle";
 import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
+import { BorderRadius, Colors, Layout, Typography } from "../constants/Theme";
 import { artStyleBaseUrl, baseUrl } from "../endPoints";
 const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 const SYSTEM_PROMPT = `Analyze the image carefully and return ONLY a single JSON object containing exactly 4 main suggestions only in 4 to 6 strictly words (one for each category: Movie Style, Mood, Color Focus, Other) and exactly 15 general suggestions, all in natural human language.
@@ -121,21 +123,21 @@ const HomeScreen = () => {
           console.log("Checking model status...");
           console.log("LLM Object Keys:", Object.keys(llm));
           console.log("Type of llm.load:", typeof llm.load);
-          
+
           // The useLLM hook's load function typically handles downloading if the model isn't cached.
           if (typeof llm.load === 'function') {
              console.log("Initiating model download/load sequence...");
              const startTime = Date.now();
-             
+
              await llm.load();
-             
+
              const duration = Date.now() - startTime;
              console.log(`Model operation completed in ${duration}ms`);
              console.log("CONFIRMATION: Model has been downloaded (if missing) and loaded into memory.");
            } else {
              console.log("WARNING: llm.load is not a function. Model might not be loaded correctly.");
            }
-          
+
           setIsModelReady(true);
           console.log("--- LLM Ready for Inference ---");
         }
@@ -242,7 +244,80 @@ const HomeScreen = () => {
     new Animated.Value(DEFAULT_CANVAS_HEIGHT)
   ).current;
 
+  // Animated value for carousel scroll (0 = not scrolling, 1 = scrolling)
+  const carouselScrollAnim = useRef(new Animated.Value(0)).current;
+  const gradientOpacityAnim = useRef(new Animated.Value(1)).current;
+  const scrollTimeoutRef = useRef(null);
+  const isAtEndRef = useRef(false);
 
+  // Handler for carousel scroll events
+  const handleCarouselScroll = (isScrolling) => {
+    // Clear any existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    if (isScrolling) {
+      // Animate to scrolling state - hide button and fade
+      Animated.parallel([
+        Animated.timing(carouselScrollAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: false,
+        }),
+        Animated.timing(gradientOpacityAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    } else {
+      // Only show button again if NOT at the end
+      if (!isAtEndRef.current) {
+        scrollTimeoutRef.current = setTimeout(() => {
+          Animated.parallel([
+            Animated.timing(carouselScrollAnim, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: false,
+            }),
+            Animated.timing(gradientOpacityAnim, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: false,
+            }),
+          ]).start();
+        }, 150);
+      }
+    }
+  };
+
+  // Handler for scroll position changes
+  const handleCarouselScrollPosition = ({ isAtEnd, isAtStart }) => {
+    isAtEndRef.current = isAtEnd;
+
+    // If scrolling back towards start, show the button again
+    if (isAtStart && carouselScrollAnim._value === 1) {
+      Animated.parallel([
+        Animated.timing(carouselScrollAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+        Animated.timing(gradientOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  };
+
+  // Interpolate AI button opacity (fades out when scrolling)
+  const aiButtonOpacity = carouselScrollAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
 
   // Interpolate width from height to maintain aspect ratio
   const canvasWidthAnim = canvasHeightAnim.interpolate({
@@ -262,8 +337,9 @@ const HomeScreen = () => {
   // Calculate canvas height based on modal height and suggestions visibility
   const calculateCanvasHeight = (modalHeight, modalOpen, hasImage) => {
     if (modalHeight > 0) {
-      // Modal is open - shrink proportionally to modal height (50% of modal height)
-      const shrinkAmount = modalHeight * 0.5;
+      // Modal is open - shrink to fit nicely above the modal
+      // Less shrinking = larger canvas = less empty space
+      const shrinkAmount = modalHeight * 0.35;
       const newHeight = DEFAULT_CANVAS_HEIGHT - shrinkAmount;
       return Math.max(newHeight, MIN_CANVAS_HEIGHT);
     }
@@ -305,13 +381,13 @@ const HomeScreen = () => {
    */
   const generatePromptFromImage = async (base64Image) => {
     if (!base64Image) return;
-    
+
     setIsSuggestionsLoading(true);
     setSmartSuggestions([]); // Clear previous suggestions
-    
+
     try {
       console.log("Generating prompt from image using Gemini...");
-      
+
       const response = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_API_KEY}`,
         {
@@ -338,18 +414,18 @@ const HomeScreen = () => {
           }
         }
       );
-      
+
       const content = response.data.candidates[0].content.parts[0].text;
       console.log("Generated prompt raw:", content);
-      
+
       try {
         // Parse JSON first
         const json = JSON.parse(content);
-        
+
         // Validate with Zod
         const validatedData = SuggestionSchema.parse(json);
         const main = validatedData.main_suggestions;
-        
+
         // Set Smart Suggestions from main suggestions
         const newSuggestions = [
           { id: "movie", label: main.movie_style_suggestion },
@@ -357,7 +433,7 @@ const HomeScreen = () => {
           { id: "color", label: main.color_focus_suggestion },
           { id: "other", label: main.other_main_suggestion },
         ].filter(item => item.label); // Filter out empty suggestions
-        
+
         setSmartSuggestions(newSuggestions);
 
         // Combine all suggestions for Ghost Text context
@@ -1102,12 +1178,12 @@ const HomeScreen = () => {
               labels: null,
             });
             setSemanticLoading(false);
-            
+
             // Close any open modals
             setArtStyleModalVisible(false);
             setGenerateMockupModalVisible(false);
             setGlobalEditingModalVisible(false);
-            
+
             console.log("App reset to initial state");
           },
         },
@@ -1170,7 +1246,8 @@ const HomeScreen = () => {
           subtitle="Synced just now"
           onBackPress={handleBackPress}
           onMenuPress={handleMenuPress}
-          onResetPress={handleReset}
+          onUndoPress={() => Alert.alert("Undo", "Undo functionality coming soon!")}
+          onRedoPress={() => Alert.alert("Redo", "Redo functionality coming soon!")}
         />
 
         {/* Control Bar */}
@@ -1269,21 +1346,31 @@ const HomeScreen = () => {
                   onArtStylePress={handleArtStylePress}
                   onGenerateMockupPress={handleGenerateMockupPress}
                   onGlobalEditingPress={handleGlobalEditingPress}
+                  onScroll={handleCarouselScroll}
+                  onScrollPosition={handleCarouselScrollPosition}
                 />
               )}
 
-            {/* AI Prompt Button - Hide when any modal is open */}
+            {/* AI Prompt Button with fade effect - Hide when any modal is open */}
             {!artStyleModalVisible &&
               !generateMockupModalVisible &&
               !globalEditingModalVisible && (
-                <View style={styles.aiButtonContainer}>
-                  <AIPromptButton onPress={handleAIPromptPress} />
+                <View style={styles.aiButtonWrapper} pointerEvents="box-none">
+                  <Animated.View style={[styles.aiButtonGradient, { opacity: gradientOpacityAnim }]} pointerEvents="none">
+                    <LinearGradient
+                      colors={['transparent', 'transparent', 'rgba(25, 24, 22, 0.6)', 'rgba(25, 24, 22, 1)']}
+                      locations={[0, 0.35, 0.65, 1]}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={styles.aiButtonGradient}
+                    />
+                  </Animated.View>
+                  <Animated.View style={[styles.aiButtonContainer, { opacity: aiButtonOpacity }]}>
+                    <AIPromptButton onPress={handleAIPromptPress} />
+                  </Animated.View>
                 </View>
               )}
           </View>
-
-          {/* Home Indicator */}
-          <View style={styles.homeIndicator} />
         </View>
 
         {/* Art Style Transfer Modal */}
@@ -1344,11 +1431,11 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#191816",
+    backgroundColor: Colors.background,
   },
   container: {
     flex: 1,
-    backgroundColor: "#191816",
+    backgroundColor: Colors.background,
   },
   imageContainer: {
     justifyContent: "center",
@@ -1358,30 +1445,30 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     position: "relative",
-    borderRadius: 12,
+    borderRadius: BorderRadius.xs,
     overflow: "hidden",
   },
   placeholderContainer: {
     width: width - 32,
-    height: 450,
+    height: Layout.imageHeight,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#2A2A28",
-    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xs,
     overflow: "hidden",
   },
   placeholder: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#3A3A38",
+    backgroundColor: Colors.surfaceLight,
   },
   image: {
     width: width - 32,
-    height: 450,
-    borderRadius: 12,
+    height: Layout.imageHeight,
+    borderRadius: BorderRadius.xs,
   },
   filteredImageContainer: {
-    borderRadius: 12,
+    borderRadius: BorderRadius.xs,
     overflow: "hidden",
   },
   // Pick Image Button Styles
@@ -1390,7 +1477,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#3A3A38",
+    backgroundColor: Colors.surfaceLight,
   },
   pickImageIconContainer: {
     width: 72,
@@ -1411,42 +1498,43 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 24,
     height: 3,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.textPrimary,
     borderRadius: 2,
   },
   plusVertical: {
     position: "absolute",
     width: 3,
     height: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.textPrimary,
     borderRadius: 2,
   },
   pickImageText: {
+    fontFamily: Typography.fontFamily.medium,
     fontSize: 18,
-    fontWeight: "600",
-    color: "#FFFFFF",
+    color: Colors.textPrimary,
     marginBottom: 8,
   },
   pickImageSubtext: {
+    fontFamily: Typography.fontFamily.regular,
     fontSize: 14,
     color: "rgba(255, 255, 255, 0.6)",
   },
   // Loading Overlay Styles
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dimmed background
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: BorderRadius.xs,
   },
   loadingContent: {
     alignItems: "center",
   },
   loadingText: {
+    fontFamily: Typography.fontFamily.medium,
     marginTop: 16,
     fontSize: 16,
-    fontWeight: "500",
-    color: "#FFFFFF",
+    color: Colors.textPrimary,
     letterSpacing: 0.5,
   },
   // Status Modal Styles
@@ -1457,7 +1545,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statusModalContent: {
-    backgroundColor: "#2A2A28",
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 32,
     alignItems: "center",
@@ -1466,10 +1554,10 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.1)",
   },
   statusModalText: {
+    fontFamily: Typography.fontFamily.medium,
     marginTop: 16,
     fontSize: 16,
-    fontWeight: "500",
-    color: "#FFFFFF",
+    color: Colors.textPrimary,
     letterSpacing: 0.5,
     textAlign: "center",
   },
@@ -1481,20 +1569,28 @@ const styles = StyleSheet.create({
     marginTop: 8,
     zIndex: 1,
   },
-  aiButtonContainer: {
+  aiButtonWrapper: {
     position: "absolute",
-    right: 16,
-    top: "50%",
-    transform: [{ translateY: -39 }], // Half of button height
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
     zIndex: 10,
   },
-  homeIndicator: {
-    width: 140,
-    height: 5,
-    backgroundColor: "#8E8E8E",
-    borderRadius: 100,
-    alignSelf: "center",
-    marginTop: 12,
+  aiButtonGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  aiButtonContainer: {
+    marginRight: -35,
+    marginTop: 0,
+    zIndex: 11,
   },
 });
 

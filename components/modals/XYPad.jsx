@@ -1,11 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
+    Animated,
+    Easing,
+    StyleSheet,
+    Text,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
+import { Typography } from "../../constants/Theme";
 
 /**
  * XYPad - Interactive 2D touch pad for selecting values on two axes
@@ -67,18 +69,21 @@ const XYPad = ({
   useEffect(() => {
     if (containerSize.width > 0 && containerSize.height > 0) {
       const pos = calculateDotPosition(value.x, value.y, containerSize);
-      Animated.spring(dotX, {
-        toValue: pos.x,
-        useNativeDriver: false,
-        tension: 120,
-        friction: 10,
-      }).start();
-      Animated.spring(dotY, {
-        toValue: pos.y,
-        useNativeDriver: false,
-        tension: 120,
-        friction: 10,
-      }).start();
+      // Use fast timing for responsive feel
+      Animated.parallel([
+        Animated.timing(dotX, {
+          toValue: pos.x,
+          duration: 150,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+        Animated.timing(dotY, {
+          toValue: pos.y,
+          duration: 150,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+      ]).start();
     }
   }, [value.x, value.y, containerSize.width, containerSize.height]);
 
@@ -230,7 +235,7 @@ const styles = StyleSheet.create({
   },
   label: {
     position: "absolute",
-    fontFamily: "System",
+    fontFamily: Typography.fontFamily.regular,
     fontSize: 12,
     color: "rgba(255, 255, 255, 0.6)",
     letterSpacing: 0.24,

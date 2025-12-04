@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SvgXml } from "react-native-svg";
+import { Colors, Spacing, Typography } from "../../constants/Theme";
 import SuggestionChip from "./SuggestionChip";
 
 // Sparkles icon for header
@@ -78,7 +79,7 @@ const SmartSuggestions = ({ onSuggestionPress, isLoading = false, isVisible = tr
   // If not present (e.g. initial load before AI), we might still show hardcoded or nothing.
   // Given the flow: Image Loaded -> Loading -> Dynamic Suggestions.
   // So if we have dynamic suggestions, we show them.
-  
+
   const displaySuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : hardcodedSuggestions;
 
   return (
@@ -143,27 +144,26 @@ const SmartSuggestions = ({ onSuggestionPress, isLoading = false, isVisible = tr
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
+    paddingHorizontal: Spacing.xxl,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
     marginBottom: 4,
   },
   headerText: {
-    fontFamily: "System",
-    fontSize: 13,
-    color: "#E6E6E6",
-    letterSpacing: -0.16,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.md,
+    color: Colors.textPrimary,
+    letterSpacing: Typography.letterSpacing.tight,
   },
   scrollContent: {
     flexDirection: "row",
-    gap: 8,
+    gap: Spacing.md,
   },
 });
 
 export default SmartSuggestions;
-

@@ -1,10 +1,9 @@
-import React from "react";
-import { StyleSheet, TouchableOpacity, View, Image, Text } from "react-native";
-import { Colors, Spacing } from "../../constants/Theme";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Colors, Spacing, Typography } from "../../constants/Theme";
 
 /**
  * SelectedStyleChip - 60x60px style tile with X button to deselect
- * 
+ *
  * Features:
  * - Shows selected style image
  * - X button in top-right corner
@@ -51,12 +50,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   removeIcon: {
+    fontFamily: Typography.fontFamily.medium,
     fontSize: 12,
     color: Colors.textAccent,
-    fontWeight: "600",
     lineHeight: 12,
   },
 });
 
 export default SelectedStyleChip;
-

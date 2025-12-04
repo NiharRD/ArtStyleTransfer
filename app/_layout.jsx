@@ -1,8 +1,13 @@
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Colors } from "../constants/Theme";
+
+// Prevent auto-hide splash screen while fonts load
+SplashScreen.preventAutoHideAsync();
 
 /**
  * Root Layout - Main navigation structure
@@ -16,6 +21,25 @@ import { Colors } from "../constants/Theme";
  * - /(demo)/* - Demo and example screens
  */
 export default function RootLayout() {
+  // Load Adobe Clean fonts
+  const [fontsLoaded] = useFonts({
+    "AdobeClean-Regular": require("../assets/fonts/AdobeClean/AdobeClean-Regular.otf"),
+    "AdobeClean-Medium": require("../assets/fonts/AdobeClean/AdobeClean-Medium.otf"),
+    "AdobeClean-Bold": require("../assets/fonts/AdobeClean/AdobeClean-Bold.otf"),
+    "AdobeClean-Light": require("../assets/fonts/AdobeClean/AdobeClean-Light.otf"),
+    "AdobeClean-SemiLight": require("../assets/fonts/AdobeClean/AdobeClean-SemiLight.otf"),
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" backgroundColor={Colors.background} />

@@ -1,13 +1,12 @@
-import React from "react";
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import {
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { Colors, Typography } from "../../constants/Theme";
 
 /**
@@ -110,11 +109,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryTitle: {
-    fontFamily: Typography.fontFamily.bold || "System",
+    fontFamily: Typography.fontFamily.bold,
     fontSize: Typography.fontSize.sm,
     color: Colors.textPrimary,
     marginBottom: 4,
-    fontWeight: "700",
   },
   categoryImages: {
     gap: 8,
@@ -148,4 +146,3 @@ const styles = StyleSheet.create({
 });
 
 export default BackgroundGalleryGrid;
-

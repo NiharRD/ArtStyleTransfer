@@ -12,7 +12,7 @@ import {
  * ModalContainer - Reusable animated bottom sheet wrapper
  *
  * Features:
- * - Slide up/down animations with spring physics
+ * - Fast slide up/down animations
  * - Absolute positioning at bottom
  * - Conditional rendering for performance
  * - Customizable height
@@ -28,18 +28,19 @@ const ModalContainer = ({ visible, onClose, children, height = 400 }) => {
   useEffect(() => {
     if (visible) {
       setShouldRender(true);
-      // Slide up with spring animation
-      Animated.spring(slideAnim, {
+      // Slide up with fast timing animation
+      Animated.timing(slideAnim, {
         toValue: 0,
+        duration: 250,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
-        tension: 65,
-        friction: 11,
       }).start();
     } else {
       // Slide down
       Animated.timing(slideAnim, {
         toValue: 500,
-        duration: 250,
+        duration: 200,
+        easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }).start(() => {
         setShouldRender(false);
@@ -59,13 +60,13 @@ const ModalContainer = ({ visible, onClose, children, height = 400 }) => {
       Animated.parallel([
         Animated.timing(keyboardOffset, {
           toValue: -keyboardHeight,
-          duration: Platform.OS === "ios" ? e.duration : 250,
-          easing: Platform.OS === "ios" ? undefined : Easing.out(Easing.ease),
+          duration: Platform.OS === "ios" ? e.duration : 200,
+          easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(backdropOpacity, {
           toValue: 1,
-          duration: 250,
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();
@@ -75,13 +76,13 @@ const ModalContainer = ({ visible, onClose, children, height = 400 }) => {
       Animated.parallel([
         Animated.timing(keyboardOffset, {
           toValue: 0,
-          duration: Platform.OS === "ios" ? e.duration : 250,
-          easing: Platform.OS === "ios" ? undefined : Easing.out(Easing.ease),
+          duration: Platform.OS === "ios" ? e.duration : 200,
+          easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(backdropOpacity, {
           toValue: 0,
-          duration: 250,
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   },
   container: {
     position: "absolute",
-    bottom: 0,
+    bottom: 40,
     left: 0,
     right: 0,
     backgroundColor: "transparent",

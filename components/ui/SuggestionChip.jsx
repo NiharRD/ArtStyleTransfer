@@ -1,12 +1,14 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from "react-native-svg";
+import { BorderRadius, Colors, Layout, Opacity, Shadows, Typography } from "../../constants/Theme";
 
 /**
  * SuggestionChip - Glass effect pill-shaped suggestion button
+ * Based on Figma design with glass morphism styling
  *
  * Features:
- * - Glass morphism background
- * - Rounded pill shape
+ * - Glass morphism background with subtle overlay
+ * - Rounded pill shape (borderRadius: 34)
  * - Icon on left + text label
  * - onPress handler for AI actions
  */
@@ -17,6 +19,12 @@ const SuggestionChip = ({ label, icon, onPress }) => {
       onPress={onPress}
       activeOpacity={0.7}
     >
+      {/* Glass effect layers */}
+      <View style={styles.glassBackground}>
+        <View style={styles.glassDifference} />
+        <View style={styles.glassOverlay} />
+      </View>
+
       <View style={styles.innerContainer}>
         {icon && (
           <View style={styles.iconContainer}>
@@ -31,24 +39,32 @@ const SuggestionChip = ({ label, icon, onPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 34,
-    backgroundColor: "rgba(255, 255, 255, 0.15)", // Lighter glass effect
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, // Enhanced shadow
-    shadowRadius: 6,
-    elevation: 6,
+    borderRadius: BorderRadius.xxl,
+    overflow: "hidden",
+    opacity: Opacity.suggestionChip,
+    ...Shadows.suggestion,
+  },
+  glassBackground: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: BorderRadius.xxl,
+  },
+  glassDifference: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: BorderRadius.xxl,
+  },
+  glassOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.glassOverlay,
+    borderRadius: BorderRadius.xxl,
   },
   innerContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 12, // Increased padding
-    paddingVertical: 8,
-    // Removed inner dark background for cleaner look
-    borderRadius: 21,
+    paddingHorizontal: Layout.suggestionPaddingH,
+    paddingVertical: Layout.suggestionPaddingV,
+    backgroundColor: Colors.glassEffect,
+    borderRadius: BorderRadius.lg,
   },
   iconContainer: {
     width: 14,
@@ -57,14 +73,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   label: {
-    fontFamily: "System",
-    fontSize: 15, // Slightly adjusted size
-    fontWeight: "500", // Added weight for contrast
-    color: "#FFFFFF", // Pure white for better contrast
-    letterSpacing: -0.23,
-    lineHeight: 18,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.base,
+    color: Colors.textAccent,
+    letterSpacing: Typography.letterSpacing.tight,
+    lineHeight: 17,
   },
 });
 
 export default SuggestionChip;
-

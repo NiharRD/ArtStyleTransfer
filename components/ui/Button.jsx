@@ -1,5 +1,5 @@
-import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { BorderRadius, Colors, Typography } from "../../constants/Theme";
 
 const Button = ({ icon, label, iconOnly = false, onPress }) => {
   return (
@@ -24,10 +24,10 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 10,
     paddingVertical: 8,
-    borderRadius: 70,
-    backgroundColor: "rgba(118, 118, 128, 0.12)",
-    borderWidth: 0.7,
-    borderColor: "rgba(120, 120, 128, 0.16)",
+    borderRadius: BorderRadius.pill,
+    backgroundColor: Colors.glassBackground,
+    borderWidth: 0.68,
+    borderColor: Colors.glassBorder,
   },
   iconOnlyContainer: {
     width: 40,
@@ -43,10 +43,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   label: {
-    fontFamily: "System",
-    fontSize: 16,
-    color: "#E6E6E6",
-    letterSpacing: -0.16,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 15,
+    color: Colors.textAccent,
+    letterSpacing: Typography.letterSpacing.normal,
+    includeFontPadding: false,
+    textAlignVertical: "center",
+    marginTop: -3,
   },
 });
 

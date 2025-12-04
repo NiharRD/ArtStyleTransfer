@@ -1,12 +1,14 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { BackIcon, DotsIcon, ResetIcon } from "../icons/IconComponents";
+import { Colors, Opacity, Typography } from "../../constants/Theme";
+import { BackIcon, DotsIcon, RedoIcon, UndoIcon } from "../icons/IconComponents";
 
 const Header = ({
   title = "Untitled Project 1",
   subtitle = "Synced just now",
   onBackPress,
   onMenuPress,
-  onResetPress,
+  onUndoPress,
+  onRedoPress,
 }) => {
   return (
     <View style={styles.container}>
@@ -16,7 +18,7 @@ const Header = ({
           onPress={onBackPress}
           activeOpacity={0.7}
         >
-          <BackIcon size={20} color="#BFBFBF" />
+          <BackIcon size={20} color={Colors.textAccent} />
         </TouchableOpacity>
 
         <View style={styles.titleContainer}>
@@ -25,21 +27,29 @@ const Header = ({
         </View>
       </View>
 
-      <View style={{ flexDirection: "row", gap: 16 }}>
+      <View style={styles.rightSection}>
         <TouchableOpacity
-          style={styles.menuButton}
-          onPress={onResetPress}
+          style={styles.iconButton}
+          onPress={onUndoPress}
           activeOpacity={0.7}
         >
-          <ResetIcon size={20} color="#BFBFBF" />
+          <UndoIcon size={20} color={Colors.textAccent} />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.menuButton}
+          style={styles.iconButton}
+          onPress={onRedoPress}
+          activeOpacity={0.7}
+        >
+          <RedoIcon size={20} color={Colors.textAccent} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.iconButton}
           onPress={onMenuPress}
           activeOpacity={0.7}
         >
-          <DotsIcon size={20} color="#BFBFBF" />
+          <DotsIcon size={20} color={Colors.textAccent} />
         </TouchableOpacity>
       </View>
     </View>
@@ -61,6 +71,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
+  rightSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    opacity: Opacity.headerIcons,
+  },
   backButton: {
     width: 20,
     height: 20,
@@ -72,19 +88,19 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   title: {
-    fontFamily: "System",
-    fontSize: 16,
-    color: "#FFFFFF",
-    letterSpacing: -0.23,
-    lineHeight: 18,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.base,
+    color: Colors.textPrimary,
+    letterSpacing: Typography.letterSpacing.tight,
+    lineHeight: Typography.lineHeight.xl,
   },
   subtitle: {
-    fontFamily: "System",
-    fontSize: 12,
-    color: "#999999",
-    lineHeight: 14,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textTertiary,
+    lineHeight: Typography.lineHeight.md,
   },
-  menuButton: {
+  iconButton: {
     width: 20,
     height: 20,
     justifyContent: "center",
