@@ -55,7 +55,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="index"
           options={{
-            title: "Art Style Transfer",
+            title: "Match Art Style",
             headerShown: false,
           }}
         />

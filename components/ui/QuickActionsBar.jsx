@@ -4,7 +4,7 @@ import {
     AddIcon,
     BrushIcon,
     CameraIcon,
-    TShirtIcon,
+    TShirtIcon
 } from "../icons/IconComponents";
 import QuickActionButton from "./QuickActionButton";
 
@@ -78,6 +78,34 @@ const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress, onGlobalEditi
     }
   };
 
+  // Custom icon for Rebuild Background (layers/image icon)
+  const RebuildIcon = ({ size = 28, color = "#CCCCCC" }) => (
+    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{
+        width: size * 0.8,
+        height: size * 0.6,
+        borderWidth: 2,
+        borderColor: color,
+        borderRadius: 4,
+        backgroundColor: 'transparent',
+        position: 'absolute',
+        top: size * 0.1,
+        left: size * 0.05,
+      }} />
+      <View style={{
+        width: size * 0.8,
+        height: size * 0.6,
+        borderWidth: 2,
+        borderColor: color,
+        borderRadius: 4,
+        backgroundColor: 'rgba(60,60,67,0.6)',
+        position: 'absolute',
+        bottom: size * 0.1,
+        right: size * 0.05,
+      }} />
+    </View>
+  );
+
   const quickActions = [
     {
       id: "create",
@@ -86,28 +114,27 @@ const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress, onGlobalEditi
       isDashed: true,
     },
     {
-      id: "art-style",
-      icon: <BrushIcon size={28} color="#CCCCCC" />,
-      label: "Art Style\nTransfer",
-      isActive: true,
-    },
-    {
-      id: "generate-mockup",
-      icon: <TShirtIcon size={28} color="#CCCCCC" />,
-      label: "Generate\nMockup",
-      isActive: true,
-    },
-
-    {
       id: "global-editing-1",
       icon: <CameraIcon size={28} color="#CCCCCC" />,
-      label: "Global\nEditing",
+      label: "Smart\nAdjust",
+      isActive: true,
+    },
+    {
+      id: "art-style",
+      icon: <BrushIcon size={28} color="#CCCCCC" />,
+      label: "Match Art\nStyle",
       isActive: true,
     },
     {
       id: "product-mockup",
       icon: <TShirtIcon size={28} color="#CCCCCC" />,
       label: "Product\nMockup",
+      isActive: true,
+    },
+    {
+      id: "generate-mockup",
+      icon: <RebuildIcon size={28} color="#CCCCCC" />,
+      label: "Rebuild\nBackground",
       isActive: true,
     },
   ];
@@ -135,6 +162,7 @@ const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress, onGlobalEditi
             label={action.label}
             isActive={action.isActive}
             isDashed={action.isDashed}
+            smallLabel={action.smallLabel}
             onPress={() => handleActionPress(action.id)}
           />
         ))}

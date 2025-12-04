@@ -670,7 +670,7 @@ const GlobalEditingModal = ({
               onPress={handleHeaderClick}
               activeOpacity={0.7}
             >
-              <Text style={styles.globalEditingText}>Global Editing</Text>
+              <Text style={styles.globalEditingText}>Smart Adjust</Text>
               <DropdownIcon size={16} color={Colors.textAccent} />
             </TouchableOpacity>
 

@@ -80,7 +80,7 @@ const { width, height } = Dimensions.get("window");
  * Home Screen - Main app screen
  *
  * The main workspace where users can view and edit their images.
- * Provides navigation to various features like art style transfer and mockup generation.
+ * Provides navigation to various features like Match Art Style and Background Reconstruction.
  *
  * Features:
  * - Responsive canvas with animated height
@@ -88,7 +88,7 @@ const { width, height } = Dimensions.get("window");
  * - Smooth state transitions
  * - Image picker with blob-ready state for HTTP form data
  * - Loading overlay for async AI/ML operations
- * - Global Editing with HTTP workflow for AI image processing
+ * - Smart Adjust (Global Editing) with HTTP workflow for AI image processing
  */
 const DEFAULT_CANVAS_HEIGHT = 450;
 const DEFAULT_CANVAS_WIDTH = width - 32;
@@ -183,7 +183,7 @@ const HomeScreen = () => {
     isLoading: false, // Loading state
   });
 
-  // Iteration tracking for Global Editing
+  // Iteration tracking for Smart Adjust (Global Editing)
   const [iterations, setIterations] = useState(1);
   const [baseFilename, setBaseFilename] = useState("01_final.jpg");
 
@@ -199,7 +199,7 @@ const HomeScreen = () => {
     );
   }, [iterations]);
 
-  // Session ID for Global Editing HTTP workflow
+  // Session ID for Smart Adjust (Global Editing) HTTP workflow
   const [sessionIdGlobalEditing, setSessionIdGlobalEditing] = useState(null);
 
   // Status modal for showing progress during HTTP operations
@@ -893,7 +893,7 @@ const HomeScreen = () => {
   };
 
   /**
-   * Main handler for Global Editing send button
+   * Main handler for Smart Adjust (Global Editing) send button
    * Orchestrates the full HTTP workflow
    *
    * @param {string} prompt - The user's prompt text
@@ -1178,7 +1178,7 @@ const HomeScreen = () => {
   };
 
   /**
-   * Handle Art Style Transfer send button
+   * Handle Match Art Style send button
    * POST to artStyleBaseUrl + "generate_with_image" with FormData
    * Requires an image on canvas and a selected art style
    *

@@ -6,6 +6,7 @@ const QuickActionButton = ({
   label,
   isActive = false,
   isDashed = false,
+  smallLabel = false,
   onPress,
 }) => {
   return (
@@ -30,7 +31,7 @@ const QuickActionButton = ({
 
       <View style={styles.content}>
         <View style={styles.iconContainer}>{icon}</View>
-        <Text style={[styles.label, isDashed && styles.dashedLabel]}>{label}</Text>
+        <Text style={[styles.label, isDashed && styles.dashedLabel, smallLabel && styles.smallLabel]}>{label}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -90,6 +91,10 @@ const styles = StyleSheet.create({
   },
   dashedLabel: {
     color: Colors.textMuted,
+  },
+  smallLabel: {
+    fontSize: 10,
+    lineHeight: 13,
   },
 });
 

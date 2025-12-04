@@ -1,5 +1,4 @@
 import { Stack } from "expo-router";
-import React from "react";
 import { Colors } from "../../constants/Theme";
 
 /**
@@ -21,14 +20,14 @@ export default function FeaturesLayout() {
       <Stack.Screen
         name="art-style-transfer"
         options={{
-          title: "Art Style Transfer",
+          title: "Match Art Style",
           headerShown: false,
         }}
       />
       <Stack.Screen
         name="generate-mockup"
         options={{
-          title: "Generate Mockup",
+          title: "Background Reconstruction",
           headerShown: false,
         }}
       />
