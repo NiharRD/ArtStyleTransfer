@@ -23,7 +23,6 @@ import {
     Spacing,
     Typography
 } from "../../constants/Theme";
-import DrawerToggle from "../ui/DrawerToggle";
 import GhostTextInput from "../ui/GhostTextInput";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
@@ -499,11 +498,6 @@ const GlobalEditingModal = ({
       height={getModalHeight()}
     >
       <View style={[styles.container, upperSectionVisible && styles.containerCompact]}>
-        {/* Drawer Handle - Hide when in semantic/manual edit mode */}
-        {!upperSectionVisible && (
-          <DrawerToggle onPress={handleHeaderClick} />
-        )}
-
         {/* Talk to Kimi Button - hide when upper section is visible and confirmation not visible */}
         {!upperSectionVisible && !confirmationVisible && (
           <TalkToKimiButton
