@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { useLLM } from "react-native-executorch";
+import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
 import FilteredImage from "../components/FilteredImage";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
@@ -105,7 +105,7 @@ const HomeScreen = () => {
   });
 
   const llm = useLLM({
-    model: LLAMA3_2_3B_URL,
+    model: LLAMA3_2_1B_SPINQUANT,
     contextWindowLength: 1024, // Adjust as needed (e.g., 128 to 512),
     
   });
