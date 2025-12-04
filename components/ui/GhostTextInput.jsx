@@ -19,7 +19,7 @@ const GhostTextInput = ({
   onSuggestionAccept,
   ...props 
 }) => {
-  const { suggestion, isLoading } = useGhostSuggestion(value, llm, modelReady);
+  const { suggestion, isLoading } = useGhostSuggestion(value, llm, modelReady, props.suggestions);
   
   const handleAcceptSuggestion = () => {
     if (suggestion && onChangeText) {
