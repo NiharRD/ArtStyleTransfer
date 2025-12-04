@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import {
-  Keyboard,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Keyboard,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import {
-  BorderRadius,
-  Colors,
-  Spacing,
-  Typography,
+    BorderRadius,
+    Colors,
+    Spacing,
+    Typography,
 } from "../../constants/Theme";
 import DrawerToggle from "../ui/DrawerToggle";
 import GhostTextInput from "../ui/GhostTextInput";
@@ -125,17 +125,17 @@ const ArtStyleTransferModal = ({
   const [promptText, setPromptText] = useState("");
   const [selectedStyle, setSelectedStyle] = useState(null);
 
-  // Calculate modal height based on state (1.25x taller)
+  // Calculate modal height based on state
   const getModalHeight = () => {
     switch (modalState) {
       case "textOnly":
-        return 265;
+        return 300;
       case "gallery":
-        return 485;
+        return 520;
       case "textWithStyle":
-        return 315;
+        return 360;
       default:
-        return 265;
+        return 300;
     }
   };
 
@@ -217,7 +217,7 @@ const ArtStyleTransferModal = ({
               onPress={handleHeaderClick}
               activeOpacity={0.7}
             >
-              <Text style={styles.headerText}>Art Style Transfer</Text>
+              <Text style={styles.headerText}>Match Art Style</Text>
               <DropdownIcon size={16} color={Colors.textAccent} />
             </TouchableOpacity>
 
@@ -332,16 +332,14 @@ const ArtStyleTransferModal = ({
               />
 
               <GhostTextInput
-                style={[styles.textInput, styles.textInputDisabled]}
+                style={styles.textInput}
                 value={promptText}
                 onChangeText={setPromptText}
-                placeholder="Style will be applied to your image"
+                placeholder="Make this picture look like it was created in the art style I uploaded."
                 placeholderTextColor="#949494"
                 multiline
                 llm={llm}
                 modelReady={modelReady}
-                editable={false}
-                selectTextOnFocus={false}
               />
 
               <View style={styles.actionsRow}>
@@ -387,8 +385,8 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     paddingHorizontal: 12,
     paddingBottom: 4,
-    paddingTop: Spacing.sm,
-    gap: Spacing.sm,
+    paddingTop: Spacing.md,
+    gap: Spacing.md,
   },
   contentContainer: {
     backgroundColor: "rgba(43, 40, 41, 0.95)",

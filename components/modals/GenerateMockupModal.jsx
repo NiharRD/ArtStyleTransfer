@@ -227,7 +227,7 @@ const GenerateMockupModal = ({ visible, onClose, onHeightChange, llm, modelReady
               onPress={handleHeaderClick}
               activeOpacity={0.7}
             >
-              <Text style={styles.headerText}>Generate Mockup</Text>
+              <Text style={styles.headerText}>Rebuild Background</Text>
               <DropdownIcon size={16} color={Colors.textAccent} />
             </TouchableOpacity>
 

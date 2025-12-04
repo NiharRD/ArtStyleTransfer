@@ -1,21 +1,116 @@
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Colors, Spacing } from "../../constants/Theme";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
+import { Colors, Spacing, Typography } from "../../constants/Theme";
+
+// Chevron arrow icon
+const ChevronRightIcon = ({ size = 16, color = "#E6E6E6" }) => (
+  <Svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+    <Path
+      d="M6 3L11 8L6 13"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 /**
- * StyleGalleryGrid - 4x2 grid of style reference images
- * 
+ * StyleGalleryGrid - Gallery of art styles organized by category
+ *
  * Features:
- * - Loads images from assets/images/referenceStyles/
+ * - Two categories: Trending and Modernism
+ * - Horizontal scrollable rows per category
+ * - Full artwork metadata (title, artist, style, copyright)
  * - Click to select a style
- * - Visual feedback on selection
  */
 const StyleGalleryGrid = ({ onStyleSelect, selectedStyleId }) => {
-  // Style reference images from assets
-  // Style reference images from assets
-  const styleImages = [
-    { id: 1, name: "Impression Sunrise", source: require("../../assets/images/artStylereference/Impression,_Sunrise.jpg") },
-    { id: 2, name: "The Scream", source: require("../../assets/images/artStylereference/The_Scream.jpg") },
-    { id: 3, name: "Cafe Terrace", source: require("../../assets/images/artStylereference/cafe_terrace_at_night.jpg") },
+  // Trending category - Popular and classic artworks
+  const trendingStyles = [
+    {
+      id: 1,
+      name: "Mona Lisa",
+      artist: "Leonardo da Vinci",
+      style: "High Renaissance",
+      description: "Serene, enigmatic, iconic",
+      copyright: "Public domain",
+      source: require("../../assets/images/artwork/image_3.png"),
+      category: "Trending"
+    },
+    {
+      id: 2,
+      name: "The Starry Night",
+      artist: "Vincent van Gogh",
+      style: "Post-Impressionism",
+      description: "Swirling, emotional, nocturnal",
+      copyright: "Public domain",
+      source: require("../../assets/images/artwork/image_7.png"),
+      category: "Trending"
+    },
+    {
+      id: 3,
+      name: "Impression, Sunrise",
+      artist: "Claude Monet",
+      style: "Impressionism",
+      description: "Atmospheric, hazy, luminous",
+      copyright: "Public domain",
+      source: require("../../assets/images/artwork/image_5.png"),
+      category: "Trending"
+    },
+    {
+      id: 4,
+      name: "The Persistence of Memory",
+      artist: "Salvador Dalí",
+      style: "Surrealism",
+      description: "Dreamlike, uncanny, fluid",
+      copyright: "Public domain",
+      source: require("../../assets/images/artwork/image_6.png"),
+      category: "Trending"
+    },
+  ];
+
+  // Modernism category - Modern and contemporary art
+  const modernismStyles = [
+    {
+      id: 5,
+      name: "Portrait of Two Figures",
+      artist: "Jean Dubuffet",
+      style: "Art Brut / Outsider Art",
+      description: "Playful, raw, childlike",
+      copyright: "© Dubuffet estate",
+      source: require("../../assets/images/artwork/image_2.png"),
+      category: "Modernism"
+    },
+    {
+      id: 6,
+      name: "Look Mickey",
+      artist: "Roy Lichtenstein",
+      style: "Pop Art",
+      description: "Bold, ironic, comic-inspired",
+      copyright: "© Lichtenstein estate",
+      source: require("../../assets/images/artwork/image_10.png"),
+      category: "Modernism"
+    },
+    {
+      id: 7,
+      name: "Blues Musician Collage",
+      artist: "Romare Bearden",
+      style: "Collage / Modern Art",
+      description: "Rhythmic, fragmented, expressive",
+      copyright: "© Bearden estate",
+      source: require("../../assets/images/artwork/image_8.png"),
+      category: "Modernism"
+    },
+    {
+      id: 8,
+      name: "Wheel of Life Thangka",
+      artist: "Unknown Tibetan artist",
+      style: "Tibetan Buddhist Art",
+      description: "Symbolic, didactic, spiritual",
+      copyright: "Public domain",
+      source: require("../../assets/images/artwork/image_9.png"),
+      category: "Modernism"
+    },
   ];
 
   const handleStylePress = (style) => {
@@ -24,58 +119,72 @@ const StyleGalleryGrid = ({ onStyleSelect, selectedStyleId }) => {
     }
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Row 1 */}
-      <View style={styles.row}>
-        {styleImages.slice(0, 4).map((style) => (
-          <TouchableOpacity
-            key={style.id}
-            style={[
-              styles.tile,
-              selectedStyleId === style.id && styles.tileSelected,
-            ]}
-            onPress={() => handleStylePress(style)}
-            activeOpacity={0.7}
-          >
-            <Image source={style.source} style={styles.tileImage} resizeMode="cover" />
-          </TouchableOpacity>
-        ))}
-      </View>
+  const renderCategoryRow = (title, styles) => (
+    <View style={rowStyles.categoryContainer}>
+      {/* Category Header */}
+      <TouchableOpacity style={rowStyles.categoryHeader} activeOpacity={0.7}>
+        <Text style={rowStyles.categoryTitle}>{title}</Text>
+        <ChevronRightIcon size={16} color="rgba(255,255,255,0.6)" />
+      </TouchableOpacity>
 
-      {/* Row 2 */}
-      <View style={styles.row}>
-        {styleImages.slice(4, 8).map((style) => (
+      {/* Horizontal Scroll of Tiles */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={rowStyles.tilesContainer}
+      >
+        {styles.map((style) => (
           <TouchableOpacity
             key={style.id}
             style={[
-              styles.tile,
-              selectedStyleId === style.id && styles.tileSelected,
+              rowStyles.tile,
+              selectedStyleId === style.id && rowStyles.tileSelected,
             ]}
             onPress={() => handleStylePress(style)}
             activeOpacity={0.7}
           >
-            <Image source={style.source} style={styles.tileImage} resizeMode="cover" />
+            <Image source={style.source} style={rowStyles.tileImage} resizeMode="cover" />
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
+    </View>
+  );
+
+  return (
+    <View style={rowStyles.container}>
+      {renderCategoryRow("Trending", trendingStyles)}
+      {renderCategoryRow("Modernism", modernismStyles)}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const rowStyles = StyleSheet.create({
   container: {
     gap: Spacing.md,
   },
-  row: {
+  categoryContainer: {
+    gap: Spacing.sm,
+  },
+  categoryHeader: {
     flexDirection: "row",
-    gap: Spacing.md,
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  categoryTitle: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textPrimary,
+  },
+  tilesContainer: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    paddingRight: Spacing.md,
   },
   tile: {
-    flex: 1,
-    aspectRatio: 1,
+    width: 72,
+    height: 72,
     backgroundColor: Colors.tileGray,
-    borderRadius: Spacing.md,
+    borderRadius: Spacing.sm,
     overflow: "hidden",
     borderWidth: 2,
     borderColor: "transparent",
@@ -90,4 +199,3 @@ const styles = StyleSheet.create({
 });
 
 export default StyleGalleryGrid;
-
