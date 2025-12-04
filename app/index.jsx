@@ -3,19 +3,19 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    BackHandler,
-    Dimensions,
-    Image,
-    Keyboard,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  BackHandler,
+  Dimensions,
+  Image,
+  Keyboard,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
@@ -37,7 +37,7 @@ import SmartSuggestions from "../components/ui/SmartSuggestions";
 import { BorderRadius, Colors, Layout, Typography } from "../constants/Theme";
 import { artStyleBaseUrl, baseUrl } from "../endPoints";
 const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
-const SYSTEM_PROMPT = `Analyze the image carefully and return ONLY a single JSON object containing exactly 4 main suggestions only in 4 to 6 strictly words (one for each category: Movie Style, Mood, Color Focus, Other) and exactly 15 general suggestions, all in natural human language.
+const SYSTEM_PROMPT = `Analyze the image carefully and return ONLY a single JSON object containing exactly 4 main suggestions only in 4 to 6 strictly words (one for each category: Movie Style, Mood, Color Focus, Other) and exactly 6 general suggestions, all in natural human language.
 
 *STRICT FORMAT INSTRUCTIONS*:
 Return a JSON object with this structure:
@@ -51,12 +51,12 @@ Return a JSON object with this structure:
   "normal_suggestions": [
     "string",
     "string",
-    ... (15 items)
+    ... (6 items)
   ]
 }
 
-*RULES FOR ALL 19 SUGGESTIONS*:
-- The output MUST contain exactly one main_suggestions object with 4 fields, and one normal_suggestions list with exactly 15 elements.
+*RULES FOR ALL 10 SUGGESTIONS*:
+- The output MUST contain exactly one main_suggestions object with 4 fields, and one normal_suggestions list with exactly 6 elements.
 - Keep each suggestion short and natural, as if a user wrote it.
 - NO numbers, NO technical terms, NO percentages, NO stops.
 - NO crop or composition instructions.
@@ -114,7 +114,7 @@ const HomeScreen = () => {
 
   const llm = useLLM({
     model: LLAMA3_2_1B_SPINQUANT,
-    contextWindowLength: 1024, // Adjust as needed (e.g., 128 to 512),
+    contextWindowLength: 128, // Reduced for better performance and memory usage
   });
 
   const [isModelReady, setIsModelReady] = useState(false);
@@ -224,22 +224,22 @@ const HomeScreen = () => {
   // All 16 filters matching GL shader parameters
   const [filterValues, setFilterValues] = useState({
     // Basic Adjustments
-    exposure: 0,     // -30 to 30, default 0
-    contrast: 0,     // -100 to 100, default 0
-    highlights: 0,   // -50 to 30, default 0
-    shadows: 0,      // -30 to 50, default 0
-    whites: 0,       // -50 to 50, default 0
-    blacks: 0,       // -50 to 50, default 0
-    temperature: 0,  // -50 to 50, default 0
-    tint: 0,         // -50 to 50, default 0
-    saturation: 0,   // -100 to 100, default 0
-    vibrance: 0,     // -50 to 100, default 0
+    exposure: 0, // -30 to 30, default 0
+    contrast: 0, // -100 to 100, default 0
+    highlights: 0, // -50 to 30, default 0
+    shadows: 0, // -30 to 50, default 0
+    whites: 0, // -50 to 50, default 0
+    blacks: 0, // -50 to 50, default 0
+    temperature: 0, // -50 to 50, default 0
+    tint: 0, // -50 to 50, default 0
+    saturation: 0, // -100 to 100, default 0
+    vibrance: 0, // -50 to 100, default 0
     // Creative Effects
-    clarity: 0,      // -50 to 80, default 0
-    vignette: 0,     // 0 to 100, default 0
-    grain: 0,        // 0 to 100, default 0
-    fade: 0,         // 0 to 50, default 0
-    tealOrange: 0,   // 0 to 100, default 0
+    clarity: 0, // -50 to 80, default 0
+    vignette: 0, // 0 to 100, default 0
+    grain: 0, // 0 to 100, default 0
+    fade: 0, // 0 to 50, default 0
+    tealOrange: 0, // 0 to 100, default 0
     bleachBypass: 0, // 0 to 100, default 0
   });
 
@@ -278,7 +278,8 @@ const HomeScreen = () => {
   const [showSemanticEditor, setShowSemanticEditor] = useState(false);
   const [currentModalHeight, setCurrentModalHeight] = useState(0);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
-  const [fullScreenPreviewVisible, setFullScreenPreviewVisible] = useState(false);
+  const [fullScreenPreviewVisible, setFullScreenPreviewVisible] =
+    useState(false);
   const [infiniteViewVisible, setInfiniteViewVisible] = useState(false);
   const [imageMenuVisible, setImageMenuVisible] = useState(false);
 
@@ -419,9 +420,9 @@ const HomeScreen = () => {
         // Check if pinching in (distance decreasing)
         const scaleFactor = currentDistance / initialPinchDistance.current;
         if (scaleFactor < 0.8 && !infiniteViewVisible) {
-             setInfiniteViewVisible(true);
-             // Reset pinch to avoid repeated triggers
-             initialPinchDistance.current = null;
+          setInfiniteViewVisible(true);
+          // Reset pinch to avoid repeated triggers
+          initialPinchDistance.current = null;
         }
       }
     }
@@ -566,7 +567,7 @@ const HomeScreen = () => {
       console.log("Generating prompt from image using Gemini...");
 
       const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_API_KEY}`,
         {
           contents: [
             {
@@ -1480,7 +1481,10 @@ const HomeScreen = () => {
         break;
       case "product-mockup":
         // Product mockup modal not implemented yet
-        Alert.alert("Coming Soon", "Product Mockup feature will be available soon!");
+        Alert.alert(
+          "Coming Soon",
+          "Product Mockup feature will be available soon!"
+        );
         break;
       default:
         console.log("Unknown mode:", mode);
@@ -1526,29 +1530,26 @@ const HomeScreen = () => {
           style={[
             styles.imageContainer,
             {
-              overflow: 'visible',
+              overflow: "visible",
               zIndex: zoomScale > 1 ? 9999 : 1,
               elevation: zoomScale > 1 ? 9999 : 1,
-            }
+            },
           ]}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           {imageState.uri ? (
-            <TouchableOpacity
-              activeOpacity={0.95}
-              onPress={handleCanvasTap}
-            >
+            <TouchableOpacity activeOpacity={0.95} onPress={handleCanvasTap}>
               <Animated.View
                 style={[
                   styles.imageWrapper,
                   {
                     transform: [{ scale: zoomScaleAnim }],
-                    overflow: 'visible',
+                    overflow: "visible",
                     zIndex: zoomScale > 1 ? 9999 : 1,
                     elevation: zoomScale > 1 ? 9999 : 1,
-                  }
+                  },
                 ]}
               >
                 {/* Use FilteredImage when filters are active, otherwise regular Animated.Image */}

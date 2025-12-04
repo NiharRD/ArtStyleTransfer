@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Hook to generate ghost suggestions using LLM
@@ -8,15 +8,21 @@ import { useEffect, useRef, useState } from 'react';
  * @param {number} debounceTime - Time in ms to wait before generating (default 1000ms)
  * @returns {object} { suggestion, isLoading }
  */
-export const useGhostSuggestion = (text, llm, modelReady, suggestions = [], debounceTime = 1000) => {
-  const [suggestion, setSuggestion] = useState('');
+export const useGhostSuggestion = (
+  text,
+  llm,
+  modelReady,
+  suggestions = [],
+  debounceTime = 1000
+) => {
+  const [suggestion, setSuggestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const timeoutRef = useRef(null);
   const lastTextRef = useRef(text);
-  
+
   // Refs for persistence logic to avoid dependency loops
-  const fullSuggestionRef = useRef('');
-  const baseTextRef = useRef('');
+  const fullSuggestionRef = useRef("");
+  const baseTextRef = useRef("");
 
   useEffect(() => {
     // Clear previous timeout
@@ -30,36 +36,36 @@ export const useGhostSuggestion = (text, llm, modelReady, suggestions = [], debo
 
     if (baseText && fullSuggestion) {
       const expectedFullText = baseText + fullSuggestion;
-      
+
       // Check if current text matches the expected path
       // We allow text to be shorter (backspace) or longer (typing) as long as it matches
       if (expectedFullText.startsWith(text)) {
         // User is typing along the suggestion
         const remaining = expectedFullText.slice(text.length);
         setSuggestion(remaining);
-        
+
         // If user finished typing the suggestion, we can clear and let it generate new
         if (remaining.length === 0) {
-           console.log("Suggestion fully typed, clearing.");
-           baseTextRef.current = '';
-           fullSuggestionRef.current = '';
-           setSuggestion('');
-           // Fall through to generation logic
+          console.log("Suggestion fully typed, clearing.");
+          baseTextRef.current = "";
+          fullSuggestionRef.current = "";
+          setSuggestion("");
+          // Fall through to generation logic
         } else {
-           // Still matching, don't generate new yet
-           // console.log("Partial match, keeping suggestion:", remaining);
-           setIsLoading(false);
-           return;
+          // Still matching, don't generate new yet
+          // console.log("Partial match, keeping suggestion:", remaining);
+          setIsLoading(false);
+          return;
         }
       } else {
         // Diverged
         console.log("Text diverged from suggestion, clearing.");
-        baseTextRef.current = '';
-        fullSuggestionRef.current = '';
-        setSuggestion('');
+        baseTextRef.current = "";
+        fullSuggestionRef.current = "";
+        setSuggestion("");
       }
     } else {
-       setSuggestion('');
+      setSuggestion("");
     }
 
     // Interrupt previous generation if active - REMOVED per user request
@@ -107,19 +113,23 @@ Complete the user's sentence naturally. Use the "Style Suggestions" below to gui
         console.log("Suggestions received:", suggestions);
 
         if (suggestions && suggestions.length > 0) {
-            // Format suggestions as a clean list for better model comprehension
-            systemContent += `\n\n### Style Suggestions\n- ${suggestions.join('\n- ')}`;
+          // Limit to first 6 suggestions to reduce context size
+          const limitedSuggestions = suggestions.slice(0, 6);
+          // Format suggestions as a clean list for better model comprehension
+          systemContent += `\n\n### Style Suggestions\n- ${limitedSuggestions.join(
+            "\n- "
+          )}`;
         } else {
-            console.log("No suggestions to append.");
+          console.log("No suggestions to append.");
         }
 
         console.log("System Content:", systemContent);
 
         const messages = [
-          { role: 'system', content: systemContent },
-          { role: 'user', content: text }
+          { role: "system", content: systemContent },
+          { role: "user", content: text },
         ];
-        
+
         if (llm.isGenerating) {
           console.log("Model busy, skipping.");
           setIsLoading(false);
@@ -128,51 +138,67 @@ Complete the user's sentence naturally. Use the "Style Suggestions" below to gui
 
         const response = await llm.generate(messages);
         // console.log("llm.generate response received:", JSON.stringify(response));
-        
+
         // Check if the text has changed while generating
         if (text !== lastTextRef.current) {
           return;
         }
 
         let completion = response;
-        
+
         // Fallback: Check llm.response if generate returns undefined
         if (!completion && llm.response) {
-             completion = llm.response;
+          completion = llm.response;
         }
 
-        if (typeof response === 'object' && response.content) {
+        if (typeof response === "object" && response.content) {
           completion = response.content;
-        } else if (typeof response === 'object' && response.text) {
+        } else if (typeof response === "object" && response.text) {
           completion = response.text;
         }
 
         if (completion) {
-            let trimmedCompletion = completion.trim();
-            
-            // Enforce 6 words limit client-side
-            const words = trimmedCompletion.split(/\s+/);
-            if (words.length > 6) {
-                trimmedCompletion = words.slice(0, 6).join(' ');
-            }
+          let trimmedCompletion = completion.trim();
 
-            // Handle space logic:
-            // If text doesn't end with space, and suggestion doesn't start with punctuation, add space
-            let finalSuggestion = trimmedCompletion;
-            if (!text.endsWith(' ') && !/^[.,;!?]/.test(trimmedCompletion)) {
-                finalSuggestion = ' ' + trimmedCompletion;
-            }
-            
-            baseTextRef.current = text;
-            fullSuggestionRef.current = finalSuggestion;
-            setSuggestion(finalSuggestion);
+          // Enforce 6 words limit client-side
+          const words = trimmedCompletion.split(/\s+/);
+          if (words.length > 6) {
+            trimmedCompletion = words.slice(0, 6).join(" ");
+          }
+
+          // Handle space logic:
+          // If text doesn't end with space, and suggestion doesn't start with punctuation, add space
+          let finalSuggestion = trimmedCompletion;
+          if (!text.endsWith(" ") && !/^[.,;!?]/.test(trimmedCompletion)) {
+            finalSuggestion = " " + trimmedCompletion;
+          }
+
+          baseTextRef.current = text;
+          fullSuggestionRef.current = finalSuggestion;
+          setSuggestion(finalSuggestion);
         }
-        
       } catch (error) {
         if (error.message && error.message.includes("ModuleNotLoaded")) {
-           console.warn("Ghost Suggestion: Model not loaded yet. Retrying later.");
+          console.warn(
+            "Ghost Suggestion: Model not loaded yet. Retrying later."
+          );
+        } else if (
+          error.message &&
+          (error.message.includes("GPU") ||
+            error.message.includes("memory") ||
+            error.message.includes("WebGL") ||
+            error.message.includes("OOM"))
+        ) {
+          console.error(
+            "Ghost Suggestion: GPU/Memory does not support the LLM",
+            error
+          );
+          setSuggestion(
+            " [AI autocomplete unavailable - GPU/memory insufficient]"
+          );
         } else {
-           console.error("Error generating suggestion:", error);
+          console.error("Error generating suggestion:", error);
+          setSuggestion(" [AI autocomplete unavailable]");
         }
       } finally {
         setIsLoading(false);

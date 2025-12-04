@@ -1,4 +1,11 @@
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { Colors, Spacing, Typography } from "../../constants/Theme";
 
@@ -35,7 +42,7 @@ const StyleGalleryGrid = ({ onStyleSelect, selectedStyleId }) => {
       description: "Serene, enigmatic, iconic",
       copyright: "Public domain",
       source: require("../../assets/images/artwork/image_3.png"),
-      category: "Trending"
+      category: "Trending",
     },
     {
       id: 2,
@@ -45,71 +52,81 @@ const StyleGalleryGrid = ({ onStyleSelect, selectedStyleId }) => {
       description: "Swirling, emotional, nocturnal",
       copyright: "Public domain",
       source: require("../../assets/images/artwork/image_7.png"),
-      category: "Trending"
+      category: "Trending",
     },
     {
       id: 3,
+      name: "Cafe Terrace at Night",
+      artist: "Vincent van Gogh",
+      style: "Post-Impressionism",
+      description: "Vibrant, warm, inviting",
+      copyright: "Public domain",
+      source: require("../../assets/images/artwork/image_7.png"),
+      category: "Trending",
+    },
+    {
+      id: 4,
       name: "Impression, Sunrise",
       artist: "Claude Monet",
       style: "Impressionism",
       description: "Atmospheric, hazy, luminous",
       copyright: "Public domain",
       source: require("../../assets/images/artwork/image_5.png"),
-      category: "Trending"
+      category: "Trending",
     },
     {
-      id: 4,
+      id: 5,
       name: "The Persistence of Memory",
       artist: "Salvador Dalí",
       style: "Surrealism",
       description: "Dreamlike, uncanny, fluid",
       copyright: "Public domain",
       source: require("../../assets/images/artwork/image_6.png"),
-      category: "Trending"
+      category: "Trending",
     },
   ];
 
   // Modernism category - Modern and contemporary art
   const modernismStyles = [
     {
-      id: 5,
+      id: 6,
       name: "Portrait of Two Figures",
       artist: "Jean Dubuffet",
       style: "Art Brut / Outsider Art",
       description: "Playful, raw, childlike",
       copyright: "© Dubuffet estate",
       source: require("../../assets/images/artwork/image_2.png"),
-      category: "Modernism"
+      category: "Modernism",
     },
     {
-      id: 6,
+      id: 7,
       name: "Look Mickey",
       artist: "Roy Lichtenstein",
       style: "Pop Art",
       description: "Bold, ironic, comic-inspired",
       copyright: "© Lichtenstein estate",
       source: require("../../assets/images/artwork/image_10.png"),
-      category: "Modernism"
+      category: "Modernism",
     },
     {
-      id: 7,
+      id: 8,
       name: "Blues Musician Collage",
       artist: "Romare Bearden",
       style: "Collage / Modern Art",
       description: "Rhythmic, fragmented, expressive",
       copyright: "© Bearden estate",
       source: require("../../assets/images/artwork/image_8.png"),
-      category: "Modernism"
+      category: "Modernism",
     },
     {
-      id: 8,
+      id: 9,
       name: "Wheel of Life Thangka",
       artist: "Unknown Tibetan artist",
       style: "Tibetan Buddhist Art",
       description: "Symbolic, didactic, spiritual",
       copyright: "Public domain",
       source: require("../../assets/images/artwork/image_9.png"),
-      category: "Modernism"
+      category: "Modernism",
     },
   ];
 
@@ -143,7 +160,11 @@ const StyleGalleryGrid = ({ onStyleSelect, selectedStyleId }) => {
             onPress={() => handleStylePress(style)}
             activeOpacity={0.7}
           >
-            <Image source={style.source} style={rowStyles.tileImage} resizeMode="cover" />
+            <Image
+              source={style.source}
+              style={rowStyles.tileImage}
+              resizeMode="cover"
+            />
           </TouchableOpacity>
         ))}
       </ScrollView>
