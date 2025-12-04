@@ -27,6 +27,7 @@ import DrawerToggle from "../components/ui/DrawerToggle";
 import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
+import { BorderRadius, Colors, Layout, Typography } from "../constants/Theme";
 import { artStyleBaseUrl, baseUrl } from "../endPoints";
 const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 const SYSTEM_PROMPT = `Analyze the image carefully and return ONLY a single JSON object containing exactly 4 main suggestions only in 4 to 6 strictly words (one for each category: Movie Style, Mood, Color Focus, Other) and exactly 15 general suggestions, all in natural human language.
@@ -303,13 +304,13 @@ const HomeScreen = () => {
    */
   const generatePromptFromImage = async (base64Image) => {
     if (!base64Image) return;
-    
+
     setIsSuggestionsLoading(true);
     setSmartSuggestions([]); // Clear previous suggestions
-    
+
     try {
       console.log("Generating prompt from image using Gemini...");
-      
+
       const response = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_API_KEY}`,
         {
@@ -336,18 +337,18 @@ const HomeScreen = () => {
           }
         }
       );
-      
+
       const content = response.data.candidates[0].content.parts[0].text;
       console.log("Generated prompt raw:", content);
-      
+
       try {
         // Parse JSON first
         const json = JSON.parse(content);
-        
+
         // Validate with Zod
         const validatedData = SuggestionSchema.parse(json);
         const main = validatedData.main_suggestions;
-        
+
         // Set Smart Suggestions from main suggestions
         const newSuggestions = [
           { id: "movie", label: main.movie_style_suggestion },
@@ -355,7 +356,7 @@ const HomeScreen = () => {
           { id: "color", label: main.color_focus_suggestion },
           { id: "other", label: main.other_main_suggestion },
         ].filter(item => item.label); // Filter out empty suggestions
-        
+
         setSmartSuggestions(newSuggestions);
 
       } catch (e) {
@@ -1092,12 +1093,12 @@ const HomeScreen = () => {
               labels: null,
             });
             setSemanticLoading(false);
-            
+
             // Close any open modals
             setArtStyleModalVisible(false);
             setGenerateMockupModalVisible(false);
             setGlobalEditingModalVisible(false);
-            
+
             console.log("App reset to initial state");
           },
         },
@@ -1160,7 +1161,8 @@ const HomeScreen = () => {
           subtitle="Synced just now"
           onBackPress={handleBackPress}
           onMenuPress={handleMenuPress}
-          onResetPress={handleReset}
+          onUndoPress={() => Alert.alert("Undo", "Undo functionality coming soon!")}
+          onRedoPress={() => Alert.alert("Redo", "Redo functionality coming soon!")}
         />
 
         {/* Control Bar */}
@@ -1333,11 +1335,11 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#191816",
+    backgroundColor: Colors.background,
   },
   container: {
     flex: 1,
-    backgroundColor: "#191816",
+    backgroundColor: Colors.background,
   },
   imageContainer: {
     justifyContent: "center",
@@ -1347,30 +1349,30 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     position: "relative",
-    borderRadius: 12,
+    borderRadius: BorderRadius.xs,
     overflow: "hidden",
   },
   placeholderContainer: {
     width: width - 32,
-    height: 450,
+    height: Layout.imageHeight,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#2A2A28",
-    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xs,
     overflow: "hidden",
   },
   placeholder: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#3A3A38",
+    backgroundColor: Colors.surfaceLight,
   },
   image: {
     width: width - 32,
-    height: 450,
-    borderRadius: 12,
+    height: Layout.imageHeight,
+    borderRadius: BorderRadius.xs,
   },
   filteredImageContainer: {
-    borderRadius: 12,
+    borderRadius: BorderRadius.xs,
     overflow: "hidden",
   },
   // Pick Image Button Styles
@@ -1379,7 +1381,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#3A3A38",
+    backgroundColor: Colors.surfaceLight,
   },
   pickImageIconContainer: {
     width: 72,
@@ -1400,42 +1402,43 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 24,
     height: 3,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.textPrimary,
     borderRadius: 2,
   },
   plusVertical: {
     position: "absolute",
     width: 3,
     height: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.textPrimary,
     borderRadius: 2,
   },
   pickImageText: {
+    fontFamily: Typography.fontFamily.medium,
     fontSize: 18,
-    fontWeight: "600",
-    color: "#FFFFFF",
+    color: Colors.textPrimary,
     marginBottom: 8,
   },
   pickImageSubtext: {
+    fontFamily: Typography.fontFamily.regular,
     fontSize: 14,
     color: "rgba(255, 255, 255, 0.6)",
   },
   // Loading Overlay Styles
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dimmed background
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: BorderRadius.xs,
   },
   loadingContent: {
     alignItems: "center",
   },
   loadingText: {
+    fontFamily: Typography.fontFamily.medium,
     marginTop: 16,
     fontSize: 16,
-    fontWeight: "500",
-    color: "#FFFFFF",
+    color: Colors.textPrimary,
     letterSpacing: 0.5,
   },
   // Status Modal Styles
@@ -1446,7 +1449,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statusModalContent: {
-    backgroundColor: "#2A2A28",
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 32,
     alignItems: "center",
@@ -1455,10 +1458,10 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.1)",
   },
   statusModalText: {
+    fontFamily: Typography.fontFamily.medium,
     marginTop: 16,
     fontSize: 16,
-    fontWeight: "500",
-    color: "#FFFFFF",
+    color: Colors.textPrimary,
     letterSpacing: 0.5,
     textAlign: "center",
   },
@@ -1474,14 +1477,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 16,
     top: "50%",
-    transform: [{ translateY: -39 }], // Half of button height
+    transform: [{ translateY: -39 }],
     zIndex: 10,
   },
   homeIndicator: {
-    width: 140,
-    height: 5,
-    backgroundColor: "#8E8E8E",
-    borderRadius: 100,
+    width: Layout.homeIndicatorWidth,
+    height: Layout.homeIndicatorHeight,
+    backgroundColor: Colors.indicator,
+    borderRadius: BorderRadius.full,
     alignSelf: "center",
     marginTop: 12,
   },

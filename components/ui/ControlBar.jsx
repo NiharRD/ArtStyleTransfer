@@ -1,26 +1,64 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { BorderRadius, Colors, Shadows, Typography } from "../../constants/Theme";
 import { BranchIcon } from "../icons/IconComponents";
 import Button from "./Button";
 import Switcher from "./Switcher";
 
-const ControlBar = () => {
+const ControlBar = ({ onModeChange }) => {
+  const [activeMode, setActiveMode] = useState("AI");
+
+  const handleModePress = (mode) => {
+    setActiveMode(mode);
+    onModeChange?.(mode);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
-        <Switcher label="Master" />
+        <Switcher label="Main" />
         <Button
-          icon={<BranchIcon size={16} color="#E6E6E6" />}
+          icon={<BranchIcon size={16} color={Colors.textAccent} />}
           label="Branch"
         />
       </View>
 
       <View style={styles.rightSection}>
-        <View style={styles.menuButton}>
-          <View style={styles.activeTab}>
-            <Text style={styles.activeTabText}>AI</Text>
-          </View>
-          <Text style={styles.inactiveTabText}>Expert</Text>
+        <View style={styles.modeToggle}>
+          <TouchableOpacity
+            style={[
+              styles.modeButton,
+              activeMode === "AI" && styles.activeModeButton,
+            ]}
+            onPress={() => handleModePress("AI")}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.modeText,
+                activeMode === "AI" && styles.activeModeText,
+              ]}
+            >
+              AI
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.modeButton,
+              activeMode === "Expert" && styles.activeModeButton,
+            ]}
+            onPress={() => handleModePress("Expert")}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.modeText,
+                activeMode === "Expert" && styles.activeModeText,
+              ]}
+            >
+              Expert
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -44,42 +82,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  menuButton: {
+  modeToggle: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     paddingLeft: 4,
     paddingRight: 9,
     paddingVertical: 3,
-    borderRadius: 70,
-    backgroundColor: "rgba(118, 118, 128, 0.24)",
-    borderWidth: 0.7,
-    borderColor: "rgba(120, 120, 128, 0.16)",
+    borderRadius: BorderRadius.pill,
+    backgroundColor: Colors.glassActive,
+    borderWidth: 0.68,
+    borderColor: Colors.glassBorder,
   },
-  activeTab: {
-    paddingHorizontal: 13,
+  modeButton: {
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: "#6C6C71",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1.4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    elevation: 2,
+    borderRadius: BorderRadius.md,
   },
-  activeTabText: {
-    fontFamily: "System",
-    fontSize: 16,
-    color: "#FFFFFF",
-    letterSpacing: -0.06,
+  activeModeButton: {
+    backgroundColor: Colors.glassSurface,
+    ...Shadows.small,
+  },
+  modeText: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.base,
+    color: Colors.textPrimary,
+    letterSpacing: Typography.letterSpacing.wide,
     textAlign: "center",
   },
-  inactiveTabText: {
-    fontFamily: "System",
-    fontSize: 16,
-    color: "#FFFFFF",
-    letterSpacing: -0.06,
-    textAlign: "center",
+  activeModeText: {
+    color: Colors.textPrimary,
   },
 });
 

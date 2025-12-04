@@ -1,12 +1,11 @@
 import { router } from "expo-router";
-import React from "react";
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { StarIcon, StarImageIcon } from "../../components/icons/IconComponents";
 import Header from "../../components/ui/Header";
@@ -155,9 +154,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xxl,
   },
   sectionTitle: {
+    fontFamily: Typography.fontFamily.medium,
     fontSize: Typography.fontSize.xl,
     color: Colors.textPrimary,
-    fontWeight: "600",
     marginBottom: Spacing.md,
   },
   description: {
@@ -188,9 +187,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   exampleTitle: {
+    fontFamily: Typography.fontFamily.medium,
     fontSize: Typography.fontSize.base,
     color: Colors.textPrimary,
-    fontWeight: "600",
     marginBottom: Spacing.lg,
   },
   decorativeHeader: {
@@ -203,9 +202,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   headerText: {
+    fontFamily: Typography.fontFamily.medium,
     fontSize: Typography.fontSize.lg,
     color: Colors.textPrimary,
-    fontWeight: "600",
   },
   backgroundStars: {
     position: "relative",
@@ -235,9 +234,9 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   overlayText: {
+    fontFamily: Typography.fontFamily.bold,
     fontSize: Typography.fontSize.xxl,
     color: Colors.textPrimary,
-    fontWeight: "bold",
     zIndex: 10,
   },
   starButton: {
@@ -250,9 +249,9 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   buttonText: {
+    fontFamily: Typography.fontFamily.medium,
     fontSize: Typography.fontSize.base,
     color: Colors.textPrimary,
-    fontWeight: "600",
   },
   noteCard: {
     backgroundColor: Colors.surface,

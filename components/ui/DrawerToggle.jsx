@@ -1,5 +1,5 @@
-import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { BorderRadius, Colors, Layout } from "../../constants/Theme";
 
 const DrawerToggle = ({ onPress }) => {
   return (
@@ -19,10 +19,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   handle: {
-    width: 36,
-    height: 5,
-    borderRadius: 100,
-    backgroundColor: "#333333",
+    width: Layout.drawerHandleWidth,
+    height: Layout.drawerHandleHeight,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.indicatorDark,
   },
 });
 

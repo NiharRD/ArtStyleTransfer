@@ -2,11 +2,12 @@ import React, { useCallback, useMemo } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
+    runOnJS,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
 } from "react-native-reanimated";
+import { Typography } from "../../constants/Theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SLIDER_WIDTH = SCREEN_WIDTH - 64;
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontSize: 14,
-    fontFamily: "System",
+    fontFamily: Typography.fontFamily.regular,
     letterSpacing: 0.28,
   },
   labelDot: {
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   },
   valueText: {
     fontSize: 14,
-    fontFamily: "System",
+    fontFamily: Typography.fontFamily.regular,
     letterSpacing: 0.28,
   },
   rulerContainer: {

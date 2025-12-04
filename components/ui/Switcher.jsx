@@ -1,8 +1,8 @@
-import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { BorderRadius, Colors, Typography } from "../../constants/Theme";
 import { DropdownIcon, MasterIcon } from "../icons/IconComponents";
 
-const Switcher = ({ label = "Master", onPress }) => {
+const Switcher = ({ label = "Main", onPress }) => {
   return (
     <TouchableOpacity
       style={styles.container}
@@ -11,10 +11,10 @@ const Switcher = ({ label = "Master", onPress }) => {
     >
       <View style={styles.content}>
         <View style={styles.leftSection}>
-          <MasterIcon size={16} color="#E6E6E6" />
+          <MasterIcon size={16} color={Colors.textAccent} />
           <Text style={styles.label}>{label}</Text>
         </View>
-        <DropdownIcon size={15} color="#E6E6E6" />
+        <DropdownIcon size={15} color={Colors.textAccent} />
       </View>
     </TouchableOpacity>
   );
@@ -24,15 +24,15 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 10,
     paddingVertical: 8,
-    borderRadius: 70,
-    backgroundColor: "rgba(118, 118, 128, 0.12)",
-    borderWidth: 0.7,
-    borderColor: "rgba(120, 120, 128, 0.16)",
+    borderRadius: BorderRadius.pill,
+    backgroundColor: Colors.glassBackground,
+    borderWidth: 0.68,
+    borderColor: Colors.glassBorder,
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     gap: 11,
   },
   leftSection: {
@@ -41,10 +41,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   label: {
-    fontFamily: "System",
-    fontSize: 16,
-    color: "#E6E6E6",
-    letterSpacing: -0.16,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.base,
+    color: Colors.textAccent,
+    letterSpacing: Typography.letterSpacing.normal,
   },
 });
 

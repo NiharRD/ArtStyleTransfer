@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
+    Animated,
+    StyleSheet,
+    Text,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
+import { Typography } from "../../constants/Theme";
 
 /**
  * XYPad - Interactive 2D touch pad for selecting values on two axes
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
   },
   label: {
     position: "absolute",
-    fontFamily: "System",
+    fontFamily: Typography.fontFamily.regular,
     fontSize: 12,
     color: "rgba(255, 255, 255, 0.6)",
     letterSpacing: 0.24,

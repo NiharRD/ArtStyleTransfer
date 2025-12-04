@@ -1,6 +1,7 @@
 /**
  * Theme Constants
  * Centralized design tokens for consistent styling across the app
+ * Based on Figma design: Adobe Design System
  */
 
 export const Colors = {
@@ -18,11 +19,13 @@ export const Colors = {
   textAccent: "#E6E6E6",
   textSubtle: "#BFBFBF",
 
-  // Glass Morphism
+  // Glass Morphism (from Figma)
   glassBackground: "rgba(118, 118, 128, 0.12)",
   glassBorder: "rgba(120, 120, 128, 0.16)",
   glassActive: "rgba(118, 118, 128, 0.24)",
   glassSurface: "#6C6C71",
+  glassOverlay: "rgba(82, 82, 82, 0.2)",
+  glassEffect: "rgba(0, 0, 0, 0.05)",
 
   // AI Theme
   aiPrimary: "#8A2BE2",
@@ -34,6 +37,7 @@ export const Colors = {
   border: "rgba(186, 182, 178, 0.7)",
   shadow: "rgba(0, 0, 0, 0.25)",
   overlay: "rgba(0, 0, 0, 0.6)",
+  overlayLight: "rgba(10, 10, 10, 0.6)",
 
   // Status Colors
   success: "#4CAF50",
@@ -47,15 +51,16 @@ export const Colors = {
 };
 
 export const Typography = {
-  // Font Families
+  // Font Families - Adobe Clean
   fontFamily: {
-    regular: "System",
-    medium: "System",
-    semibold: "System",
-    condensed: "System",
+    regular: "AdobeClean-Regular",
+    medium: "AdobeClean-Medium",
+    bold: "AdobeClean-Bold",
+    light: "AdobeClean-Light",
+    semiLight: "AdobeClean-SemiLight",
   },
 
-  // Font Sizes
+  // Font Sizes (from Figma)
   fontSize: {
     xs: 12,
     sm: 13,
@@ -71,40 +76,65 @@ export const Typography = {
     tight: 1.15,
     normal: 1.3,
     relaxed: 1.5,
+    xs: 12,
+    sm: 13,
+    md: 14,
+    base: 16,
+    lg: 17,
+    xl: 18,
   },
 
-  // Letter Spacing
+  // Letter Spacing (from Figma)
   letterSpacing: {
     tight: -0.23,
     normal: -0.16,
     wide: -0.06,
   },
 
-  // Text Styles
+  // Text Styles (matching Figma)
   title: {
+    fontFamily: "AdobeClean-Medium",
     fontSize: 16,
     letterSpacing: -0.23,
     lineHeight: 18,
     color: "#FFFFFF",
   },
   subtitle: {
+    fontFamily: "AdobeClean-Medium",
     fontSize: 12,
     lineHeight: 14,
     color: "#999999",
   },
   body: {
-    fontSize: 13,
+    fontFamily: "AdobeClean-Regular",
+    fontSize: 16,
     lineHeight: 17,
-    color: "#CCCCCC",
+    letterSpacing: -0.23,
+    color: "#E6E6E6",
   },
   button: {
+    fontFamily: "AdobeClean-Regular",
     fontSize: 16,
     letterSpacing: -0.16,
     color: "#E6E6E6",
   },
+  buttonMedium: {
+    fontFamily: "AdobeClean-Medium",
+    fontSize: 16,
+    letterSpacing: -0.06,
+    color: "#FFFFFF",
+  },
   caption: {
-    fontSize: 12,
-    color: "#999999",
+    fontFamily: "AdobeClean-Medium",
+    fontSize: 13,
+    lineHeight: 17,
+    color: "#CCCCCC",
+  },
+  label: {
+    fontFamily: "AdobeClean-Medium",
+    fontSize: 14,
+    letterSpacing: -0.23,
+    color: "#FFFFFF",
   },
 };
 
@@ -123,9 +153,9 @@ export const BorderRadius = {
   xs: 4,
   sm: 12,
   md: 14,
-  lg: 21.5,
+  lg: 21,
   xl: 22,
-  xxl: 30,
+  xxl: 34,
   pill: 70,
   full: 100,
   circle: 264,
@@ -153,6 +183,13 @@ export const Shadows = {
     shadowRadius: 15,
     elevation: 10,
   },
+  suggestion: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
 };
 
 export const Layout = {
@@ -168,23 +205,24 @@ export const Layout = {
 
   // Component Sizes
   iconSize: {
-    xs: 15,
+    xs: 12,
     sm: 16,
     md: 20,
     lg: 28,
   },
   buttonHeight: {
-    small: 32,
-    medium: 40,
-    large: 48,
+    small: 29,
+    medium: 32,
+    large: 40,
   },
 
-  // Quick Action Button
+  // Quick Action Button (from Figma)
   quickActionWidth: 89,
+  quickActionHeight: 87,
   quickActionMargin: 10,
 
   // AI Button
-  aiButtonSize: 78,
+  aiButtonSize: 97,
   aiButtonInner: 60,
 
   // Drawer Toggle
@@ -194,6 +232,11 @@ export const Layout = {
   // Home Indicator
   homeIndicatorWidth: 140,
   homeIndicatorHeight: 5,
+
+  // Suggestion Chip
+  suggestionHeight: 29,
+  suggestionPaddingH: 8,
+  suggestionPaddingV: 5,
 };
 
 export const Animation = {
@@ -226,7 +269,8 @@ export const Opacity = {
   disabled: 0.3,
   inactive: 0.5,
   semiTransparent: 0.7,
-  almostOpaque: 0.9,
+  headerIcons: 0.8,
+  suggestionChip: 0.9,
   opaque: 1,
 };
 
@@ -243,6 +287,10 @@ export const Gradients = {
   ai: {
     colors: ["#8A2BE2", "#FF1493", "#00BFFF"],
     locations: [0, 0.5, 1],
+  },
+  quickAction: {
+    colors: ["rgb(247, 247, 247)", "rgba(255, 255, 255, 0.08)"],
+    locations: [0, 1],
   },
 };
 
