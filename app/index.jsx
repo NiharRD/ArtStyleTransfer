@@ -3,18 +3,18 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    Image,
-    Keyboard,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
+  Keyboard,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
@@ -109,7 +109,6 @@ const HomeScreen = () => {
   const llm = useLLM({
     model: LLAMA3_2_1B_SPINQUANT,
     contextWindowLength: 1024, // Adjust as needed (e.g., 128 to 512),
-
   });
 
   const [isModelReady, setIsModelReady] = useState(false);
@@ -125,24 +124,31 @@ const HomeScreen = () => {
           console.log("Type of llm.load:", typeof llm.load);
 
           // The useLLM hook's load function typically handles downloading if the model isn't cached.
-          if (typeof llm.load === 'function') {
-             console.log("Initiating model download/load sequence...");
-             const startTime = Date.now();
+          if (typeof llm.load === "function") {
+            console.log("Initiating model download/load sequence...");
+            const startTime = Date.now();
 
-             await llm.load();
+            await llm.load();
 
-             const duration = Date.now() - startTime;
-             console.log(`Model operation completed in ${duration}ms`);
-             console.log("CONFIRMATION: Model has been downloaded (if missing) and loaded into memory.");
-           } else {
-             console.log("WARNING: llm.load is not a function. Model might not be loaded correctly.");
-           }
+            const duration = Date.now() - startTime;
+            console.log(`Model operation completed in ${duration}ms`);
+            console.log(
+              "CONFIRMATION: Model has been downloaded (if missing) and loaded into memory."
+            );
+          } else {
+            console.log(
+              "WARNING: llm.load is not a function. Model might not be loaded correctly."
+            );
+          }
 
           setIsModelReady(true);
           console.log("--- LLM Ready for Inference ---");
         }
       } catch (error) {
-        console.error("CRITICAL ERROR: Failed to download or load LLM model:", error);
+        console.error(
+          "CRITICAL ERROR: Failed to download or load LLM model:",
+          error
+        );
         setModelLoadingError(error.message);
       }
     };
@@ -332,8 +338,6 @@ const HomeScreen = () => {
     generateMockupModalVisible ||
     globalEditingModalVisible;
 
-
-
   // Calculate canvas height based on modal height and suggestions visibility
   const calculateCanvasHeight = (modalHeight, modalOpen, hasImage) => {
     if (modalHeight > 0) {
@@ -355,7 +359,11 @@ const HomeScreen = () => {
 
   // Animate canvas height when modal height changes or modal visibility changes
   useEffect(() => {
-    const targetHeight = calculateCanvasHeight(currentModalHeight, isModalOpen, !!imageState.uri);
+    const targetHeight = calculateCanvasHeight(
+      currentModalHeight,
+      isModalOpen,
+      !!imageState.uri
+    );
     Animated.spring(canvasHeightAnim, {
       toValue: targetHeight,
       useNativeDriver: false, // Height cannot use native driver
@@ -399,20 +407,20 @@ const HomeScreen = () => {
                 {
                   inline_data: {
                     mime_type: "image/jpeg",
-                    data: base64Image
-                  }
-                }
-              ]
-            }
+                    data: base64Image,
+                  },
+                },
+              ],
+            },
           ],
           generationConfig: {
-            response_mime_type: "application/json"
-          }
+            response_mime_type: "application/json",
+          },
         },
         {
           headers: {
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -433,32 +441,33 @@ const HomeScreen = () => {
           { id: "mood", label: main.mood_suggestion },
           { id: "color", label: main.color_focus_suggestion },
           { id: "other", label: main.other_main_suggestion },
-        ].filter(item => item.label); // Filter out empty suggestions
+        ].filter((item) => item.label); // Filter out empty suggestions
 
         setSmartSuggestions(newSuggestions);
 
         // Combine all suggestions for Ghost Text context
         const allContext = [
-            ...newSuggestions.map(s => s.label),
-            ...(validatedData.normal_suggestions || [])
+          ...newSuggestions.map((s) => s.label),
+          ...(validatedData.normal_suggestions || []),
         ];
         console.log("Setting allSuggestions with count:", allContext.length);
         setAllSuggestions(allContext);
-
       } catch (e) {
         console.warn("Validation or parsing failed:", e);
         // Fallback or error handling
         if (e instanceof z.ZodError) {
-             console.error("Zod Validation Errors:", e.errors);
-             Alert.alert("Error", "AI response format was invalid.");
+          console.error("Zod Validation Errors:", e.errors);
+          Alert.alert("Error", "AI response format was invalid.");
         }
         // setGeneratedPrompt(content); // REMOVED: Do not auto-fill modal
       }
-
     } catch (error) {
       console.error("Error generating prompt:", error);
       if (error.response) {
-        console.error("Error response:", JSON.stringify(error.response.data, null, 2));
+        console.error(
+          "Error response:",
+          JSON.stringify(error.response.data, null, 2)
+        );
       }
       Alert.alert("Error", "Failed to generate prompt from image.");
     } finally {
@@ -844,24 +853,37 @@ const HomeScreen = () => {
       console.log("Semantic response:", data);
 
       if (data.axes && data.axes.length >= 2) {
-        // Extract axis names
-        const additionalProp1 = data.axes[0].name; // e.g., "Bright-Dark"
-        const additionalProp2 = data.axes[1].name; // e.g., "Moody-Airy"
+        // Extract axis names for API requests
+        const additionalProp1 = data.axes[0].name; // e.g., "Gloomy-Happy"
+        const additionalProp2 = data.axes[1].name; // e.g., "Dramatic-Flat"
 
-        // Parse axis names to get short labels
-        // First axis: "Bright-Dark" → left: "Bright", right: "Dark"
-        // Second axis: "Moody-Airy" → bottom: "Moody", top: "Airy"
-        const axis1Parts = additionalProp1.split("-");
-        const axis2Parts = additionalProp2.split("-");
-
+        // Use left_synonym and right_synonym from API response
+        // First axis (index 0) controls X axis: left_synonym = -X, right_synonym = +X
+        // Second axis (index 1) controls Y axis: left_synonym = -Y, right_synonym = +Y
         const labels = {
-          left: axis1Parts[0] || "Day", // -X: first part of first axis (Bright)
-          right: axis1Parts[1] || "Night", // +X: second part of first axis (Dark)
-          bottom: axis2Parts[0] || "Gloomy", // -Y: first part of second axis (Moody)
-          top: axis2Parts[1] || "Joyful", // +Y: second part of second axis (Airy)
+          left: data.axes[0].left_synonym || data.axes[0].left_pole, // -X: left_synonym from first axis
+          right: data.axes[0].right_synonym || data.axes[0].right_pole, // +X: right_synonym from first axis
+          bottom: data.axes[1].left_synonym || data.axes[1].left_pole, // -Y: left_synonym from second axis
+          top: data.axes[1].right_synonym || data.axes[1].right_pole, // +Y: right_synonym from second axis
         };
 
-        console.log("Parsed labels:", labels);
+        console.log("Parsed labels from synonyms:", labels);
+        console.log(
+          "First axis:",
+          data.axes[0].name,
+          "->",
+          labels.left,
+          "/",
+          labels.right
+        );
+        console.log(
+          "Second axis:",
+          data.axes[1].name,
+          "->",
+          labels.bottom,
+          "/",
+          labels.top
+        );
         console.log("===========================");
 
         setSemanticAxes({
@@ -1082,7 +1104,9 @@ const HomeScreen = () => {
       console.log("Art Style response status:", response.status);
 
       if (!response.ok) {
-        throw new Error(`Art Style transfer failed with status: ${response.status}`);
+        throw new Error(
+          `Art Style transfer failed with status: ${response.status}`
+        );
       }
 
       const data = await response.json();
@@ -1247,8 +1271,12 @@ const HomeScreen = () => {
           subtitle="Synced just now"
           onBackPress={handleBackPress}
           onMenuPress={handleMenuPress}
-          onUndoPress={() => Alert.alert("Undo", "Undo functionality coming soon!")}
-          onRedoPress={() => Alert.alert("Redo", "Redo functionality coming soon!")}
+          onUndoPress={() =>
+            Alert.alert("Undo", "Undo functionality coming soon!")
+          }
+          onRedoPress={() =>
+            Alert.alert("Redo", "Redo functionality coming soon!")
+          }
         />
 
         {/* Control Bar */}
@@ -1294,7 +1322,7 @@ const HomeScreen = () => {
                 { height: canvasHeightAnim, width: canvasWidthAnim },
               ]}
             >
-              {(imageState.isLoading || statusModal.visible) ? (
+              {imageState.isLoading || statusModal.visible ? (
                 <LoadingOverlay message={statusModal.message} />
               ) : (
                 <TouchableOpacity
@@ -1361,16 +1389,32 @@ const HomeScreen = () => {
               !generateMockupModalVisible &&
               !globalEditingModalVisible && (
                 <View style={styles.aiButtonWrapper} pointerEvents="box-none">
-                  <Animated.View style={[styles.aiButtonGradient, { opacity: gradientOpacityAnim }]} pointerEvents="none">
+                  <Animated.View
+                    style={[
+                      styles.aiButtonGradient,
+                      { opacity: gradientOpacityAnim },
+                    ]}
+                    pointerEvents="none"
+                  >
                     <LinearGradient
-                      colors={['transparent', 'transparent', 'rgba(25, 24, 22, 0.6)', 'rgba(25, 24, 22, 1)']}
+                      colors={[
+                        "transparent",
+                        "transparent",
+                        "rgba(25, 24, 22, 0.6)",
+                        "rgba(25, 24, 22, 1)",
+                      ]}
                       locations={[0, 0.35, 0.65, 1]}
                       start={{ x: 0, y: 0.5 }}
                       end={{ x: 1, y: 0.5 }}
                       style={styles.aiButtonGradient}
                     />
                   </Animated.View>
-                  <Animated.View style={[styles.aiButtonContainer, { opacity: aiButtonOpacity }]}>
+                  <Animated.View
+                    style={[
+                      styles.aiButtonContainer,
+                      { opacity: aiButtonOpacity },
+                    ]}
+                  >
                     <AIPromptButton onPress={handleAIPromptPress} />
                   </Animated.View>
                 </View>
@@ -1426,7 +1470,11 @@ const HomeScreen = () => {
 
         {/* Download Progress Overlay */}
         {llm.downloadProgress !== undefined && llm.downloadProgress < 1 && (
-          <LoadingOverlay message={`Downloading AI Model: ${(llm.downloadProgress * 100).toFixed(0)}%`} />
+          <LoadingOverlay
+            message={`Downloading AI Model: ${(
+              llm.downloadProgress * 100
+            ).toFixed(0)}%`}
+          />
         )}
       </View>
     </SafeAreaView>
