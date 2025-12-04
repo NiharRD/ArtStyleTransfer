@@ -6,6 +6,7 @@ import {
     ActivityIndicator,
     Alert,
     Animated,
+    BackHandler,
     Dimensions,
     Image,
     Keyboard,
@@ -338,11 +339,17 @@ const HomeScreen = () => {
   const calculateCanvasHeight = (modalHeight, modalOpen, hasImage) => {
     if (modalHeight > 0) {
       // Modal is open - shrink to fit nicely above the modal
-      // Add extra space for the separator/drawer handle (about 30px)
-      const separatorSpace = 30;
-      const shrinkAmount = modalHeight * 0.35 + separatorSpace;
-      const newHeight = DEFAULT_CANVAS_HEIGHT - shrinkAmount;
-      return Math.max(newHeight, MIN_CANVAS_HEIGHT);
+      // Calculate available space based on screen height
+      // We want the canvas to be strictly above the modal content to avoid overlap
+      const headerHeight = 80; // Reduced to make canvas taller and tighter
+      const bottomOffset = 40; // ModalContainer bottom offset
+      const separatorSpace = 10; // Reduced visual breathing room
+
+      // Calculate available height for the canvas
+      const availableHeight = height - headerHeight - bottomOffset - modalHeight - separatorSpace;
+
+      // Ensure we don't shrink below minimum height
+      return Math.max(availableHeight, MIN_CANVAS_HEIGHT);
     }
     // No modal open
     // If image is loaded, suggestions are visible, so shrink canvas
@@ -363,6 +370,38 @@ const HomeScreen = () => {
       friction: 11,
     }).start();
   }, [currentModalHeight, isModalOpen, imageState.uri]);
+
+  // Handle Android back button - dismiss keyboard or close modal
+  useEffect(() => {
+    const backAction = () => {
+      // First, dismiss keyboard if it's open
+      Keyboard.dismiss();
+
+      // If any modal is open, close it
+      if (globalEditingModalVisible) {
+        setGlobalEditingModalVisible(false);
+        return true; // Prevent default back behavior
+      }
+      if (artStyleModalVisible) {
+        setArtStyleModalVisible(false);
+        return true;
+      }
+      if (generateMockupModalVisible) {
+        setGenerateMockupModalVisible(false);
+        return true;
+      }
+
+      // On main screen with no modals - prevent app exit
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [globalEditingModalVisible, artStyleModalVisible, generateMockupModalVisible]);
 
   // Handler for modal height changes
   const handleModalHeightChange = (height) => {

@@ -128,9 +128,40 @@ const GhostTextInput = memo(({
   placeholderTextColor,
   cyclePlaceholders = false,
   suggestions = GLOBAL_EDITING_SUGGESTIONS,
+  enableSuggestions = true,
   ...props
 }) => {
-  const { suggestion, isLoading } = useGhostSuggestion(value, llm, modelReady);
+  // Only run hook if suggestions are enabled and value is not empty (if we wanted autocomplete)
+  // But user requested NO autocomplete when typing.
+  // So we effectively disable the hook's output if value is present, or just don't use it.
+  // However, useGhostSuggestion might be expensive, so let's control it.
+  // Actually, the user said "It is only needed when there is nothing on the prompt box written."
+  // This implies they only want the PLACEHOLDERS.
+  // So we should disable the autocomplete entirely?
+  // "when I'm writing something... it still starts suggesting the ghost text again, which is not needed!"
+  // This confirms they don't want autocomplete.
+
+  // We will still call the hook but ignore its result if we want to disable autocomplete.
+  const { suggestion: rawSuggestion, isLoading } = useGhostSuggestion(value, llm, modelReady);
+
+  // Filter suggestion: Only show if enabled AND (user wants autocomplete? No, they said no).
+  // If the user wants NO autocomplete, we just force suggestion to null.
+  // But maybe they want it ONLY if they haven't sent a prompt?
+  // "the ghost text suggestions is only for users who haven't sent any prompt to the model yet."
+  // This applies to everything.
+
+  // Logic:
+  // 1. If !enableSuggestions (user sent prompt), show NOTHING (no placeholder, no ghost).
+  // 2. If enableSuggestions:
+  //    - Show placeholder if empty.
+  //    - Show ghost text if typing? User said "not needed". So we disable ghost text when typing.
+
+  const suggestion = (enableSuggestions && value && value.length > 0) ? null : null;
+  // Wait, if I set it to null always, autocomplete is dead.
+  // "It is only needed when there is nothing on the prompt box written." -> This refers to the "suggestions" (placeholders).
+  // "when I'm writing something... it still starts suggesting the ghost text again, which is not needed!" -> This refers to autocomplete.
+  // So yes, autocomplete is dead.
+
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   // Listen for keyboard show/hide to stop placeholder animations
@@ -161,8 +192,8 @@ const GhostTextInput = memo(({
     }
   }, [suggestion, value, onChangeText, onSuggestionAccept]);
 
-  // Hide placeholder when keyboard is visible OR when there's text
-  const showPlaceholder = (!value || value.length === 0) && !isKeyboardVisible;
+  // Hide placeholder when keyboard is visible OR when there's text OR suggestions disabled
+  const showPlaceholder = enableSuggestions && (!value || value.length === 0) && !isKeyboardVisible;
 
   // Extract text-related styles from the passed style prop
   const flatStyle = StyleSheet.flatten(style) || {};
@@ -170,6 +201,7 @@ const GhostTextInput = memo(({
     fontFamily: flatStyle.fontFamily || Typography.fontFamily.regular,
     fontSize: flatStyle.fontSize || Typography.fontSize.base,
     textAlignVertical: flatStyle.textAlignVertical || 'top',
+    color: Colors.textPrimary, // Ensure default color is set for measurements/consistency
   };
 
   return (
@@ -195,14 +227,22 @@ const GhostTextInput = memo(({
       )}
 
       {/* Overlay Text for Ghost Suggestion */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-         <Text style={[styles.ghostText, textStyle, props.multiline ? styles.multilineGhost : {}]}>
-            <Text style={{color: 'transparent'}}>{value}</Text>
-            <Text style={{color: Colors.textAccent, opacity: 0.6}}>
-               {suggestion || ''}
-            </Text>
-         </Text>
-      </View>
+      {/* Only render if there is a suggestion to show */}
+      {suggestion && (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+           {/*
+              Fix for "black text behind":
+              We use a transparent color for the user's text part.
+              We also ensure the container Text has transparent color to avoid inheritance issues.
+           */}
+           <Text style={[styles.ghostText, textStyle, props.multiline ? styles.multilineGhost : {}, { color: 'transparent' }]}>
+              {value}
+              <Text style={{color: Colors.textAccent, opacity: 0.6}}>
+                 {suggestion}
+              </Text>
+           </Text>
+        </View>
+      )}
 
       <TextInput
         value={value}
