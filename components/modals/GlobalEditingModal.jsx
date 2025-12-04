@@ -261,6 +261,9 @@ const GlobalEditingModal = ({
   // Local state for semantic loading
   const [isLoadingSemantic, setIsLoadingSemantic] = useState(false);
 
+  // Track if a prompt has been sent to disable suggestions
+  const [hasSentPrompt, setHasSentPrompt] = useState(false);
+
   // Animation values
   const upperSectionHeightAnim = useRef(new Animated.Value(0)).current;
   const confirmationHeightAnim = useRef(new Animated.Value(0)).current;
@@ -420,6 +423,7 @@ const GlobalEditingModal = ({
         if (success) {
           // Show confirmation row only after successful generation
           setConfirmationVisible(true);
+          setHasSentPrompt(true); // Disable suggestions after sending
         }
       } catch (error) {
         console.error("Error sending prompt:", error);
@@ -430,6 +434,7 @@ const GlobalEditingModal = ({
     } else if (inputState === "textInput") {
       // Fallback if no handler provided
       setConfirmationVisible(true);
+      setHasSentPrompt(true);
     }
   };
 
@@ -715,6 +720,7 @@ const GlobalEditingModal = ({
                 editable={!upperSectionVisible}
                 llm={llm}
                 modelReady={modelReady}
+                enableSuggestions={!hasSentPrompt}
               />
 
               <View style={styles.actionsRow}>

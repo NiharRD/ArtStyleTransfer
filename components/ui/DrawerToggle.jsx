@@ -1,10 +1,10 @@
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { BorderRadius, Colors, Layout } from "../../constants/Theme";
 
-const DrawerToggle = ({ onPress }) => {
+const DrawerToggle = ({ onPress, style }) => {
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, style]}
       onPress={onPress}
       activeOpacity={0.7}
     >
