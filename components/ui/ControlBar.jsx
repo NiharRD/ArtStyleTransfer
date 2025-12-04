@@ -42,23 +42,7 @@ const ControlBar = ({ onModeChange }) => {
               AI
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              activeMode === "Expert" && styles.activeModeButton,
-            ]}
-            onPress={() => handleModePress("Expert")}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.modeText,
-                activeMode === "Expert" && styles.activeModeText,
-              ]}
-            >
-              Expert
-            </Text>
-          </TouchableOpacity>
+          <Text style={styles.expertText}>Expert</Text>
         </View>
       </View>
     </View>
@@ -71,7 +55,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    height: 32,
   },
   leftSection: {
     flexDirection: "row",
@@ -85,19 +69,22 @@ const styles = StyleSheet.create({
   modeToggle: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingLeft: 4,
-    paddingRight: 9,
+    gap: 8,
+    paddingLeft: 3,
+    paddingRight: 10,
     paddingVertical: 3,
     borderRadius: BorderRadius.pill,
     backgroundColor: Colors.glassActive,
-    borderWidth: 0.68,
+    borderWidth: 0.681,
     borderColor: Colors.glassBorder,
   },
   modeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingTop: 2.5,
+    paddingBottom: 8,
     borderRadius: BorderRadius.md,
+    justifyContent: "center",
+    alignItems: "center",
   },
   activeModeButton: {
     backgroundColor: Colors.glassSurface,
@@ -105,13 +92,25 @@ const styles = StyleSheet.create({
   },
   modeText: {
     fontFamily: Typography.fontFamily.medium,
-    fontSize: Typography.fontSize.base,
+    fontSize: 14,
     color: Colors.textPrimary,
     letterSpacing: Typography.letterSpacing.wide,
     textAlign: "center",
+    textAlignVertical: "center",
+    includeFontPadding: false,
   },
   activeModeText: {
     color: Colors.textPrimary,
+  },
+  expertText: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: 14,
+    color: Colors.textPrimary,
+    letterSpacing: Typography.letterSpacing.wide,
+    textAlign: "center",
+    textAlignVertical: "center",
+    includeFontPadding: false,
+    marginTop: -2,
   },
 });
 

@@ -222,8 +222,8 @@ export const Layout = {
   quickActionMargin: 10,
 
   // AI Button
-  aiButtonSize: 97,
-  aiButtonInner: 60,
+  aiButtonSize: 97*2,
+  aiButtonInner: 60*2,
 
   // Drawer Toggle
   drawerHandleWidth: 36,

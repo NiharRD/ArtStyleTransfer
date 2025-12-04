@@ -42,9 +42,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.base,
+    fontSize: 15,
     color: Colors.textAccent,
     letterSpacing: Typography.letterSpacing.normal,
+    includeFontPadding: false,
+    textAlignVertical: "center",
+    marginTop: -2,
   },
 });
 

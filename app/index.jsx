@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
@@ -121,21 +122,21 @@ const HomeScreen = () => {
           console.log("Checking model status...");
           console.log("LLM Object Keys:", Object.keys(llm));
           console.log("Type of llm.load:", typeof llm.load);
-          
+
           // The useLLM hook's load function typically handles downloading if the model isn't cached.
           if (typeof llm.load === 'function') {
              console.log("Initiating model download/load sequence...");
              const startTime = Date.now();
-             
+
              await llm.load();
-             
+
              const duration = Date.now() - startTime;
              console.log(`Model operation completed in ${duration}ms`);
              console.log("CONFIRMATION: Model has been downloaded (if missing) and loaded into memory.");
            } else {
              console.log("WARNING: llm.load is not a function. Model might not be loaded correctly.");
            }
-          
+
           setIsModelReady(true);
           console.log("--- LLM Ready for Inference ---");
         }
@@ -1264,12 +1265,22 @@ const HomeScreen = () => {
                 />
               )}
 
-            {/* AI Prompt Button - Hide when any modal is open */}
+            {/* AI Prompt Button with fade effect - Hide when any modal is open */}
             {!artStyleModalVisible &&
               !generateMockupModalVisible &&
               !globalEditingModalVisible && (
-                <View style={styles.aiButtonContainer}>
-                  <AIPromptButton onPress={handleAIPromptPress} />
+                <View style={styles.aiButtonWrapper} pointerEvents="box-none">
+                  <LinearGradient
+                    colors={['transparent', 'transparent', 'rgba(25, 24, 22, 0.6)', 'rgba(25, 24, 22, 1)']}
+                    locations={[0, 0.35, 0.65, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={styles.aiButtonGradient}
+                    pointerEvents="none"
+                  />
+                  <View style={styles.aiButtonContainer}>
+                    <AIPromptButton onPress={handleAIPromptPress} />
+                  </View>
                 </View>
               )}
           </View>
@@ -1473,12 +1484,28 @@ const styles = StyleSheet.create({
     marginTop: 8,
     zIndex: 1,
   },
-  aiButtonContainer: {
+  aiButtonWrapper: {
     position: "absolute",
-    right: 16,
-    top: "50%",
-    transform: [{ translateY: -39 }],
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
     zIndex: 10,
+  },
+  aiButtonGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  aiButtonContainer: {
+    marginRight: -35,
+    marginTop: 25,
+    zIndex: 11,
   },
   homeIndicator: {
     width: Layout.homeIndicatorWidth,
