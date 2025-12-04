@@ -13,6 +13,10 @@ export const useGhostSuggestion = (text, llm, modelReady, debounceTime = 1000) =
   const [isLoading, setIsLoading] = useState(false);
   const timeoutRef = useRef(null);
   const lastTextRef = useRef(text);
+  
+  // Refs for persistence logic to avoid dependency loops
+  const fullSuggestionRef = useRef('');
+  const baseTextRef = useRef('');
 
   useEffect(() => {
     // Clear previous timeout
@@ -20,13 +24,49 @@ export const useGhostSuggestion = (text, llm, modelReady, debounceTime = 1000) =
       clearTimeout(timeoutRef.current);
     }
 
-    // Interrupt previous generation if active
-    if (llm && llm.isGenerating) {
-      llm.interrupt();
+    // Check for partial match persistence
+    const baseText = baseTextRef.current;
+    const fullSuggestion = fullSuggestionRef.current;
+
+    if (baseText && fullSuggestion) {
+      const expectedFullText = baseText + fullSuggestion;
+      
+      // Check if current text matches the expected path
+      // We allow text to be shorter (backspace) or longer (typing) as long as it matches
+      if (expectedFullText.startsWith(text)) {
+        // User is typing along the suggestion
+        const remaining = expectedFullText.slice(text.length);
+        setSuggestion(remaining);
+        
+        // If user finished typing the suggestion, we can clear and let it generate new
+        if (remaining.length === 0) {
+           console.log("Suggestion fully typed, clearing.");
+           baseTextRef.current = '';
+           fullSuggestionRef.current = '';
+           setSuggestion('');
+           // Fall through to generation logic
+        } else {
+           // Still matching, don't generate new yet
+           // console.log("Partial match, keeping suggestion:", remaining);
+           setIsLoading(false);
+           return;
+        }
+      } else {
+        // Diverged
+        console.log("Text diverged from suggestion, clearing.");
+        baseTextRef.current = '';
+        fullSuggestionRef.current = '';
+        setSuggestion('');
+      }
+    } else {
+       setSuggestion('');
     }
 
-    // Reset suggestion when text changes
-    setSuggestion('');
+    // Interrupt previous generation if active - REMOVED per user request
+    // if (llm && llm.isGenerating) {
+    //   llm.interrupt();
+    // }
+
     setIsLoading(false);
 
     // Don't generate if text is empty or too short
@@ -50,44 +90,68 @@ export const useGhostSuggestion = (text, llm, modelReady, debounceTime = 1000) =
         console.log("Generating ghost suggestion for:", text);
 
         // Construct prompt for autocomplete
-        // We want the LLM to complete the sentence
         const messages = [
           { 
             role: 'system', 
-            content: 'You are a helpful writing assistant. Complete the user\'s sentence naturally. Return ONLY the completion text, starting with the next word. Do not repeat the user\'s text. Keep it short (3-5 words).' 
+            content: ' (exactly 4 words).' 
           },
           { role: 'user', content: text }
         ];
 
-        // Assuming llm.generate returns a promise that resolves to the response
-        // and takes a messages array as requested
-        const response = await llm.generate(messages);
+        // console.log("Calling llm.generate...");
         
-        // Check if the text has changed while generating (double check)
+        // Prevent crash if model is already generating (since we removed interruption)
+        if (llm.isGenerating) {
+          console.log("Model is busy generating, skipping new request.");
+          setIsLoading(false);
+          return;
+        }
+
+        const response = await llm.generate(messages);
+        // console.log("llm.generate response received:", JSON.stringify(response));
+        
+        // Check if the text has changed while generating
         if (text !== lastTextRef.current) {
           return;
         }
 
         let completion = response;
-        // If response is an object, try to extract text (adjust based on actual API)
+        
+        // Fallback: Check llm.response if generate returns undefined
+        if (!completion && llm.response) {
+             completion = llm.response;
+        }
+
         if (typeof response === 'object' && response.content) {
           completion = response.content;
         } else if (typeof response === 'object' && response.text) {
           completion = response.text;
         }
 
-        // Clean up completion
         if (completion) {
-            // Ensure we don't repeat the end of the text if the LLM included it
-            // This is a simple heuristic
-            const trimmedCompletion = completion.trim();
-            setSuggestion(trimmedCompletion);
+            let trimmedCompletion = completion.trim();
+            
+            // Enforce 4 words limit client-side
+            const words = trimmedCompletion.split(/\s+/);
+            if (words.length > 4) {
+                trimmedCompletion = words.slice(0, 4).join(' ');
+            }
+
+            // Handle space logic:
+            // If text doesn't end with space, and suggestion doesn't start with punctuation, add space
+            let finalSuggestion = trimmedCompletion;
+            if (!text.endsWith(' ') && !/^[.,;!?]/.test(trimmedCompletion)) {
+                finalSuggestion = ' ' + trimmedCompletion;
+            }
+            
+            baseTextRef.current = text;
+            fullSuggestionRef.current = finalSuggestion;
+            setSuggestion(finalSuggestion);
         }
         
       } catch (error) {
         if (error.message && error.message.includes("ModuleNotLoaded")) {
            console.warn("Ghost Suggestion: Model not loaded yet. Retrying later.");
-           // Optionally reset modelReady state if we could, but we can't from here.
         } else {
            console.error("Error generating suggestion:", error);
         }
@@ -100,8 +164,6 @@ export const useGhostSuggestion = (text, llm, modelReady, debounceTime = 1000) =
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      // Cleanup interrupt is handled by the parent effect usually, 
-      // but we can do it here too if we want to be safe on unmount
     };
   }, [text, llm, modelReady, debounceTime]);
 

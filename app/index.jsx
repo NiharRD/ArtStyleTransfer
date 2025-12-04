@@ -2,18 +2,18 @@ import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Image,
-  Keyboard,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Image,
+    Keyboard,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
@@ -155,14 +155,15 @@ const HomeScreen = () => {
   }, [llm.downloadProgress]);
 
   // Cleanup: Interrupt generation if the user leaves the screen or component unmounts
-  useEffect(() => {
-    return () => {
-      if (llm && llm.isGenerating) {
-        console.log("Interrupting LLM generation on cleanup...");
-        llm.interrupt();
-      }
-    };
-  }, [llm]);
+  // Cleanup: Interrupt generation if the user leaves the screen or component unmounts - REMOVED per user request
+  // useEffect(() => {
+  //   return () => {
+  //     if (llm && llm.isGenerating) {
+  //       console.log("Interrupting LLM generation on cleanup...");
+  //       llm.interrupt();
+  //     }
+  //   };
+  // }, [llm]);
 
   // Original image state - stores the initially picked image for AI reference
   const [originalImageState, setOriginalImageState] = useState({
@@ -1277,6 +1278,7 @@ const HomeScreen = () => {
 
         {/* Art Style Transfer Modal */}
         {/* Art Style Transfer Modal */}
+        {/* Art Style Transfer Modal */}
         <ArtStyleTransferModal
           visible={artStyleModalVisible}
           onClose={handleCloseArtStyleModal}
@@ -1284,6 +1286,7 @@ const HomeScreen = () => {
           onSend={handleArtStyleTransferSend}
           llm={llm}
           modelReady={isModelReady}
+          suggestions={smartSuggestions.map(s => s.label)}
         />
 
         {/* Generate Mockup Modal */}
@@ -1293,6 +1296,7 @@ const HomeScreen = () => {
           onHeightChange={handleModalHeightChange}
           llm={llm}
           modelReady={isModelReady}
+          suggestions={smartSuggestions.map(s => s.label)}
         />
 
         {/* Global Editing Modal */}
@@ -1311,6 +1315,7 @@ const HomeScreen = () => {
           initialPrompt={generatedPrompt}
           llm={llm}
           modelReady={isModelReady}
+          suggestions={smartSuggestions.map(s => s.label)}
         />
 
         {/* Status Modal for progress updates - REMOVED */}

@@ -23,7 +23,7 @@ const GhostTextInput = ({
   
   const handleAcceptSuggestion = () => {
     if (suggestion && onChangeText) {
-      const newValue = value + (value.endsWith(' ') ? '' : ' ') + suggestion;
+      const newValue = value + suggestion;
       onChangeText(newValue);
       if (onSuggestionAccept) {
         onSuggestionAccept(newValue);
@@ -53,7 +53,7 @@ const GhostTextInput = ({
          <Text style={[styles.ghostText, props.multiline ? styles.multilineGhost : {}]}>
             <Text style={{color: 'transparent'}}>{value}</Text>
             <Text style={{color: Colors.textAccent, opacity: 0.6}}>
-               {suggestion ? (value.endsWith(' ') ? '' : ' ') + suggestion : ''}
+               {suggestion || ''}
             </Text>
          </Text>
       </View>
