@@ -201,11 +201,11 @@ const ArtStyleTransferModal = ({
       height={getModalHeight()}
     >
       <View style={styles.container}>
-        {/* Drawer Handle - Small separator line */}
-        <DrawerToggle onPress={handleHeaderClick} />
-
         {/* Talk to Kimi Button */}
         <TalkToKimiButton onPress={() => console.log("Talk to Kimi")} />
+
+        {/* Drawer Handle - Small separator line */}
+        <DrawerToggle onPress={handleHeaderClick} />
 
         {/* Main Content */}
         <View style={styles.contentContainer}>
