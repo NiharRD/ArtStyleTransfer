@@ -3,18 +3,18 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Image,
-  Keyboard,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Image,
+    Keyboard,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
@@ -109,7 +109,7 @@ const HomeScreen = () => {
   const llm = useLLM({
     model: LLAMA3_2_1B_SPINQUANT,
     contextWindowLength: 1024, // Adjust as needed (e.g., 128 to 512),
-    
+
   });
 
   const [isModelReady, setIsModelReady] = useState(false);
@@ -338,8 +338,9 @@ const HomeScreen = () => {
   const calculateCanvasHeight = (modalHeight, modalOpen, hasImage) => {
     if (modalHeight > 0) {
       // Modal is open - shrink to fit nicely above the modal
-      // Less shrinking = larger canvas = less empty space
-      const shrinkAmount = modalHeight * 0.35;
+      // Add extra space for the separator/drawer handle (about 30px)
+      const separatorSpace = 30;
+      const shrinkAmount = modalHeight * 0.35 + separatorSpace;
       const newHeight = DEFAULT_CANVAS_HEIGHT - shrinkAmount;
       return Math.max(newHeight, MIN_CANVAS_HEIGHT);
     }
@@ -1333,8 +1334,12 @@ const HomeScreen = () => {
 
         {/* Bottom Section */}
         <View style={styles.bottomSection}>
-          {/* Drawer Toggle */}
-          <DrawerToggle onPress={handleDrawerToggle} />
+          {/* Drawer Toggle - Hide when any modal is open (modal has its own) */}
+          {!artStyleModalVisible &&
+            !generateMockupModalVisible &&
+            !globalEditingModalVisible && (
+              <DrawerToggle onPress={handleDrawerToggle} />
+            )}
 
           {/* Quick Actions Bar with AI Button */}
           <View style={styles.actionsContainer}>

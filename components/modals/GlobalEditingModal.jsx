@@ -21,8 +21,9 @@ import {
     BorderRadius,
     Colors,
     Spacing,
-    Typography,
+    Typography
 } from "../../constants/Theme";
+import DrawerToggle from "../ui/DrawerToggle";
 import GhostTextInput from "../ui/GhostTextInput";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
@@ -318,7 +319,7 @@ const GlobalEditingModal = ({
 
   // Calculate modal height based on all states
   const getModalHeight = () => {
-    let baseHeight = 265; // Base height with controls row + text input + actions row
+    let baseHeight = 280; // Base height with controls row + text input + actions row
 
     // Add confirmation row height if visible
     if (confirmationVisible) {
@@ -500,6 +501,9 @@ const GlobalEditingModal = ({
       height={getModalHeight()}
     >
       <View style={styles.container}>
+        {/* Drawer Handle - Small separator line */}
+        <DrawerToggle onPress={handleHeaderClick} />
+
         {/* Talk to Kimi Button - hide when upper section is visible */}
         {!upperSectionVisible && (
           <TalkToKimiButton
@@ -711,7 +715,6 @@ const GlobalEditingModal = ({
                 editable={!upperSectionVisible}
                 llm={llm}
                 modelReady={modelReady}
-                suggestions={suggestions}
               />
 
               <View style={styles.actionsRow}>
@@ -760,7 +763,6 @@ const GlobalEditingModal = ({
                 multiline
                 llm={llm}
                 modelReady={modelReady}
-                suggestions={suggestions}
               />
               <TouchableOpacity
                 style={styles.sendButton}

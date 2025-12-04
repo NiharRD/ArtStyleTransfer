@@ -11,8 +11,9 @@ import {
     BorderRadius,
     Colors,
     Spacing,
-    Typography,
+    Typography
 } from "../../constants/Theme";
+import DrawerToggle from "../ui/DrawerToggle";
 import GhostTextInput from "../ui/GhostTextInput";
 import ModalContainer from "./ModalContainer";
 import SelectedStyleChip from "./SelectedStyleChip";
@@ -193,6 +194,9 @@ const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend, llm, 
       height={getModalHeight()}
     >
       <View style={styles.container}>
+        {/* Drawer Handle - Small separator line */}
+        <DrawerToggle onPress={handleHeaderClick} />
+
         {/* Talk to Kimi Button */}
         <TalkToKimiButton onPress={() => console.log("Talk to Kimi")} />
 
