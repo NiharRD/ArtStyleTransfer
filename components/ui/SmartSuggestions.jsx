@@ -93,14 +93,8 @@ const SmartSuggestions = ({ onSuggestionPress, isLoading = false, isVisible = tr
       {isLoading ? (
         // Skeleton Loading State
         <View style={{ gap: 8 }}>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Skeleton colorMode="dark" width={150} height={32} radius={16} />
-            <Skeleton colorMode="dark" width={120} height={32} radius={16} />
-          </View>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Skeleton colorMode="dark" width={130} height={32} radius={16} />
-            <Skeleton colorMode="dark" width={140} height={32} radius={16} />
-          </View>
+          <Skeleton colorMode="dark" width="100%" height={36} radius={18} />
+          <Skeleton colorMode="dark" width="100%" height={36} radius={18} />
         </View>
       ) : (
         // Loaded State

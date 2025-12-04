@@ -77,7 +77,8 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.base,
     color: Colors.textAccent,
     letterSpacing: Typography.letterSpacing.tight,
-    lineHeight: 17,
+    includeFontPadding: false,
+    textAlignVertical: "center",
   },
 });
 

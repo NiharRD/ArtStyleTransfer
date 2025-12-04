@@ -234,9 +234,9 @@ export const Layout = {
   homeIndicatorHeight: 5,
 
   // Suggestion Chip
-  suggestionHeight: 29,
-  suggestionPaddingH: 8,
-  suggestionPaddingV: 5,
+  suggestionHeight: 36,
+  suggestionPaddingH: 14,
+  suggestionPaddingV: 10,
 };
 
 export const Animation = {
