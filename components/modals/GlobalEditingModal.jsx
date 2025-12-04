@@ -231,6 +231,7 @@ const GlobalEditingModal = ({
   initialPrompt, // Initial prompt text
   llm,
   modelReady,
+  suggestions = [],
 }) => {
   // Input state: textInput (first state) or voicePrompt (second state)
   const [inputState, setInputState] = useState("textInput");
@@ -709,6 +710,7 @@ const GlobalEditingModal = ({
                 editable={!upperSectionVisible}
                 llm={llm}
                 modelReady={modelReady}
+                suggestions={suggestions}
               />
 
               <View style={styles.actionsRow}>
@@ -757,6 +759,7 @@ const GlobalEditingModal = ({
                 multiline
                 llm={llm}
                 modelReady={modelReady}
+                suggestions={suggestions}
               />
               <TouchableOpacity
                 style={styles.sendButton}

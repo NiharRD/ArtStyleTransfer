@@ -2,18 +2,18 @@ import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Image,
-  Keyboard,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Image,
+    Keyboard,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
@@ -364,6 +364,7 @@ const HomeScreen = () => {
             ...newSuggestions.map(s => s.label),
             ...(validatedData.normal_suggestions || [])
         ];
+        console.log("Setting allSuggestions with count:", allContext.length);
         setAllSuggestions(allContext);
 
       } catch (e) {
