@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import {
-    Keyboard,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import {
-    BorderRadius,
-    Colors,
-    Spacing,
-    Typography
+  BorderRadius,
+  Colors,
+  Spacing,
+  Typography,
 } from "../../constants/Theme";
 import DrawerToggle from "../ui/DrawerToggle";
 import GhostTextInput from "../ui/GhostTextInput";
@@ -113,7 +113,14 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
  * - 'gallery': Style gallery grid with search
  * - 'textWithStyle': Text input with selected style chip
  */
-const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend, llm, modelReady }) => {
+const ArtStyleTransferModal = ({
+  visible,
+  onClose,
+  onHeightChange,
+  onSend,
+  llm,
+  modelReady,
+}) => {
   const [modalState, setModalState] = useState("gallery");
   const [promptText, setPromptText] = useState("");
   const [selectedStyle, setSelectedStyle] = useState(null);
@@ -230,14 +237,16 @@ const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend, llm, 
           {modalState === "textOnly" && (
             <View style={styles.stateContent}>
               <GhostTextInput
-                style={styles.textInput}
+                style={[styles.textInput, styles.textInputDisabled]}
                 value={promptText}
                 onChangeText={setPromptText}
-                placeholder="Can you make this scene more gloomy"
+                placeholder="Select an art style to apply"
                 placeholderTextColor="#949494"
                 multiline
                 llm={llm}
                 modelReady={modelReady}
+                editable={false}
+                selectTextOnFocus={false}
               />
 
               <View style={styles.actionsRow}>
@@ -323,14 +332,16 @@ const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend, llm, 
               />
 
               <GhostTextInput
-                style={styles.textInput}
+                style={[styles.textInput, styles.textInputDisabled]}
                 value={promptText}
                 onChangeText={setPromptText}
-                placeholder="Can you make this scene more gloomy"
+                placeholder="Style will be applied to your image"
                 placeholderTextColor="#949494"
                 multiline
                 llm={llm}
                 modelReady={modelReady}
+                editable={false}
+                selectTextOnFocus={false}
               />
 
               <View style={styles.actionsRow}>
@@ -435,6 +446,10 @@ const styles = StyleSheet.create({
     minHeight: 60,
     maxHeight: 100,
     textAlignVertical: "top",
+  },
+  textInputDisabled: {
+    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    color: "rgba(255, 255, 255, 0.4)",
   },
   actionsRow: {
     flexDirection: "row",

@@ -3,19 +3,19 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    BackHandler,
-    Dimensions,
-    Image,
-    Keyboard,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  BackHandler,
+  Dimensions,
+  Image,
+  Keyboard,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
@@ -1075,17 +1075,19 @@ const HomeScreen = () => {
 
   /**
    * Handle Art Style Transfer send button
-   * POST to artStyleBaseUrl + "generate"
+   * POST to artStyleBaseUrl + "generate_with_image" with FormData
+   * Requires an image on canvas and a selected art style
    *
-   * @param {string} prompt - The user's prompt text
+   * @param {string} prompt - The user's prompt text (not used, set to null)
    * @param {object} style - The selected style object
    * @returns {Promise<boolean>} Success status
    */
   const handleArtStyleTransferSend = async (prompt, style) => {
     Keyboard.dismiss();
-    // Validate prompt
-    if (!prompt || prompt.trim() === "") {
-      Alert.alert("No Prompt", "Please enter a prompt describing your edit.");
+
+    // Validate that we have an image on canvas
+    if (!imageState.uri || !imageState.blob) {
+      Alert.alert("No Image", "Please select an image first.");
       return false;
     }
 
@@ -1122,27 +1124,42 @@ const HomeScreen = () => {
           artistName = "monet";
       }
 
-      const requestBody = {
-        artwork_name: artworkName,
-        artist_name: artistName,
-        prompt: prompt,
-        negative_prompt: "string",
-        num_inference_steps: 50,
-        guidance_scale: 7,
-      };
+      // Create FormData for the request
+      const formData = new FormData();
 
-      console.log("=== Art Style Transfer Debug ===");
-      console.log("Request Body:", JSON.stringify(requestBody, null, 2));
+      // Append the image file from canvas
+      formData.append("file", {
+        uri: imageState.uri,
+        type: "image/jpeg",
+        name: "canvas_image.jpg",
+      });
 
-      const generateUrl = `${artStyleBaseUrl}/generate`;
+      // Append required parameters
+      formData.append("artwork_name", artworkName);
+      formData.append("artist_name", artistName);
+
+      // Append optional parameters (null values)
+      formData.append("prompt", "");
+      formData.append("negative_prompt", "");
+
+      // Append numeric parameters
+      formData.append("num_inference_steps", "50");
+      formData.append("guidance_scale", "7");
+
+      console.log("=== Art Style Transfer with Image Debug ===");
+      console.log("Image URI:", imageState.uri);
+      console.log("Artwork Name:", artworkName);
+      console.log("Artist Name:", artistName);
+
+      const generateUrl = `${artStyleBaseUrl}/generate_with_image`;
       console.log("Generate URL:", generateUrl);
 
       const response = await fetch(generateUrl, {
         method: "POST",
+        body: formData,
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
-        body: JSON.stringify(requestBody),
       });
 
       console.log("Art Style response status:", response.status);
