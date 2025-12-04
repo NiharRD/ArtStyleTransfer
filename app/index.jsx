@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  BackHandler,
   Dimensions,
   Image,
   Keyboard,
@@ -349,7 +350,8 @@ const HomeScreen = () => {
       const separatorSpace = 0; // Reduced visual breathing room
 
       // Calculate available height for the canvas
-      const availableHeight = height - headerHeight - bottomOffset - modalHeight - separatorSpace;
+      const availableHeight =
+        height - headerHeight - bottomOffset - modalHeight - separatorSpace;
 
       // Ensure we don't shrink below minimum height
       return Math.max(availableHeight, MIN_CANVAS_HEIGHT);
@@ -403,12 +405,16 @@ const HomeScreen = () => {
     };
 
     const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
+      "hardwareBackPress",
       backAction
     );
 
     return () => backHandler.remove();
-  }, [globalEditingModalVisible, artStyleModalVisible, generateMockupModalVisible]);
+  }, [
+    globalEditingModalVisible,
+    artStyleModalVisible,
+    generateMockupModalVisible,
+  ]);
 
   // Handler for modal height changes
   const handleModalHeightChange = (height) => {
