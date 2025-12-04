@@ -345,9 +345,9 @@ const HomeScreen = () => {
       // Modal is open - shrink to fit nicely above the modal
       // Calculate available space based on screen height
       // We want the canvas to be strictly above the modal content to avoid overlap
-      const headerHeight = 80; // Reduced to make canvas taller and tighter
-      const bottomOffset = 40; // ModalContainer bottom offset
-      const separatorSpace = 0; // Reduced visual breathing room
+      const headerHeight = 60; // Reduced to make canvas taller and tighter
+      const bottomOffset = 20; // ModalContainer bottom offset
+      const separatorSpace = 0; // No separator space needed
 
       // Calculate available height for the canvas
       const availableHeight =
@@ -1351,7 +1351,7 @@ const HomeScreen = () => {
                     styles.image,
                     { height: canvasHeightAnim, width: canvasWidthAnim },
                   ]}
-                  resizeMode="cover"
+                  resizeMode="contain"
                 />
               )}
               {/* Loading overlay on top of image */}
@@ -1544,6 +1544,7 @@ const styles = StyleSheet.create({
     position: "relative",
     borderRadius: BorderRadius.xs,
     overflow: "hidden",
+    backgroundColor: "transparent",
   },
   placeholderContainer: {
     width: width - 32,
@@ -1567,6 +1568,7 @@ const styles = StyleSheet.create({
   filteredImageContainer: {
     borderRadius: BorderRadius.xs,
     overflow: "hidden",
+    backgroundColor: "transparent",
   },
   // Pick Image Button Styles
   pickImageButton: {

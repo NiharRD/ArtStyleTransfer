@@ -322,7 +322,7 @@ const GlobalEditingModal = ({
 
   // Calculate modal height based on all states
   const getModalHeight = () => {
-    let baseHeight = 280; // Base height with controls row + text input + actions row
+    let baseHeight = 260; // Base height with controls row + text input + actions row
 
     // Add confirmation row height if visible
     if (confirmationVisible) {
@@ -505,9 +505,11 @@ const GlobalEditingModal = ({
       onClose={onClose}
       height={getModalHeight()}
     >
-      <View style={styles.container}>
-        {/* Drawer Handle - Small separator line */}
-        <DrawerToggle onPress={handleHeaderClick} />
+      <View style={[styles.container, upperSectionVisible && styles.containerCompact]}>
+        {/* Drawer Handle - Hide when in semantic/manual edit mode */}
+        {!upperSectionVisible && (
+          <DrawerToggle onPress={handleHeaderClick} />
+        )}
 
         {/* Talk to Kimi Button - hide when upper section is visible */}
         {!upperSectionVisible && (
@@ -578,7 +580,7 @@ const GlobalEditingModal = ({
                 {/* Warning text when sliders are used */}
                 {areSlidersUsed && (
                   <Text style={styles.warningText}>
-                    Can't use semantic edit after using manually sliders
+                    For demo purposes, semantic edit is disabled when using manual sliders.
                   </Text>
                 )}
               </>
@@ -794,6 +796,10 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
     gap: Spacing.sm,
   },
+  containerCompact: {
+    paddingTop: 12,
+    gap: 4,
+  },
   contentContainer: {
     backgroundColor: "rgba(43, 40, 41, 0.95)",
     borderWidth: 0.681,
@@ -801,8 +807,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingTop: Spacing.md,
     paddingHorizontal: Spacing.xxl,
-    paddingBottom: Spacing.lg,
-    gap: Spacing.xs,
+    paddingBottom: Spacing.md,
+    gap: 4,
   },
   upperSection: {
     gap: Spacing.md,
@@ -826,6 +832,7 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.5)",
     textAlign: "center",
     marginTop: 4,
+    marginBottom: -8,
   },
   controlsRow: {
     flexDirection: "row",

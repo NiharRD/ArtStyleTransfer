@@ -35,7 +35,7 @@ const vertexShaderSource = `
   attribute vec2 position;
   attribute vec2 texCoord;
   varying vec2 vTexCoord;
-  
+
   void main() {
     gl_Position = vec4(position, 0.0, 1.0);
     vTexCoord = texCoord;
@@ -45,17 +45,17 @@ const vertexShaderSource = `
 // Fragment shader with all filter effects
 const fragmentShaderSource = `
   precision mediump float;
-  
+
   varying vec2 vTexCoord;
   uniform sampler2D uTexture;
-  
+
   // Filter uniforms
   uniform float uSaturation;
   uniform float uBrightness;
   uniform float uContrast;
   uniform float uHue;
   uniform float uExposure;
-  
+
   // Convert RGB to HSL
   vec3 rgbToHsl(vec3 c) {
     float maxC = max(max(c.r, c.g), c.b);
@@ -63,11 +63,11 @@ const fragmentShaderSource = `
     float l = (maxC + minC) / 2.0;
     float h = 0.0;
     float s = 0.0;
-    
+
     if (maxC != minC) {
       float d = maxC - minC;
       s = l > 0.5 ? d / (2.0 - maxC - minC) : d / (maxC + minC);
-      
+
       if (maxC == c.r) {
         h = (c.g - c.b) / d + (c.g < c.b ? 6.0 : 0.0);
       } else if (maxC == c.g) {
@@ -77,10 +77,10 @@ const fragmentShaderSource = `
       }
       h /= 6.0;
     }
-    
+
     return vec3(h, s, l);
   }
-  
+
   // Helper function for HSL to RGB conversion
   float hueToRgb(float p, float q, float t) {
     if (t < 0.0) t += 1.0;
@@ -90,15 +90,15 @@ const fragmentShaderSource = `
     if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
     return p;
   }
-  
+
   // Convert HSL to RGB
   vec3 hslToRgb(vec3 hsl) {
     float h = hsl.x;
     float s = hsl.y;
     float l = hsl.z;
-    
+
     vec3 rgb;
-    
+
     if (s == 0.0) {
       rgb = vec3(l);
     } else {
@@ -108,52 +108,52 @@ const fragmentShaderSource = `
       rgb.g = hueToRgb(p, q, h);
       rgb.b = hueToRgb(p, q, h - 1.0/3.0);
     }
-    
+
     return rgb;
   }
-  
+
   // Apply saturation adjustment
   vec3 applySaturation(vec3 color, float saturation) {
     float gray = dot(color, vec3(0.299, 0.587, 0.114));
     return mix(vec3(gray), color, saturation);
   }
-  
+
   // Apply brightness adjustment
   vec3 applyBrightness(vec3 color, float brightness) {
     return color * brightness;
   }
-  
+
   // Apply contrast adjustment
   vec3 applyContrast(vec3 color, float contrast) {
     return (color - 0.5) * contrast + 0.5;
   }
-  
+
   // Apply hue rotation
   vec3 applyHue(vec3 color, float hueShift) {
     vec3 hsl = rgbToHsl(color);
     hsl.x = fract(hsl.x + hueShift / 6.28318530718); // Divide by 2*PI
     return hslToRgb(hsl);
   }
-  
+
   // Apply exposure adjustment
   vec3 applyExposure(vec3 color, float exposure) {
     return color * pow(2.0, exposure);
   }
-  
+
   void main() {
     vec4 texColor = texture2D(uTexture, vTexCoord);
     vec3 color = texColor.rgb;
-    
+
     // Apply filters in order
     color = applySaturation(color, uSaturation);
     color = applyBrightness(color, uBrightness);
     color = applyContrast(color, uContrast);
     color = applyHue(color, uHue);
     color = applyExposure(color, uExposure);
-    
+
     // Clamp final color values
     color = clamp(color, 0.0, 1.0);
-    
+
     gl_FragColor = vec4(color, texColor.a);
   }
 `;
@@ -222,7 +222,7 @@ const FilteredImage = ({
       // Load the image asset
       const asset = Asset.fromURI(imageUri);
       await asset.downloadAsync();
-      
+
       // Load texture from asset
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, asset);
 
@@ -262,7 +262,7 @@ const FilteredImage = ({
     // Set up attributes
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 16, 0);
-    
+
     gl.enableVertexAttribArray(texCoordLocation);
     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 16, 8);
 
@@ -316,7 +316,7 @@ const FilteredImage = ({
 
     // Clear and draw
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -335,9 +335,9 @@ const FilteredImage = ({
       <Image
         source={{ uri }}
         style={[styles.fallbackImage, StyleSheet.absoluteFill]}
-        resizeMode="cover"
+        resizeMode="contain"
       />
-      
+
       {/* GL Surface overlay */}
       <GLView
         style={[styles.glView, StyleSheet.absoluteFill]}
@@ -351,6 +351,7 @@ const styles = StyleSheet.create({
   container: {
     position: "relative",
     overflow: "hidden",
+    backgroundColor: "transparent",
   },
   fallbackImage: {
     position: "absolute",
@@ -362,6 +363,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     opacity: 1,
+    backgroundColor: "transparent",
   },
 });
 
@@ -410,4 +412,3 @@ export const FILTER_CONFIGS = {
     description: "Adjusts overall exposure",
   },
 };
-
