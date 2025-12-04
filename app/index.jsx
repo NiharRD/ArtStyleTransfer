@@ -217,21 +217,46 @@ const HomeScreen = () => {
   const [semanticLoading, setSemanticLoading] = useState(false);
 
   // Filter values state for real-time image filtering
+  // All 16 filters matching GL shader parameters
   const [filterValues, setFilterValues] = useState({
-    saturation: 0, // -100 to 100, default 0
-    brightness: 0, // -100 to 100, default 0
-    contrast: 0, // -100 to 100, default 0
-    hue: 0, // 0 to 100, default 0
-    exposure: 0, // -2 to 2, default 0
+    // Basic Adjustments
+    exposure: 0,     // -30 to 30, default 0
+    contrast: 0,     // -100 to 100, default 0
+    highlights: 0,   // -50 to 30, default 0
+    shadows: 0,      // -30 to 50, default 0
+    whites: 0,       // -50 to 50, default 0
+    blacks: 0,       // -50 to 50, default 0
+    temperature: 0,  // -50 to 50, default 0
+    tint: 0,         // -50 to 50, default 0
+    saturation: 0,   // -100 to 100, default 0
+    vibrance: 0,     // -50 to 100, default 0
+    // Creative Effects
+    clarity: 0,      // -50 to 80, default 0
+    vignette: 0,     // 0 to 100, default 0
+    grain: 0,        // 0 to 100, default 0
+    fade: 0,         // 0 to 50, default 0
+    tealOrange: 0,   // 0 to 100, default 0
+    bleachBypass: 0, // 0 to 100, default 0
   });
 
   // Check if filters are active (any value different from default)
   const areFiltersActive =
-    filterValues.saturation !== 0 ||
-    filterValues.brightness !== 0 ||
+    filterValues.exposure !== 0 ||
     filterValues.contrast !== 0 ||
-    filterValues.hue !== 0 ||
-    filterValues.exposure !== 0;
+    filterValues.highlights !== 0 ||
+    filterValues.shadows !== 0 ||
+    filterValues.whites !== 0 ||
+    filterValues.blacks !== 0 ||
+    filterValues.temperature !== 0 ||
+    filterValues.tint !== 0 ||
+    filterValues.saturation !== 0 ||
+    filterValues.vibrance !== 0 ||
+    filterValues.clarity !== 0 ||
+    filterValues.vignette !== 0 ||
+    filterValues.grain !== 0 ||
+    filterValues.fade !== 0 ||
+    filterValues.tealOrange !== 0 ||
+    filterValues.bleachBypass !== 0;
 
   // Handler for filter value changes from GlobalEditingModal
   const handleFilterChange = (newFilters) => {
@@ -1331,11 +1356,24 @@ const HomeScreen = () => {
             setGeneratedPrompt("");
             setSmartSuggestions([]);
             setFilterValues({
-              saturation: 0,
-              brightness: 0,
-              contrast: 0,
-              hue: 0,
+              // Basic Adjustments
               exposure: 0,
+              contrast: 0,
+              highlights: 0,
+              shadows: 0,
+              whites: 0,
+              blacks: 0,
+              temperature: 0,
+              tint: 0,
+              saturation: 0,
+              vibrance: 0,
+              // Creative Effects
+              clarity: 0,
+              vignette: 0,
+              grain: 0,
+              fade: 0,
+              tealOrange: 0,
+              bleachBypass: 0,
             });
             setSemanticAxes({
               additionalProp1: null,

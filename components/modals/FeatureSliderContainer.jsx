@@ -1,84 +1,62 @@
 import { useEffect, useRef } from "react";
 import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
+import { FILTER_CONFIGS } from "../FilteredImage";
 import FeatureButton, { FEATURE_NAMES } from "./FeatureButton";
 import RulerSlider from "./RulerSlider";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const BUTTON_WIDTH = 40;
-const BUTTON_GAP = 8;
+const BUTTON_WIDTH = 48;
+const BUTTON_GAP = 16;
 const CONTAINER_PADDING = 8;
 const ROW_PADDING = 4;
 
-/**
- * Filter configurations with value ranges for each feature
- * These match the GL shader filter parameters
- */
-export const FILTER_CONFIGS = {
-  saturation: {
-    name: "Saturation",
-    minValue: -100,
-    maxValue: 100,
-    defaultValue: 0,
-    step: 1,
-    description: "Controls the intensity of colors",
-  },
-  brightness: {
-    name: "Brightness",
-    minValue: -100,
-    maxValue: 100,
-    defaultValue: 0,
-    step: 1,
-    description: "Adjusts the overall lightness",
-  },
-  contrast: {
-    name: "Contrast",
-    minValue: -100,
-    maxValue: 100,
-    defaultValue: 0,
-    step: 1,
-    description: "Difference between light and dark areas",
-  },
-  hue: {
-    name: "Hue",
-    minValue: 0,
-    maxValue: 100,
-    defaultValue: 0,
-    step: 1,
-    description: "Rotates color hue",
-  },
-  exposure: {
-    name: "Exposure",
-    minValue: -2,
-    maxValue: 2,
-    defaultValue: 0,
-    step: 0.05,
-    description: "Adjusts overall exposure",
-  },
-};
-
-// Feature list - only GL filter features
-const FEATURES = [
-  "saturation",
-  "brightness",
-  "contrast",
-  "hue",
+// All features in a single linear list (matching the reference image layout)
+const ALL_FEATURES = [
+  // Basic Adjustments
   "exposure",
+  "contrast",
+  "highlights",
+  "shadows",
+  "whites",
+  "blacks",
+  "temperature",
+  "tint",
+  "saturation",
+  "vibrance",
+  // Creative Effects
+  "vignetteStrength",
+  "grainAmount",
+  "clarity",
+  "fadeAmount",
+  "bleachBypass",
+  "tealOrange",
 ];
 
 // Accent colors for different filter types
 const FILTER_ACCENT_COLORS = {
-  saturation: "#4CAF50", // Green
-  brightness: "#FFC107", // Amber
-  contrast: "#9C27B0", // Purple
-  hue: "#E91E63", // Pink
-  exposure: "#FF5722", // Deep orange
+  exposure: "#FFC107", // Amber (sun icon)
+  contrast: "#FFFFFF", // White (contrast icon)
+  highlights: "#B0BEC5", // Light Grey (cloud icon)
+  shadows: "#FF9800", // Orange (lightning icon)
+  whites: "#FFFFFF",
+  blacks: "#607D8B",
+  temperature: "#FF5722",
+  tint: "#E91E63",
+  saturation: "#4CAF50",
+  vibrance: "#00BCD4",
+  vignetteStrength: "#607D8B",
+  grainAmount: "#9E9E9E",
+  clarity: "#2196F3",
+  fadeAmount: "#B0BEC5",
+  bleachBypass: "#546E7A",
+  tealOrange: "#00BCD4",
 };
 
 /**
  * FeatureSliderContainer - Main container for image editing sliders
  *
  * Features:
- * - Horizontal scrollable feature selection row
+ * - Single horizontal scrollable feature selection row
  * - Interactive ruler slider with dynamic value ranges
  * - State management for all features
  * - Auto-scrolls to center the active button
@@ -101,7 +79,8 @@ const FeatureSliderContainer = ({
 
   // Scroll to center the active feature button
   useEffect(() => {
-    const featureIndex = FEATURES.indexOf(selectedFeature);
+    const featureIndex = ALL_FEATURES.indexOf(selectedFeature);
+
     if (featureIndex !== -1 && featureScrollRef.current) {
       const scrollX = calculateScrollPosition(featureIndex);
       featureScrollRef.current.scrollTo({ x: scrollX, animated: true });
@@ -110,7 +89,7 @@ const FeatureSliderContainer = ({
 
   // Get filter configuration for current feature
   const getFilterConfig = () => {
-    return FILTER_CONFIGS[selectedFeature] || FILTER_CONFIGS.saturation;
+    return FILTER_CONFIGS[selectedFeature] || FILTER_CONFIGS.exposure;
   };
 
   // Get current value for selected feature
@@ -138,24 +117,7 @@ const FeatureSliderContainer = ({
 
   return (
     <View style={styles.container}>
-      {/* Feature Selection Row */}
-      <ScrollView
-        ref={featureScrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.featureRow}
-      >
-        {FEATURES.map((feature) => (
-          <FeatureButton
-            key={feature}
-            feature={feature}
-            isActive={selectedFeature === feature}
-            onPress={() => onFeatureSelect(feature)}
-          />
-        ))}
-      </ScrollView>
-
-      {/* Ruler Slider with dynamic range based on feature */}
+      {/* Ruler Slider with value display at TOP */}
       <RulerSlider
         value={getCurrentValue()}
         onValueChange={handleValueChange}
@@ -166,6 +128,23 @@ const FeatureSliderContainer = ({
         step={config.step}
         defaultValue={config.defaultValue}
       />
+
+      {/* Feature Selection Row at BOTTOM */}
+      <ScrollView
+        ref={featureScrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.featureRow}
+      >
+        {ALL_FEATURES.map((feature) => (
+          <FeatureButton
+            key={feature}
+            feature={feature}
+            isActive={selectedFeature === feature}
+            onPress={() => onFeatureSelect(feature)}
+          />
+        ))}
+      </ScrollView>
     </View>
   );
 };
@@ -173,19 +152,17 @@ const FeatureSliderContainer = ({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    backgroundColor: "rgba(47, 44, 45, 0.9)",
-    borderWidth: 1.644,
-    borderColor: "#FFFFFF",
+    backgroundColor: "rgba(47, 44, 45, 0.95)",
     borderRadius: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     paddingHorizontal: 8,
-    gap: 12,
+    gap: 16,
   },
   featureRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 4,
+    gap: 16,
+    paddingHorizontal: 8,
   },
 });
 

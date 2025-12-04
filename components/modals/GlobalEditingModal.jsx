@@ -234,17 +234,45 @@ const GlobalEditingModal = ({
   const [xyPadValue, setXYPadValue] = useState({ x: 0, y: 0 });
 
   // Slider state management for GL filter features
+  // Slider state management for GL filter features
   const [sliderValues, setSliderValues] = useState({
-    saturation: 0, // -100 to 100, default 0
-    brightness: 0, // -100 to 100, default 0
-    contrast: 0, // -100 to 100, default 0
-    hue: 0, // 0 to 100, default 0
-    exposure: 0, // -2 to 2, default 0
+    // Basic
+    exposure: 0,
+    contrast: 1.0,
+    highlights: 0,
+    shadows: 0,
+    whites: 0,
+    blacks: 0,
+    temperature: 0,
+    tint: 0,
+    saturation: 1.0,
+    vibrance: 0,
+
+    // Creative
+    vignetteStrength: 0,
+    vignetteRadius: 0.95,
+    grainAmount: 0,
+    grainSize: 1.0,
+    clarity: 0,
+    fadeAmount: 0,
+    bleachBypass: 0,
+    tealOrange: 0,
   });
-  const [selectedFeature, setSelectedFeature] = useState("saturation");
+  const [selectedFeature, setSelectedFeature] = useState("exposure");
 
   // Check if any slider has been modified
-  const areSlidersUsed = Object.values(sliderValues).some((value) => value !== 0);
+  const areSlidersUsed = Object.entries(sliderValues).some(([key, value]) => {
+    if (key === "contrast" || key === "saturation") {
+      return value !== 1.0;
+    }
+    if (key === "vignetteRadius") {
+      return value !== 0.95;
+    }
+    if (key === "grainSize") {
+      return value !== 1.0;
+    }
+    return value !== 0;
+  });
 
   // Handler for slider value changes - also notifies parent
   const handleSliderValueChange = (feature, value) => {
