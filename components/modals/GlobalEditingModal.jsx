@@ -587,29 +587,34 @@ const GlobalEditingModal = ({
 
             {/* Content based on state */}
             {modalState === "bulbState" ? (
-              <XYPad
-                value={xyPadValue}
-                onValueChange={setXYPadValue}
-                onDragEnd={async (finalValue) => {
-                  if (onSemanticEdit) {
-                    setIsSending(true);
-                    try {
-                      const success = await onSemanticEdit(finalValue);
-                      if (success) {
-                        // Show "Keep these changes?" confirmation after successful edit
-                        setConfirmationVisible(true);
+              <>
+                <XYPad
+                  value={xyPadValue}
+                  onValueChange={setXYPadValue}
+                  onDragEnd={async (finalValue) => {
+                    if (onSemanticEdit) {
+                      setIsSending(true);
+                      try {
+                        const success = await onSemanticEdit(finalValue);
+                        if (success) {
+                          // Show "Keep these changes?" confirmation after successful edit
+                          setConfirmationVisible(true);
+                        }
+                      } catch (error) {
+                        console.error("Error in semantic edit:", error);
+                      } finally {
+                        setIsSending(false);
                       }
-                    } catch (error) {
-                      console.error("Error in semantic edit:", error);
-                    } finally {
-                      setIsSending(false);
                     }
-                  }
-                }}
-                disabled={isSending || isProcessing}
-                dotColor="#8A2BE2"
-                labels={semanticLabels}
-              />
+                  }}
+                  disabled={isSending || isProcessing}
+                  dotColor="#8A2BE2"
+                  labels={semanticLabels}
+                />
+                <Text style={styles.tipText}>
+                  Tip: The more you refine, the better Kimi adapts to your unique creative style.
+                </Text>
+              </>
             ) : (
               <>
                 <FeatureSliderContainer
@@ -621,7 +626,7 @@ const GlobalEditingModal = ({
                 {/* Warning text when sliders are used */}
                 {areSlidersUsed && (
                   <Text style={styles.warningText}>
-                    For demo purposes, semantic edit is disabled when using manual sliders.
+                    Demo mode: Semantic editing is temporarily disabled while manual slider adjustments are active.
                   </Text>
                 )}
               </>
@@ -804,11 +809,20 @@ const styles = StyleSheet.create({
   },
   warningText: {
     fontFamily: Typography.fontFamily.regular,
-    fontSize: 12,
+    fontSize: 10,
     color: "rgba(255, 255, 255, 0.5)",
     textAlign: "center",
     marginTop: 4,
     marginBottom: -8,
+  },
+  tipText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 10,
+    color: "rgba(255, 255, 255, 0.5)",
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: -8,
+    lineHeight: 14,
   },
   controlsRow: {
     flexDirection: "row",

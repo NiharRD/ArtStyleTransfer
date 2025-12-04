@@ -26,6 +26,7 @@ import GlobalEditingModal from "../components/modals/GlobalEditingModal";
 import AIPromptButton from "../components/ui/AIPromptButton";
 import ControlBar from "../components/ui/ControlBar";
 import DrawerToggle from "../components/ui/DrawerToggle";
+import FullScreenImagePreview from "../components/ui/FullScreenImagePreview";
 import Header from "../components/ui/Header";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
@@ -246,6 +247,7 @@ const HomeScreen = () => {
   const [showSemanticEditor, setShowSemanticEditor] = useState(false);
   const [currentModalHeight, setCurrentModalHeight] = useState(0);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
+  const [fullScreenPreviewVisible, setFullScreenPreviewVisible] = useState(false);
 
   // Animated value for canvas height
   const canvasHeightAnim = useRef(
@@ -333,6 +335,77 @@ const HomeScreen = () => {
     outputRange: [MIN_CANVAS_WIDTH, DEFAULT_CANVAS_WIDTH],
     extrapolate: "clamp",
   });
+
+  // Zoom state for two-finger pinch zoom
+  const [zoomScale, setZoomScale] = useState(1);
+  const zoomScaleAnim = useRef(new Animated.Value(1)).current;
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 4;
+
+  // Pinch gesture handling
+  const initialPinchDistance = useRef(null);
+  const initialZoomScale = useRef(1);
+  const isPinching = useRef(false);
+
+  const handleTouchStart = (evt) => {
+    const touches = evt.nativeEvent.touches;
+
+    if (touches.length >= 2) {
+      isPinching.current = true;
+      // Calculate distance between first two touches
+      const dx = touches[0].pageX - touches[1].pageX;
+      const dy = touches[0].pageY - touches[1].pageY;
+      initialPinchDistance.current = Math.sqrt(dx * dx + dy * dy);
+      initialZoomScale.current = zoomScale;
+    }
+  };
+
+  const handleTouchMove = (evt) => {
+    const touches = evt.nativeEvent.touches;
+
+    if (touches.length >= 2 && initialPinchDistance.current !== null) {
+      isPinching.current = true;
+      const dx = touches[0].pageX - touches[1].pageX;
+      const dy = touches[0].pageY - touches[1].pageY;
+      const currentDistance = Math.sqrt(dx * dx + dy * dy);
+
+      // Two-finger gesture - zoom in/out
+      if (touches.length === 2) {
+        const scaleFactor = currentDistance / initialPinchDistance.current;
+        let newScale = initialZoomScale.current * scaleFactor;
+
+        // Clamp zoom scale
+        newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newScale));
+
+        setZoomScale(newScale);
+        zoomScaleAnim.setValue(newScale);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    initialPinchDistance.current = null;
+    isPinching.current = false;
+
+    // Snap back to 1 if close to it
+    if (zoomScale < 1.1) {
+      setZoomScale(1);
+      Animated.spring(zoomScaleAnim, {
+        toValue: 1,
+        tension: 100,
+        friction: 10,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  // Handle tap on canvas to show full-screen preview
+  const handleCanvasTap = () => {
+    // Only show full-screen preview if not pinching and image exists
+    if (!isPinching.current && imageState.uri && !fullScreenPreviewVisible) {
+      setFullScreenPreviewVisible(true);
+    }
+  };
 
   // Check if any modal is open
   const isModalOpen =
@@ -1351,38 +1424,57 @@ const HomeScreen = () => {
         <ControlBar />
 
         {/* Main Image Display Area - Animated height & width (maintains aspect ratio) */}
-        <View style={styles.imageContainer}>
+        {/* Two-finger pinch for zoom, tap for full-screen preview */}
+        <View
+          style={[styles.imageContainer, { overflow: 'visible', zIndex: zoomScale > 1 ? 100 : 1 }]}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {imageState.uri ? (
-            <View style={styles.imageWrapper}>
-              {/* Use FilteredImage when filters are active, otherwise regular Animated.Image */}
-              {areFiltersActive ? (
-                <Animated.View
-                  style={[
-                    styles.filteredImageContainer,
-                    { height: canvasHeightAnim, width: canvasWidthAnim },
-                  ]}
-                >
-                  <FilteredImage
-                    uri={imageState.uri}
-                    filters={filterValues}
-                    style={{ width: "100%", height: "100%" }}
+            <TouchableOpacity
+              activeOpacity={0.95}
+              onPress={handleCanvasTap}
+            >
+              <Animated.View
+                style={[
+                  styles.imageWrapper,
+                  {
+                    transform: [{ scale: zoomScaleAnim }],
+                    overflow: 'visible',
+                  }
+                ]}
+              >
+                {/* Use FilteredImage when filters are active, otherwise regular Animated.Image */}
+                {areFiltersActive ? (
+                  <Animated.View
+                    style={[
+                      styles.filteredImageContainer,
+                      { height: canvasHeightAnim, width: canvasWidthAnim },
+                    ]}
+                  >
+                    <FilteredImage
+                      uri={imageState.uri}
+                      filters={filterValues}
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  </Animated.View>
+                ) : (
+                  <Animated.Image
+                    source={{ uri: imageState.uri }}
+                    style={[
+                      styles.image,
+                      { height: canvasHeightAnim, width: canvasWidthAnim },
+                    ]}
+                    resizeMode="contain"
                   />
-                </Animated.View>
-              ) : (
-                <Animated.Image
-                  source={{ uri: imageState.uri }}
-                  style={[
-                    styles.image,
-                    { height: canvasHeightAnim, width: canvasWidthAnim },
-                  ]}
-                  resizeMode="contain"
-                />
-              )}
-              {/* Loading overlay on top of image */}
-              {(imageState.isLoading || statusModal.visible) && (
-                <LoadingOverlay message={statusModal.message} />
-              )}
-            </View>
+                )}
+                {/* Loading overlay on top of image */}
+                {(imageState.isLoading || statusModal.visible) && (
+                  <LoadingOverlay message={statusModal.message} />
+                )}
+              </Animated.View>
+            </TouchableOpacity>
           ) : (
             <Animated.View
               style={[
@@ -1545,6 +1637,13 @@ const HomeScreen = () => {
             ).toFixed(0)}%`}
           />
         )}
+
+        {/* Full Screen Image Preview Modal */}
+        <FullScreenImagePreview
+          visible={fullScreenPreviewVisible}
+          imageUri={imageState.uri}
+          onClose={() => setFullScreenPreviewVisible(false)}
+        />
       </View>
     </SafeAreaView>
   );
