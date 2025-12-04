@@ -90,22 +90,30 @@ export const useGhostSuggestion = (text, llm, modelReady, suggestions = [], debo
         console.log("Generating ghost suggestion for:", text);
 
         // Construct prompt for autocomplete
-        // Construct prompt for autocomplete
-        // We explicitly tell the LLM it is an autocompleter to prevent it from refusing commands like "Generate image"
-        let systemContent = 'You are an AUTOCOMPLETE assistant from  suggestions Rules 1)   Continue the sentence EXACTLY from where it ends.  2) do not change the base sentence  only use provided light_suggestions to autocomplete  ONLY natural color/tone language only autocomplete by light_suggetion     .   Keep it strictly short ( 6 words only ). The suggestions are';
-        
+        let systemContent = `### Role
+You are a text completion assistant for an image editor.
+
+### Task
+Complete the user's sentence naturally. Use the "Style Suggestions" below to guide the mood and tone.
+
+### Constraints
+1. Output ONLY the completion text.
+2. Do NOT repeat the user's input.
+3. Start exactly where the user left off.
+4. Keep it strictly short (maximum 6 words).`;
+
         console.log("--- Ghost Suggestion Debug ---");
         console.log("Input:", text);
         console.log("Suggestions received:", suggestions);
-        console.log("System Content BEFORE append:", systemContent);
 
         if (suggestions && suggestions.length > 0) {
-            systemContent += ` Context: Style suggestions: ${suggestions.join(', ')}.`;
+            // Format suggestions as a clean list for better model comprehension
+            systemContent += `\n\n### Style Suggestions\n- ${suggestions.join('\n- ')}`;
         } else {
             console.log("No suggestions to append.");
         }
 
-        console.log("System Content AFTER append:", systemContent);
+        console.log("System Content:", systemContent);
 
         const messages = [
           { role: 'system', content: systemContent },
