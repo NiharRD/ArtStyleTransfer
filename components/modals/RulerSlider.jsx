@@ -1,11 +1,11 @@
-import React, { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
     runOnJS,
     useAnimatedStyle,
+    useDerivedValue,
     useSharedValue,
-    withSpring,
 } from "react-native-reanimated";
 import { Typography } from "../../constants/Theme";
 
@@ -21,7 +21,7 @@ const MAX_LINES = 41; // Fixed number of lines to prevent performance issues
  * - Fixed center indicator (orange/dynamic color)
  * - Pan gesture for value adjustment
  * - Configurable min/max values, step size, and default value
- * - Spring animation on release
+ * - Smooth dragging without React re-renders during gesture
  * - Displays "Feature Name • Value" label
  */
 const RulerSlider = ({
@@ -35,15 +35,16 @@ const RulerSlider = ({
   defaultValue = 0,
   decimalPlaces,
 }) => {
+  // Track if we're currently dragging to avoid external updates during drag
+  const isDragging = useRef(false);
+
   // Calculate derived values based on props
   const config = useMemo(() => {
     const valueRange = maxValue - minValue;
-    // Fixed line count to prevent performance issues
     const lineCount = MAX_LINES;
     const lineSpacing = SLIDER_WIDTH / (lineCount - 1);
-    const pixelsPerUnit = (SLIDER_WIDTH * 2) / Math.max(valueRange, 0.001); // Prevent division by zero
+    const pixelsPerUnit = (SLIDER_WIDTH * 2) / Math.max(valueRange, 0.001);
 
-    // Auto-calculate decimal places based on step if not provided
     let autoDecimalPlaces = 0;
     if (decimalPlaces !== undefined) {
       autoDecimalPlaces = decimalPlaces;
@@ -61,33 +62,34 @@ const RulerSlider = ({
     };
   }, [minValue, maxValue, step, defaultValue, decimalPlaces]);
 
-  // Shared value for ruler position (offset from center)
-  const translateX = useSharedValue(0);
+  // Shared values for smooth animation
+  const translateX = useSharedValue(-(value - config.centerValue) * config.pixelsPerUnit);
   const startX = useSharedValue(0);
+
+  // Shared value for display (updated during drag without React re-renders)
+  const displayValueShared = useSharedValue(value);
 
   // Store config values for worklet access
   const pixelsPerUnit = config.pixelsPerUnit;
   const centerValue = config.centerValue;
 
-  // Update translation when value prop changes externally
-  React.useEffect(() => {
-    const newTranslate = -(value - centerValue) * pixelsPerUnit;
-    if (isFinite(newTranslate)) {
-      translateX.value = withSpring(newTranslate, {
-        damping: 20,
-        stiffness: 200,
-      });
+  // Sync with external value changes (only when not dragging)
+  useEffect(() => {
+    if (!isDragging.current) {
+      const newTranslate = -(value - centerValue) * pixelsPerUnit;
+      if (isFinite(newTranslate)) {
+        translateX.value = newTranslate;
+        displayValueShared.value = value;
+      }
     }
   }, [value, centerValue, pixelsPerUnit]);
 
-  // Callback to update parent value (runs on JS thread)
+  // Callback to update parent value (only called on gesture end)
   const updateValue = useCallback(
     (newValue) => {
       if (onValueChange && isFinite(newValue)) {
-        // Clamp value to range and round to step
         const clampedValue = Math.max(minValue, Math.min(maxValue, newValue));
         const steppedValue = Math.round(clampedValue / step) * step;
-        // Round to avoid floating point issues
         const roundedValue = Number(steppedValue.toFixed(config.decimalPlaces));
         onValueChange(roundedValue);
       }
@@ -95,18 +97,22 @@ const RulerSlider = ({
     [onValueChange, minValue, maxValue, step, config.decimalPlaces]
   );
 
-  // Pan gesture handler - calculations done inline to avoid worklet issues
+  const setDragging = useCallback((dragging) => {
+    isDragging.current = dragging;
+  }, []);
+
+  // Pan gesture handler - NO runOnJS during onUpdate for smooth performance
   const panGesture = Gesture.Pan()
     .onStart(() => {
       "worklet";
       startX.value = translateX.value;
+      runOnJS(setDragging)(true);
     })
     .onUpdate((event) => {
       "worklet";
-      // Calculate new position
       const newTranslateX = startX.value + event.translationX;
 
-      // Calculate bounds (inline to avoid callback issues)
+      // Calculate bounds
       const minTranslate = -(maxValue - centerValue) * pixelsPerUnit;
       const maxTranslate = -(minValue - centerValue) * pixelsPerUnit;
 
@@ -114,29 +120,33 @@ const RulerSlider = ({
         minTranslate,
         Math.min(maxTranslate, newTranslateX)
       );
+
+      // Direct assignment - no animation, no JS thread callback
       translateX.value = clampedTranslate;
 
-      // Calculate new value
+      // Update display value on UI thread (no React re-render)
       const newValue = centerValue - clampedTranslate / pixelsPerUnit;
-      runOnJS(updateValue)(newValue);
+      const steppedValue = Math.round(newValue / step) * step;
+      displayValueShared.value = Math.max(minValue, Math.min(maxValue, steppedValue));
     })
     .onEnd(() => {
       "worklet";
-      // Calculate current value
       const currentValue = centerValue - translateX.value / pixelsPerUnit;
       const snappedValue = Math.round(currentValue / step) * step;
-      const clampedSnapped = Math.max(
-        minValue,
-        Math.min(maxValue, snappedValue)
-      );
+      const clampedSnapped = Math.max(minValue, Math.min(maxValue, snappedValue));
 
-      // Animate to snapped position
+      // Snap to final position
       const snappedTranslate = -(clampedSnapped - centerValue) * pixelsPerUnit;
-      translateX.value = withSpring(snappedTranslate, {
-        damping: 20,
-        stiffness: 200,
-      });
+      translateX.value = snappedTranslate;
+      displayValueShared.value = clampedSnapped;
+
+      // Only update parent state at the end
       runOnJS(updateValue)(clampedSnapped);
+      runOnJS(setDragging)(false);
+    })
+    .onFinalize(() => {
+      "worklet";
+      runOnJS(setDragging)(false);
     });
 
   // Animated style for the ruler
@@ -147,7 +157,7 @@ const RulerSlider = ({
   // Generate ruler lines - fixed count for performance
   const renderRulerLines = useMemo(() => {
     const lines = [];
-    const totalLines = MAX_LINES * 3; // Extra lines for scrolling
+    const totalLines = MAX_LINES * 3;
     const centerOffset = (totalLines * config.lineSpacing) / 2;
     const majorLineStep = 5;
     const lineValueStep = config.valueRange / (MAX_LINES - 1);
@@ -191,14 +201,21 @@ const RulerSlider = ({
     return lines;
   }, [config, defaultValue]);
 
-  // Format value for display
-  const displayValue = useMemo(() => {
-    if (!isFinite(value)) return "0";
+  // Derived value for formatted display text
+  const formattedDisplayValue = useDerivedValue(() => {
+    const val = displayValueShared.value;
+    if (!isFinite(val)) return "0";
     if (config.decimalPlaces === 0) {
-      return Math.round(value).toString();
+      return Math.round(val).toString();
     }
-    return value.toFixed(config.decimalPlaces);
-  }, [value, config.decimalPlaces]);
+    return val.toFixed(config.decimalPlaces);
+  });
+
+  // Animated text style for the value display
+  const animatedValueStyle = useAnimatedStyle(() => ({
+    // This triggers re-render of the animated text
+    opacity: 1,
+  }));
 
   return (
     <View style={styles.container}>
@@ -208,9 +225,11 @@ const RulerSlider = ({
           {featureName}
         </Text>
         <View style={[styles.labelDot, { backgroundColor: accentColor }]} />
-        <Text style={[styles.valueText, { color: "rgba(255, 255, 255, 0.6)" }]}>
-          {displayValue}
-        </Text>
+        <Animated.Text style={[styles.valueText, { color: "rgba(255, 255, 255, 0.6)" }, animatedValueStyle]}>
+          {config.decimalPlaces === 0
+            ? Math.round(value).toString()
+            : value.toFixed(config.decimalPlaces)}
+        </Animated.Text>
       </View>
 
       {/* Ruler Container */}
