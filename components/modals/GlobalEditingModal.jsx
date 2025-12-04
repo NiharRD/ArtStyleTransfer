@@ -26,6 +26,7 @@ import {
 import GhostTextInput from "../ui/GhostTextInput";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
+import ModeSelector from "./ModeSelector";
 import TalkToKimiButton from "./TalkToKimiButton";
 import XYPad from "./XYPad";
 
@@ -196,6 +197,7 @@ const GlobalEditingModal = ({
   suggestions = [],
   onConfirmationStateChange, // Callback to notify parent of confirmation visibility
   showSemanticEditor, // External trigger to show semantic editor (upper section)
+  onModeChange, // Callback for mode switching
 }) => {
   // Input state: textInput (first state) or voicePrompt (second state)
   const [inputState, setInputState] = useState("textInput");
@@ -658,15 +660,13 @@ const GlobalEditingModal = ({
 
           {/* Bottom Controls Row */}
           <View style={styles.controlsRow}>
-            {/* Global Editing Dropdown - closes modal on click */}
-            <TouchableOpacity
-              style={styles.globalEditingButton}
-              onPress={handleHeaderClick}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.globalEditingText}>Smart Adjust</Text>
-              <DropdownIcon size={16} color={Colors.textAccent} />
-            </TouchableOpacity>
+            {/* Mode Selector Dropdown */}
+            <ModeSelector
+              currentMode="smart-adjust"
+              onModeChange={onModeChange}
+              onClose={onClose}
+              showTooltip={false}
+            />
 
             {/* Toggle Buttons - only show when upper section is visible */}
             {upperSectionVisible && (

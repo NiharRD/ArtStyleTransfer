@@ -1,7 +1,7 @@
 import { Asset } from "expo-asset";
 import { GLView } from "expo-gl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, TouchableWithoutFeedback, View } from "react-native";
 
 /**
  * FilteredImage - Real-time image filtering using WebGL/expo-gl
@@ -260,6 +260,7 @@ const FilteredImage = ({
   uri,
   filters = {},
   style,
+  onLongPress,
 }) => {
   const glRef = useRef(null);
   const programRef = useRef(null);
@@ -473,22 +474,24 @@ const FilteredImage = ({
   }
 
   return (
-    <View style={[styles.container, style]}>
-      {/* Fallback image for when GL is not ready or loading */}
-      {!isReady && (
-        <Image
-          source={{ uri }}
-          style={[styles.fallbackImage, StyleSheet.absoluteFill]}
-          resizeMode="contain"
-        />
-      )}
+    <TouchableWithoutFeedback onLongPress={onLongPress}>
+      <View style={[styles.container, style]}>
+        {/* Fallback image for when GL is not ready or loading */}
+        {!isReady && (
+          <Image
+            source={{ uri }}
+            style={[styles.fallbackImage, StyleSheet.absoluteFill]}
+            resizeMode="contain"
+          />
+        )}
 
-      {/* GL Surface overlay */}
-      <GLView
-        style={[styles.glView, StyleSheet.absoluteFill]}
-        onContextCreate={onContextCreate}
-      />
-    </View>
+        {/* GL Surface overlay */}
+        <GLView
+          style={[styles.glView, StyleSheet.absoluteFill]}
+          onContextCreate={onContextCreate}
+        />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

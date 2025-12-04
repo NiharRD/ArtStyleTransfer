@@ -20,14 +20,18 @@ import {
 import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
 import FilteredImage from "../components/FilteredImage";
+import InfiniteView from "../components/InfiniteView";
 import ArtStyleTransferModal from "../components/modals/ArtStyleTransferModal";
+import GeneralPromptModal from "../components/modals/GeneralPromptModal";
 import GenerateMockupModal from "../components/modals/GenerateMockupModal";
 import GlobalEditingModal from "../components/modals/GlobalEditingModal";
+import ImageMenuModal from "../components/modals/ImageMenuModal";
 import AIPromptButton from "../components/ui/AIPromptButton";
 import ControlBar from "../components/ui/ControlBar";
 import DrawerToggle from "../components/ui/DrawerToggle";
 import FullScreenImagePreview from "../components/ui/FullScreenImagePreview";
 import Header from "../components/ui/Header";
+import OnboardingOverlay from "../components/ui/OnboardingOverlay";
 import QuickActionsBar from "../components/ui/QuickActionsBar";
 import SmartSuggestions from "../components/ui/SmartSuggestions";
 import { BorderRadius, Colors, Layout, Typography } from "../constants/Theme";
@@ -269,10 +273,14 @@ const HomeScreen = () => {
     useState(false);
   const [globalEditingModalVisible, setGlobalEditingModalVisible] =
     useState(false);
+  const [generalPromptModalVisible, setGeneralPromptModalVisible] =
+    useState(false);
   const [showSemanticEditor, setShowSemanticEditor] = useState(false);
   const [currentModalHeight, setCurrentModalHeight] = useState(0);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [fullScreenPreviewVisible, setFullScreenPreviewVisible] = useState(false);
+  const [infiniteViewVisible, setInfiniteViewVisible] = useState(false);
+  const [imageMenuVisible, setImageMenuVisible] = useState(false);
 
   // Animated value for canvas height
   const canvasHeightAnim = useRef(
@@ -405,6 +413,17 @@ const HomeScreen = () => {
         setZoomScale(newScale);
         zoomScaleAnim.setValue(newScale);
       }
+
+      // Three, four, or five finger gesture - Trigger Infinite View
+      if (touches.length >= 3) {
+        // Check if pinching in (distance decreasing)
+        const scaleFactor = currentDistance / initialPinchDistance.current;
+        if (scaleFactor < 0.8 && !infiniteViewVisible) {
+             setInfiniteViewVisible(true);
+             // Reset pinch to avoid repeated triggers
+             initialPinchDistance.current = null;
+        }
+      }
     }
   };
 
@@ -436,7 +455,8 @@ const HomeScreen = () => {
   const isModalOpen =
     artStyleModalVisible ||
     generateMockupModalVisible ||
-    globalEditingModalVisible;
+    globalEditingModalVisible ||
+    generalPromptModalVisible;
 
   // Calculate canvas height based on modal height and suggestions visibility
   const calculateCanvasHeight = (modalHeight, modalOpen, hasImage) => {
@@ -486,9 +506,13 @@ const HomeScreen = () => {
       Keyboard.dismiss();
 
       // If any modal is open, close it
+      if (generalPromptModalVisible) {
+        setGeneralPromptModalVisible(false);
+        return true; // Prevent default back behavior
+      }
       if (globalEditingModalVisible) {
         setGlobalEditingModalVisible(false);
-        return true; // Prevent default back behavior
+        return true;
       }
       if (artStyleModalVisible) {
         setArtStyleModalVisible(false);
@@ -513,6 +537,7 @@ const HomeScreen = () => {
     globalEditingModalVisible,
     artStyleModalVisible,
     generateMockupModalVisible,
+    generalPromptModalVisible,
   ]);
 
   // Handler for modal height changes
@@ -1395,8 +1420,8 @@ const HomeScreen = () => {
   };
 
   const handleAIPromptPress = () => {
-    // Navigate to AI assistant (future feature)
-    Alert.alert("AI Assistant", "AI prompt feature coming soon!");
+    // Open general prompt modal with tooltip
+    setGeneralPromptModalVisible(true);
   };
 
   const handleDrawerToggle = () => {
@@ -1429,6 +1454,39 @@ const HomeScreen = () => {
     setShowSemanticEditor(false); // Reset semantic editor state
   };
 
+  const handleCloseGeneralPromptModal = () => {
+    setGeneralPromptModalVisible(false);
+  };
+
+  // Handle mode switching from any modal
+  const handleModeChange = (mode) => {
+    // Close all modals first
+    setArtStyleModalVisible(false);
+    setGenerateMockupModalVisible(false);
+    setGlobalEditingModalVisible(false);
+    setGeneralPromptModalVisible(false);
+    setShowSemanticEditor(false);
+
+    // Open the appropriate modal based on selected mode
+    switch (mode) {
+      case "smart-adjust":
+        setGlobalEditingModalVisible(true);
+        break;
+      case "match-art-style":
+        setArtStyleModalVisible(true);
+        break;
+      case "rebuild-background":
+        setGenerateMockupModalVisible(true);
+        break;
+      case "product-mockup":
+        // Product mockup modal not implemented yet
+        Alert.alert("Coming Soon", "Product Mockup feature will be available soon!");
+        break;
+      default:
+        console.log("Unknown mode:", mode);
+    }
+  };
+
   // Loading Overlay Component
   const LoadingOverlay = ({ message }) => (
     <View style={styles.loadingOverlay}>
@@ -1450,6 +1508,7 @@ const HomeScreen = () => {
           subtitle="Synced just now"
           onBackPress={handleBackPress}
           onMenuPress={handleMenuPress}
+          onInfiniteViewPress={() => setInfiniteViewVisible(true)}
           onUndoPress={() =>
             Alert.alert("Undo", "Undo functionality coming soon!")
           }
@@ -1503,7 +1562,11 @@ const HomeScreen = () => {
                     <FilteredImage
                       uri={imageState.uri}
                       filters={filterValues}
-                      style={{ width: "100%", height: "100%" }}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                      }}
+                      onLongPress={() => setImageMenuVisible(true)}
                     />
                   </Animated.View>
                 ) : (
@@ -1630,9 +1693,6 @@ const HomeScreen = () => {
         </View>
 
         {/* Art Style Transfer Modal */}
-        {/* Art Style Transfer Modal */}
-        {/* Art Style Transfer Modal */}
-        {/* Art Style Transfer Modal */}
         <ArtStyleTransferModal
           visible={artStyleModalVisible}
           onClose={handleCloseArtStyleModal}
@@ -1641,6 +1701,7 @@ const HomeScreen = () => {
           llm={llm}
           modelReady={isModelReady}
           suggestions={allSuggestions}
+          onModeChange={handleModeChange}
         />
 
         {/* Generate Mockup Modal */}
@@ -1651,6 +1712,7 @@ const HomeScreen = () => {
           llm={llm}
           modelReady={isModelReady}
           suggestions={allSuggestions}
+          onModeChange={handleModeChange}
         />
 
         {/* Global Editing Modal */}
@@ -1671,6 +1733,17 @@ const HomeScreen = () => {
           modelReady={isModelReady}
           suggestions={allSuggestions}
           showSemanticEditor={showSemanticEditor}
+          onModeChange={handleModeChange}
+        />
+
+        {/* General Prompt Modal (AI Button) */}
+        <GeneralPromptModal
+          visible={generalPromptModalVisible}
+          onClose={handleCloseGeneralPromptModal}
+          onHeightChange={handleModalHeightChange}
+          onModeChange={handleModeChange}
+          llm={llm}
+          modelReady={isModelReady}
         />
 
         {/* Status Modal for progress updates - REMOVED */}
@@ -1691,6 +1764,30 @@ const HomeScreen = () => {
           imageUri={imageState.uri}
           onClose={() => setFullScreenPreviewVisible(false)}
         />
+
+        {/* Infinite View Overlay */}
+        <InfiniteView
+          visible={infiniteViewVisible}
+          onClose={() => setInfiniteViewVisible(false)}
+          images={imageState.uri ? [imageState.uri] : []}
+          onImageLongPress={(node) => {
+            console.log("Long pressed node:", node);
+            setImageMenuVisible(true);
+          }}
+        />
+
+        {/* Image Menu Modal */}
+        <ImageMenuModal
+          visible={imageMenuVisible}
+          onClose={() => setImageMenuVisible(false)}
+          onAction={(actionId) => {
+            console.log("Menu action:", actionId);
+            // Handle actions here
+          }}
+        />
+
+        {/* Onboarding Tooltips Overlay */}
+        <OnboardingOverlay />
       </View>
     </SafeAreaView>
   );

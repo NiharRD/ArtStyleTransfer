@@ -16,6 +16,7 @@ import {
 import GhostTextInput from "../ui/GhostTextInput";
 import BackgroundGalleryGrid from "./BackgroundGalleryGrid";
 import ModalContainer from "./ModalContainer";
+import ModeSelector from "./ModeSelector";
 import ProductImageChip from "./ProductImageChip";
 import StyleSearchBar from "./StyleSearchBar";
 import TalkToKimiButton from "./TalkToKimiButton";
@@ -113,7 +114,7 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
  * - 'backgroundGallery': Background grid with categories + search bar
  * - 'allSelected': Both product + background thumbnails + circular reference button
  */
-const GenerateMockupModal = ({ visible, onClose, onHeightChange, llm, modelReady }) => {
+const GenerateMockupModal = ({ visible, onClose, onHeightChange, llm, modelReady, onModeChange }) => {
   const [modalState, setModalState] = useState("textOnly");
   const [promptText, setPromptText] = useState("");
   const [productImage, setProductImage] = useState(null);
@@ -221,15 +222,13 @@ const GenerateMockupModal = ({ visible, onClose, onHeightChange, llm, modelReady
         <View style={styles.contentContainer}>
           {/* Header Row */}
           <View style={styles.headerRow}>
-            {/* Dropdown to close */}
-            <TouchableOpacity
-              style={styles.header}
-              onPress={handleHeaderClick}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.headerText}>Rebuild Background</Text>
-              <DropdownIcon size={16} color={Colors.textAccent} />
-            </TouchableOpacity>
+            {/* Mode Selector Dropdown */}
+            <ModeSelector
+              currentMode="rebuild-background"
+              onModeChange={onModeChange}
+              onClose={onClose}
+              showTooltip={false}
+            />
 
             {/* Cross button - only in gallery state */}
             {modalState === "backgroundGallery" && (
