@@ -116,29 +116,53 @@ const HomeScreen = () => {
     const initModel = async () => {
       try {
         if (!isModelReady) {
-          console.log("Loading LLM model...");
-          // The useLLM hook might handle loading internally or expose a load method.
-          // Based on typical patterns and the user request "loads automatically when it start",
-          // we'll assume the hook or a method needs to be called or it does it on init.
-          // If the library requires an explicit load call:
-          // await llm.load(); 
+          console.log("--- LLM Initialization Start ---");
+          console.log("Checking model status...");
+          console.log("LLM Object Keys:", Object.keys(llm));
+          console.log("Type of llm.load:", typeof llm.load);
           
-          // However, often these hooks return a 'loading' state or similar.
-          // If 'useLLM' returns an object with 'load' function:
-           if (llm.load) {
+          // The useLLM hook's load function typically handles downloading if the model isn't cached.
+          if (typeof llm.load === 'function') {
+             console.log("Initiating model download/load sequence...");
+             const startTime = Date.now();
+             
              await llm.load();
+             
+             const duration = Date.now() - startTime;
+             console.log(`Model operation completed in ${duration}ms`);
+             console.log("CONFIRMATION: Model has been downloaded (if missing) and loaded into memory.");
+           } else {
+             console.log("WARNING: llm.load is not a function. Model might not be loaded correctly.");
            }
           
           setIsModelReady(true);
-          console.log("LLM model loaded and ready.");
+          console.log("--- LLM Ready for Inference ---");
         }
       } catch (error) {
-        console.error("Failed to load LLM model:", error);
+        console.error("CRITICAL ERROR: Failed to download or load LLM model:", error);
         setModelLoadingError(error.message);
       }
     };
     initModel();
   }, []);
+
+  // Monitor download progress
+  useEffect(() => {
+    if (llm.downloadProgress !== undefined && llm.downloadProgress < 1) {
+      const progress = (llm.downloadProgress * 100).toFixed(1);
+      console.log(`Downloading model: ${progress}%`);
+    }
+  }, [llm.downloadProgress]);
+
+  // Cleanup: Interrupt generation if the user leaves the screen or component unmounts
+  useEffect(() => {
+    return () => {
+      if (llm && llm.isGenerating) {
+        console.log("Interrupting LLM generation on cleanup...");
+        llm.interrupt();
+      }
+    };
+  }, [llm]);
 
   // Original image state - stores the initially picked image for AI reference
   const [originalImageState, setOriginalImageState] = useState({
@@ -1252,11 +1276,14 @@ const HomeScreen = () => {
         </View>
 
         {/* Art Style Transfer Modal */}
+        {/* Art Style Transfer Modal */}
         <ArtStyleTransferModal
           visible={artStyleModalVisible}
           onClose={handleCloseArtStyleModal}
           onHeightChange={handleModalHeightChange}
           onSend={handleArtStyleTransferSend}
+          llm={llm}
+          modelReady={isModelReady}
         />
 
         {/* Generate Mockup Modal */}
@@ -1264,6 +1291,8 @@ const HomeScreen = () => {
           visible={generateMockupModalVisible}
           onClose={handleCloseGenerateMockupModal}
           onHeightChange={handleModalHeightChange}
+          llm={llm}
+          modelReady={isModelReady}
         />
 
         {/* Global Editing Modal */}
@@ -1280,10 +1309,17 @@ const HomeScreen = () => {
           isSemanticLoading={semanticLoading}
           onFilterChange={handleFilterChange}
           initialPrompt={generatedPrompt}
+          llm={llm}
+          modelReady={isModelReady}
         />
 
         {/* Status Modal for progress updates - REMOVED */}
         {/* <StatusModalComponent /> */}
+
+        {/* Download Progress Overlay */}
+        {llm.downloadProgress !== undefined && llm.downloadProgress < 1 && (
+          <LoadingOverlay message={`Downloading AI Model: ${(llm.downloadProgress * 100).toFixed(0)}%`} />
+        )}
       </View>
     </SafeAreaView>
   );

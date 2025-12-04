@@ -3,7 +3,6 @@ import {
     Keyboard,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     View
 } from "react-native";
@@ -14,6 +13,7 @@ import {
     Spacing,
     Typography,
 } from "../../constants/Theme";
+import GhostTextInput from "../ui/GhostTextInput";
 import ModalContainer from "./ModalContainer";
 import SelectedStyleChip from "./SelectedStyleChip";
 import StyleGalleryGrid from "./StyleGalleryGrid";
@@ -112,7 +112,7 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
  * - 'gallery': Style gallery grid with search
  * - 'textWithStyle': Text input with selected style chip
  */
-const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend }) => {
+const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend, llm, modelReady }) => {
   const [modalState, setModalState] = useState("textOnly");
   const [promptText, setPromptText] = useState("");
   const [selectedStyle, setSelectedStyle] = useState(null);
@@ -225,13 +225,15 @@ const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend }) => 
           {/* State 1: Text Only */}
           {modalState === "textOnly" && (
             <View style={styles.stateContent}>
-              <TextInput
+              <GhostTextInput
                 style={styles.textInput}
                 value={promptText}
                 onChangeText={setPromptText}
                 placeholder="Can you make this scene more gloomy"
                 placeholderTextColor="#949494"
                 multiline
+                llm={llm}
+                modelReady={modelReady}
               />
 
               <View style={styles.actionsRow}>
@@ -316,13 +318,15 @@ const ArtStyleTransferModal = ({ visible, onClose, onHeightChange, onSend }) => 
                 onDeselect={handleDeselectStyle}
               />
 
-              <TextInput
+              <GhostTextInput
                 style={styles.textInput}
                 value={promptText}
                 onChangeText={setPromptText}
                 placeholder="Can you make this scene more gloomy"
                 placeholderTextColor="#949494"
                 multiline
+                llm={llm}
+                modelReady={modelReady}
               />
 
               <View style={styles.actionsRow}>
