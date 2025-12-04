@@ -3,19 +3,19 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  BackHandler,
-  Dimensions,
-  Image,
-  Keyboard,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    BackHandler,
+    Dimensions,
+    Image,
+    Keyboard,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
 import { z } from "zod";
@@ -1426,7 +1426,14 @@ const HomeScreen = () => {
         {/* Main Image Display Area - Animated height & width (maintains aspect ratio) */}
         {/* Two-finger pinch for zoom, tap for full-screen preview */}
         <View
-          style={[styles.imageContainer, { overflow: 'visible', zIndex: zoomScale > 1 ? 100 : 1 }]}
+          style={[
+            styles.imageContainer,
+            {
+              overflow: 'visible',
+              zIndex: zoomScale > 1 ? 9999 : 1,
+              elevation: zoomScale > 1 ? 9999 : 1,
+            }
+          ]}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -1442,6 +1449,8 @@ const HomeScreen = () => {
                   {
                     transform: [{ scale: zoomScaleAnim }],
                     overflow: 'visible',
+                    zIndex: zoomScale > 1 ? 9999 : 1,
+                    elevation: zoomScale > 1 ? 9999 : 1,
                   }
                 ]}
               >
@@ -1663,6 +1672,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     marginTop: 10,
+    position: "relative",
   },
   imageWrapper: {
     position: "relative",
