@@ -12,6 +12,7 @@
     "@expo/vector-icons": "^15.0.3",
     "@google/genai": "^1.30.0",
     "@google/generative-ai": "^0.24.1",
+    "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-navigation/native": "^7.1.8",
     "axios": "^1.13.2",
     "expo": "~54.0.25",

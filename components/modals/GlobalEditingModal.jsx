@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Animated,
+    Easing,
     Keyboard,
     StyleSheet,
     Text,
@@ -285,7 +286,7 @@ const GlobalEditingModal = ({
       [feature]: value,
     };
     setSliderValues(newValues);
-    
+
     // Notify parent of filter changes for real-time preview
     if (onFilterChange) {
       onFilterChange(newValues);
@@ -295,22 +296,22 @@ const GlobalEditingModal = ({
   // Animate upper section height when visibility changes
   useEffect(() => {
     const targetHeight = upperSectionVisible ? UPPER_SECTION_HEIGHT : 0;
-    Animated.spring(upperSectionHeightAnim, {
+    Animated.timing(upperSectionHeightAnim, {
       toValue: targetHeight,
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
-      tension: 65,
-      friction: 11,
     }).start();
   }, [upperSectionVisible]);
 
   // Animate confirmation row height when visibility changes
   useEffect(() => {
     const targetHeight = confirmationVisible ? CONFIRMATION_ROW_HEIGHT : 0;
-    Animated.spring(confirmationHeightAnim, {
+    Animated.timing(confirmationHeightAnim, {
       toValue: targetHeight,
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
-      tension: 65,
-      friction: 11,
     }).start();
   }, [confirmationVisible]);
 
@@ -703,8 +704,8 @@ const GlobalEditingModal = ({
                 ]}
                 value={promptText}
                 onChangeText={setPromptText}
-                placeholder="Can you make this scene more gloomy"
-                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                cyclePlaceholders={true}
+                placeholderTextColor="#949494"
                 multiline
                 editable={!upperSectionVisible}
                 llm={llm}
@@ -753,7 +754,7 @@ const GlobalEditingModal = ({
                 value={promptText}
                 onChangeText={setPromptText}
                 placeholder="Awesome! Now change the mood to something..."
-                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                placeholderTextColor="#949494"
                 multiline
                 llm={llm}
                 modelReady={modelReady}
@@ -783,9 +784,9 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   contentContainer: {
-    backgroundColor: "#1D1C1D",
-    borderWidth: 0,
-    borderColor: "#FFFFFF",
+    backgroundColor: "rgba(43, 40, 41, 0.95)",
+    borderWidth: 0.681,
+    borderColor: Colors.modalBorder,
     borderRadius: 24,
     paddingTop: Spacing.md,
     paddingHorizontal: Spacing.xxl,
@@ -823,8 +824,9 @@ const styles = StyleSheet.create({
   globalEditingButton: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 4,
-    backgroundColor: "rgba(47, 44, 45, 0.9)",
+    backgroundColor: Colors.glassBackground,
     borderWidth: 0.681,
     borderColor: Colors.glassBorder,
     borderRadius: BorderRadius.pill,
@@ -834,7 +836,7 @@ const styles = StyleSheet.create({
   globalEditingText: {
     fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.base,
-    color: "#F2F2F7",
+    color: Colors.textAccent,
     letterSpacing: Typography.letterSpacing.normal,
   },
   toggleContainer: {

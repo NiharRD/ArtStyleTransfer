@@ -27,7 +27,6 @@ const styles = StyleSheet.create({
     height: Layout.aiButtonSize,
     justifyContent: "center",
     alignItems: "center",
-    paddingBottom: 27.5,
   },
   icon: {
     width: Layout.aiButtonSize,

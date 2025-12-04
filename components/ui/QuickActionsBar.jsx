@@ -1,15 +1,50 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import {
-  AddIcon,
-  BrushIcon,
-  CameraIcon,
-  TShirtIcon,
+    AddIcon,
+    BrushIcon,
+    CameraIcon,
+    TShirtIcon,
 } from "../icons/IconComponents";
 import QuickActionButton from "./QuickActionButton";
 
-const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress, onGlobalEditingPress }) => {
+const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress, onGlobalEditingPress, onScroll, onScrollPosition }) => {
   const scrollViewRef = useRef(null);
+  const contentWidthRef = useRef(0);
+  const scrollViewWidthRef = useRef(0);
+
+  const handleScrollBegin = () => {
+    if (onScroll) {
+      onScroll(true);
+    }
+  };
+
+  const handleScrollEnd = (event) => {
+    if (onScroll) {
+      onScroll(false);
+    }
+    // Check if at the end
+    checkScrollPosition(event);
+  };
+
+  const handleScroll = (event) => {
+    checkScrollPosition(event);
+  };
+
+  const checkScrollPosition = (event) => {
+    if (onScrollPosition) {
+      const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+      const scrollX = contentOffset.x;
+      const maxScrollX = contentSize.width - layoutMeasurement.width;
+
+      // Consider "at end" if within 20px of the max scroll
+      const isAtEnd = scrollX >= maxScrollX - 20;
+      // Consider "at start" if within 20px of 0
+      const isAtStart = scrollX <= 20;
+
+      onScrollPosition({ isAtEnd, isAtStart, scrollX, maxScrollX });
+    }
+  };
 
   const handleActionPress = (actionId) => {
     switch (actionId) {
@@ -86,6 +121,12 @@ const QuickActionsBar = ({ onArtStylePress, onGenerateMockupPress, onGlobalEditi
         contentContainerStyle={styles.scrollContent}
         decelerationRate="fast"
         snapToInterval={99} // width of button + margin
+        onScrollBeginDrag={handleScrollBegin}
+        onScrollEndDrag={handleScrollEnd}
+        onMomentumScrollBegin={handleScrollBegin}
+        onMomentumScrollEnd={handleScrollEnd}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {quickActions.map((action) => (
           <QuickActionButton

@@ -243,7 +243,80 @@ const HomeScreen = () => {
     new Animated.Value(DEFAULT_CANVAS_HEIGHT)
   ).current;
 
+  // Animated value for carousel scroll (0 = not scrolling, 1 = scrolling)
+  const carouselScrollAnim = useRef(new Animated.Value(0)).current;
+  const gradientOpacityAnim = useRef(new Animated.Value(1)).current;
+  const scrollTimeoutRef = useRef(null);
+  const isAtEndRef = useRef(false);
 
+  // Handler for carousel scroll events
+  const handleCarouselScroll = (isScrolling) => {
+    // Clear any existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    if (isScrolling) {
+      // Animate to scrolling state - hide button and fade
+      Animated.parallel([
+        Animated.timing(carouselScrollAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: false,
+        }),
+        Animated.timing(gradientOpacityAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    } else {
+      // Only show button again if NOT at the end
+      if (!isAtEndRef.current) {
+        scrollTimeoutRef.current = setTimeout(() => {
+          Animated.parallel([
+            Animated.timing(carouselScrollAnim, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: false,
+            }),
+            Animated.timing(gradientOpacityAnim, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: false,
+            }),
+          ]).start();
+        }, 150);
+      }
+    }
+  };
+
+  // Handler for scroll position changes
+  const handleCarouselScrollPosition = ({ isAtEnd, isAtStart }) => {
+    isAtEndRef.current = isAtEnd;
+
+    // If scrolling back towards start, show the button again
+    if (isAtStart && carouselScrollAnim._value === 1) {
+      Animated.parallel([
+        Animated.timing(carouselScrollAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+        Animated.timing(gradientOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  };
+
+  // Interpolate AI button opacity (fades out when scrolling)
+  const aiButtonOpacity = carouselScrollAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
 
   // Interpolate width from height to maintain aspect ratio
   const canvasWidthAnim = canvasHeightAnim.interpolate({
@@ -263,8 +336,9 @@ const HomeScreen = () => {
   // Calculate canvas height based on modal height and suggestions visibility
   const calculateCanvasHeight = (modalHeight, modalOpen, hasImage) => {
     if (modalHeight > 0) {
-      // Modal is open - shrink proportionally to modal height (50% of modal height)
-      const shrinkAmount = modalHeight * 0.5;
+      // Modal is open - shrink to fit nicely above the modal
+      // Less shrinking = larger canvas = less empty space
+      const shrinkAmount = modalHeight * 0.35;
       const newHeight = DEFAULT_CANVAS_HEIGHT - shrinkAmount;
       return Math.max(newHeight, MIN_CANVAS_HEIGHT);
     }
@@ -1262,6 +1336,8 @@ const HomeScreen = () => {
                   onArtStylePress={handleArtStylePress}
                   onGenerateMockupPress={handleGenerateMockupPress}
                   onGlobalEditingPress={handleGlobalEditingPress}
+                  onScroll={handleCarouselScroll}
+                  onScrollPosition={handleCarouselScrollPosition}
                 />
               )}
 
@@ -1270,23 +1346,21 @@ const HomeScreen = () => {
               !generateMockupModalVisible &&
               !globalEditingModalVisible && (
                 <View style={styles.aiButtonWrapper} pointerEvents="box-none">
-                  <LinearGradient
-                    colors={['transparent', 'transparent', 'rgba(25, 24, 22, 0.6)', 'rgba(25, 24, 22, 1)']}
-                    locations={[0, 0.35, 0.65, 1]}
-                    start={{ x: 0, y: 0.5 }}
-                    end={{ x: 1, y: 0.5 }}
-                    style={styles.aiButtonGradient}
-                    pointerEvents="none"
-                  />
-                  <View style={styles.aiButtonContainer}>
+                  <Animated.View style={[styles.aiButtonGradient, { opacity: gradientOpacityAnim }]} pointerEvents="none">
+                    <LinearGradient
+                      colors={['transparent', 'transparent', 'rgba(25, 24, 22, 0.6)', 'rgba(25, 24, 22, 1)']}
+                      locations={[0, 0.35, 0.65, 1]}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={styles.aiButtonGradient}
+                    />
+                  </Animated.View>
+                  <Animated.View style={[styles.aiButtonContainer, { opacity: aiButtonOpacity }]}>
                     <AIPromptButton onPress={handleAIPromptPress} />
-                  </View>
+                  </Animated.View>
                 </View>
               )}
           </View>
-
-          {/* Home Indicator */}
-          <View style={styles.homeIndicator} />
         </View>
 
         {/* Art Style Transfer Modal */}
@@ -1504,16 +1578,8 @@ const styles = StyleSheet.create({
   },
   aiButtonContainer: {
     marginRight: -35,
-    marginTop: 25,
+    marginTop: 0,
     zIndex: 11,
-  },
-  homeIndicator: {
-    width: Layout.homeIndicatorWidth,
-    height: Layout.homeIndicatorHeight,
-    backgroundColor: Colors.indicator,
-    borderRadius: BorderRadius.full,
-    alignSelf: "center",
-    marginTop: 12,
   },
 });
 

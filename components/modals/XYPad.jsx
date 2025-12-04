@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
     Animated,
+    Easing,
     StyleSheet,
     Text,
     TouchableWithoutFeedback,
@@ -68,18 +69,21 @@ const XYPad = ({
   useEffect(() => {
     if (containerSize.width > 0 && containerSize.height > 0) {
       const pos = calculateDotPosition(value.x, value.y, containerSize);
-      Animated.spring(dotX, {
-        toValue: pos.x,
-        useNativeDriver: false,
-        tension: 120,
-        friction: 10,
-      }).start();
-      Animated.spring(dotY, {
-        toValue: pos.y,
-        useNativeDriver: false,
-        tension: 120,
-        friction: 10,
-      }).start();
+      // Use fast timing for responsive feel
+      Animated.parallel([
+        Animated.timing(dotX, {
+          toValue: pos.x,
+          duration: 150,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+        Animated.timing(dotY, {
+          toValue: pos.y,
+          duration: 150,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+      ]).start();
     }
   }, [value.x, value.y, containerSize.width, containerSize.height]);
 
