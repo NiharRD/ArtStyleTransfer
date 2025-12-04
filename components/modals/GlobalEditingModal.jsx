@@ -32,7 +32,6 @@ import XYPad from "./XYPad";
 
 // Constants for animation
 const UPPER_SECTION_HEIGHT = 250;
-const CONFIRMATION_ROW_HEIGHT = 70;
 
 /**
  * Icon Components
@@ -157,44 +156,6 @@ const ArrowSendIcon = ({ size = 44, color = "#8A2BE2" }) => (
   </Svg>
 );
 
-// Check/Tick Icon for confirmation button
-const CheckIcon = ({ size = 28, color = "white" }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M20 6L9 17L4 12"
-      stroke={color}
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-// Refresh/Retry Icon for confirmation button
-const RefreshIcon = ({ size = 28, color = "white" }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C15.3313 3 18.2368 4.85661 19.8 7.6M21 4V8H17"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-// Info Circle Icon for confirmation row
-const InfoCircleIcon = ({ size = 10, color = "#E6E6E6" }) => (
-  <Svg width={size} height={size} viewBox="0 0 16 16" fill="none">
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM8 5C7.72386 5 7.5 5.22386 7.5 5.5C7.5 5.77614 7.72386 6 8 6C8.27614 6 8.5 5.77614 8.5 5.5C8.5 5.22386 8.27614 5 8 5ZM8 7C7.72386 7 7.5 7.22386 7.5 7.5V10.5C7.5 10.7761 7.72386 11 8 11C8.27614 11 8.5 10.7761 8.5 10.5V7.5C8.5 7.22386 8.27614 7 8 7Z"
-      fill={color}
-    />
-  </Svg>
-);
-
 // Refine Icon (sparkle/magic wand)
 const RefineIcon = ({ size = 16, color = "#E6E6E6" }) => (
   <Svg width={size} height={size} viewBox="0 0 16 16" fill="none">
@@ -234,6 +195,8 @@ const GlobalEditingModal = ({
   llm,
   modelReady,
   suggestions = [],
+  onConfirmationStateChange, // Callback to notify parent of confirmation visibility
+  showSemanticEditor, // External trigger to show semantic editor (upper section)
 }) => {
   // Input state: textInput (first state) or voicePrompt (second state)
   const [inputState, setInputState] = useState("textInput");
@@ -266,7 +229,6 @@ const GlobalEditingModal = ({
 
   // Animation values
   const upperSectionHeightAnim = useRef(new Animated.Value(0)).current;
-  const confirmationHeightAnim = useRef(new Animated.Value(0)).current;
 
   // XY Pad state management for bulb state
   const [xyPadValue, setXYPadValue] = useState({ x: 0, y: 0 });
@@ -309,24 +271,27 @@ const GlobalEditingModal = ({
     }).start();
   }, [upperSectionVisible]);
 
-  // Animate confirmation row height when visibility changes
+  // Notify parent when confirmation visibility changes
   useEffect(() => {
-    const targetHeight = confirmationVisible ? CONFIRMATION_ROW_HEIGHT : 0;
-    Animated.timing(confirmationHeightAnim, {
-      toValue: targetHeight,
-      duration: 200,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
-  }, [confirmationVisible]);
+    if (onConfirmationStateChange) {
+      onConfirmationStateChange(confirmationVisible);
+    }
+  }, [confirmationVisible, onConfirmationStateChange]);
+
+  // Respond to external trigger to show semantic editor
+  useEffect(() => {
+    if (showSemanticEditor) {
+      setUpperSectionVisible(true);
+    }
+  }, [showSemanticEditor]);
 
   // Calculate modal height based on all states
   const getModalHeight = () => {
     let baseHeight = 260; // Base height with controls row + text input + actions row
 
-    // Add confirmation row height if visible
-    if (confirmationVisible) {
-      baseHeight += CONFIRMATION_ROW_HEIGHT;
+    // Add confirmation row height if visible (and upper section not visible)
+    if (confirmationVisible && !upperSectionVisible) {
+      baseHeight += 70; // Height of confirmation row
     }
 
     // Add upper section height if visible
@@ -511,12 +476,71 @@ const GlobalEditingModal = ({
           <DrawerToggle onPress={handleHeaderClick} />
         )}
 
-        {/* Talk to Kimi Button - hide when upper section is visible */}
-        {!upperSectionVisible && (
+        {/* Talk to Kimi Button - hide when upper section is visible and confirmation not visible */}
+        {!upperSectionVisible && !confirmationVisible && (
           <TalkToKimiButton
             onPress={handleTalkToKimiPress}
             label={getTalkToKimiLabel()}
           />
+        )}
+
+        {/* Confirmation Row - "Keep these changes?" */}
+        {confirmationVisible && !upperSectionVisible && (
+          <View style={styles.confirmationContainer}>
+            {/* Info Box */}
+            <View style={styles.confirmationInfoBox}>
+              <Text style={styles.confirmationTitle}>Keep these changes?</Text>
+              <View style={styles.confirmationHintRow}>
+                <Svg width={10} height={10} viewBox="0 0 16 16" fill="none">
+                  <Path
+                    d="M8 0C3.58 0 0 3.58 0 8C0 12.42 3.58 16 8 16C12.42 16 16 12.42 16 8C16 3.58 12.42 0 8 0ZM9 12H7V7H9V12ZM9 5H7V3H9V5Z"
+                    fill="rgba(255, 255, 255, 0.6)"
+                  />
+                </Svg>
+                <Text style={styles.confirmationHint}>
+                  Retrying can help refine the details.
+                </Text>
+              </View>
+            </View>
+
+            {/* Retry Button (purple) */}
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={handleRetryPress}
+              activeOpacity={0.7}
+              disabled={isSending || isProcessing}
+            >
+              {isSending || isProcessing ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4.01 7.58 4.01 12C4.01 16.42 7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z"
+                    fill="#FFFFFF"
+                  />
+                </Svg>
+              )}
+            </TouchableOpacity>
+
+            {/* Tick Button (dark) */}
+            <TouchableOpacity
+              style={styles.tickButton}
+              onPress={handleTickPress}
+              activeOpacity={0.7}
+              disabled={isLoadingSemantic}
+            >
+              {isLoadingSemantic ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"
+                    fill="#FFFFFF"
+                  />
+                </Svg>
+              )}
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* Main Content */}
@@ -566,6 +590,23 @@ const GlobalEditingModal = ({
               <XYPad
                 value={xyPadValue}
                 onValueChange={setXYPadValue}
+                onDragEnd={async (finalValue) => {
+                  if (onSemanticEdit) {
+                    setIsSending(true);
+                    try {
+                      const success = await onSemanticEdit(finalValue);
+                      if (success) {
+                        // Show "Keep these changes?" confirmation after successful edit
+                        setConfirmationVisible(true);
+                      }
+                    } catch (error) {
+                      console.error("Error in semantic edit:", error);
+                    } finally {
+                      setIsSending(false);
+                    }
+                  }
+                }}
+                disabled={isSending || isProcessing}
                 dotColor="#8A2BE2"
                 labels={semanticLabels}
               />
@@ -639,71 +680,6 @@ const GlobalEditingModal = ({
               </View>
             )}
           </View>
-
-
-
-          {/* Confirmation Row - "Keep these changes?" */}
-          <Animated.View
-            style={[
-              styles.confirmationRow,
-              {
-                height: confirmationHeightAnim,
-                opacity: confirmationHeightAnim.interpolate({
-                  inputRange: [
-                    0,
-                    CONFIRMATION_ROW_HEIGHT * 0.5,
-                    CONFIRMATION_ROW_HEIGHT,
-                  ],
-                  outputRange: [0, 0.5, 1],
-                }),
-                overflow: "hidden",
-              },
-            ]}
-          >
-            <View style={styles.confirmationCard}>
-              <View style={styles.confirmationContent}>
-                <Text style={styles.confirmationTitle}>
-                  Keep these changes?
-                </Text>
-                <View style={styles.confirmationHelperRow}>
-                  <InfoCircleIcon size={10} color="rgba(230, 230, 230, 0.7)" />
-                  <Text style={styles.confirmationHelperText}>
-                    Retrying can help refine the details.
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Retry Button (Purple) */}
-            <TouchableOpacity
-              style={[
-                styles.retryButton,
-                (isSending || isProcessing) && styles.buttonDisabled,
-              ]}
-              onPress={handleRetryPress}
-              activeOpacity={0.7}
-              disabled={isSending || isProcessing}
-            >
-              {isSending || isProcessing ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <RefreshIcon size={28} color="white" />
-              )}
-            </TouchableOpacity>
-
-            {/* Tick/Check Button (Dark) */}
-            <TouchableOpacity
-              style={[
-                styles.tickButton,
-                (isSending || isProcessing) && styles.buttonDisabled,
-              ]}
-              onPress={handleTickPress}
-              activeOpacity={0.7}
-              disabled={isSending || isProcessing}
-            >
-              <CheckIcon size={28} color="white" />
-            </TouchableOpacity>
-          </Animated.View>
 
           {/* Text Input Section */}
           {inputState === "textInput" ? (
@@ -922,60 +898,6 @@ const styles = StyleSheet.create({
     color: "rgba(242, 242, 247, 0.5)",
     letterSpacing: Typography.letterSpacing.normal,
   },
-  confirmationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  confirmationCard: {
-    flex: 1,
-    backgroundColor: "rgba(47, 44, 45, 0.9)",
-    borderWidth: 0.56,
-    borderColor: "rgba(120, 120, 128, 0.16)",
-    borderRadius: 10,
-    padding: 10,
-  },
-  confirmationContent: {
-    gap: 8,
-  },
-  confirmationTitle: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: 13,
-    color: "#E6E6E6",
-    letterSpacing: -0.13,
-  },
-  confirmationHelperRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-  },
-  confirmationHelperText: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: 10,
-    color: "#E6E6E6",
-    letterSpacing: -0.13,
-    flex: 1,
-  },
-  retryButton: {
-    width: 51,
-    height: 51,
-    borderRadius: 212,
-    backgroundColor: "rgba(100, 95, 226, 0.8)",
-    borderWidth: 1.646,
-    borderColor: "rgba(120, 120, 128, 0.16)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  tickButton: {
-    width: 51,
-    height: 51,
-    borderRadius: 212,
-    backgroundColor: "rgba(55, 51, 52, 0.8)",
-    borderWidth: 1.646,
-    borderColor: "rgba(120, 120, 128, 0.16)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   stateContent: {
     gap: Spacing.sm,
   },
@@ -1043,6 +965,60 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.5,
+  },
+  // Confirmation row styles
+  confirmationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+    paddingHorizontal: 8,
+  },
+  confirmationInfoBox: {
+    backgroundColor: "rgba(47, 44, 45, 0.9)",
+    borderWidth: 0.56,
+    borderColor: "rgba(120, 120, 128, 0.16)",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  confirmationTitle: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 13,
+    color: Colors.textAccent,
+    letterSpacing: -0.13,
+  },
+  confirmationHintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+  },
+  confirmationHint: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 10,
+    color: Colors.textAccent,
+    letterSpacing: -0.13,
+  },
+  retryButton: {
+    width: 51,
+    height: 51,
+    borderRadius: 212,
+    backgroundColor: "rgba(100, 95, 226, 0.8)",
+    borderWidth: 1.65,
+    borderColor: "rgba(120, 120, 128, 0.16)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  tickButton: {
+    width: 51,
+    height: 51,
+    borderRadius: 212,
+    backgroundColor: "rgba(55, 51, 52, 0.8)",
+    borderWidth: 1.65,
+    borderColor: "rgba(120, 120, 128, 0.16)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

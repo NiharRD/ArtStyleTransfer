@@ -243,6 +243,7 @@ const HomeScreen = () => {
     useState(false);
   const [globalEditingModalVisible, setGlobalEditingModalVisible] =
     useState(false);
+  const [showSemanticEditor, setShowSemanticEditor] = useState(false);
   const [currentModalHeight, setCurrentModalHeight] = useState(0);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
 
@@ -969,7 +970,12 @@ const HomeScreen = () => {
 
     try {
       const result = await fetchSemanticAxes(sessionIdGlobalEditing);
-      return result !== null;
+      if (result !== null) {
+        // Show the semantic editor in the modal
+        setShowSemanticEditor(true);
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error("Error in semantic init:", error);
       return false;
@@ -1309,6 +1315,7 @@ const HomeScreen = () => {
 
   const handleCloseGlobalEditingModal = () => {
     setGlobalEditingModalVisible(false);
+    setShowSemanticEditor(false); // Reset semantic editor state
   };
 
   // Loading Overlay Component
@@ -1524,6 +1531,7 @@ const HomeScreen = () => {
           llm={llm}
           modelReady={isModelReady}
           suggestions={allSuggestions}
+          showSemanticEditor={showSemanticEditor}
         />
 
         {/* Status Modal for progress updates - REMOVED */}
