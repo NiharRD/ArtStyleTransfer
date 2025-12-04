@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Colors, Opacity, Typography } from "../../constants/Theme";
-import { BackIcon, DotsIcon, RedoIcon, UndoIcon } from "../icons/IconComponents";
+import { BackIcon, DotsIcon, InfiniteViewIcon, RedoIcon, UndoIcon } from "../icons/IconComponents";
 
 const Header = ({
   title = "Untitled Project 1",
@@ -9,6 +9,7 @@ const Header = ({
   onMenuPress,
   onUndoPress,
   onRedoPress,
+  onInfiniteViewPress,
 }) => {
   return (
     <View style={styles.container}>
@@ -28,6 +29,14 @@ const Header = ({
       </View>
 
       <View style={styles.rightSection}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={onInfiniteViewPress}
+          activeOpacity={0.7}
+        >
+          <InfiniteViewIcon size={20} color={Colors.textAccent} />
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.iconButton}
           onPress={onUndoPress}

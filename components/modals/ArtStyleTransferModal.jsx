@@ -16,6 +16,7 @@ import {
 import DrawerToggle from "../ui/DrawerToggle";
 import GhostTextInput from "../ui/GhostTextInput";
 import ModalContainer from "./ModalContainer";
+import ModeSelector from "./ModeSelector";
 import SelectedStyleChip from "./SelectedStyleChip";
 import StyleGalleryGrid from "./StyleGalleryGrid";
 import StyleSearchBar from "./StyleSearchBar";
@@ -51,7 +52,7 @@ const VisualSearchIcon = ({ size = 16, color = "#E6E6E6" }) => (
     <Path
       fillRule="evenodd"
       clipRule="evenodd"
-      d="M11.5 7C11.5 9.48528 9.48528 11.5 7 11.5C4.51472 11.5 2.5 9.48528 2.5 7C2.5 4.51472 4.51472 2.5 7 2.5C9.48528 2.5 11.5 4.51472 11.5 7ZM10.832 11.5392C9.81298 12.453 8.47216 13 7 13C3.68629 13 1 10.3137 1 7C1 3.68629 3.68629 1 7 1C10.3137 1 13 3.68629 13 7C13 8.47216 12.453 9.81298 11.5392 10.832L14.8536 14.1464C15.0488 14.3417 15.0488 14.6583 14.8536 14.8536C14.6583 15.0488 14.3417 15.0488 14.1464 14.8536L10.832 11.5392Z"
+      d="M2 4.5C2 3.11929 3.11929 2 4.5 2H5.5C5.77614 2 6 2.22386 6 2.5C6 2.77614 5.77614 3 5.5 3H4.5C3.67157 3 3 3.67157 3 4.5V5.5C3 5.77614 2.77614 6 2.5 6C2.22386 6 2 5.77614 2 5.5V4.5ZM10.5 2C10.2239 2 10 2.22386 10 2.5C10 2.77614 10.2239 3 10.5 3H11.5C12.3284 3 13 3.67157 13 4.5V5.5C13 5.77614 13.2239 6 13.5 6C13.7761 6 14 5.77614 14 5.5V4.5C14 3.11929 12.8807 2 11.5 2H10.5ZM2 11.5C2 12.8807 3.11929 14 4.5 14H5.5C5.77614 14 6 13.7761 6 13.5C6 13.2239 5.77614 13 5.5 13H4.5C3.67157 13 3 12.3284 3 11.5V10.5C3 10.2239 2.77614 10 2.5 10C2.22386 10 2 10.2239 2 10.5V11.5ZM13.5 10C13.7761 10 14 10.2239 14 10.5V11.5C14 12.8807 12.8807 14 11.5 14H10.5C10.2239 14 10 13.7761 10 13.5C10 13.2239 10.2239 13 10.5 13H11.5C12.3284 13 13 12.3284 13 11.5V10.5C13 10.2239 13.2239 10 13.5 10ZM8 5.5C6.61929 5.5 5.5 6.61929 5.5 8C5.5 9.38071 6.61929 10.5 8 10.5C9.38071 10.5 10.5 9.38071 10.5 8C10.5 6.61929 9.38071 5.5 8 5.5ZM4.5 8C4.5 6.067 6.067 4.5 8 4.5C9.933 4.5 11.5 6.067 11.5 8C11.5 9.933 9.933 11.5 8 11.5C6.067 11.5 4.5 9.933 4.5 8Z"
       fill={color}
     />
   </Svg>
@@ -120,6 +121,7 @@ const ArtStyleTransferModal = ({
   onSend,
   llm,
   modelReady,
+  onModeChange, // Callback for mode switching
 }) => {
   const [modalState, setModalState] = useState("gallery");
   const [promptText, setPromptText] = useState("");
@@ -211,15 +213,13 @@ const ArtStyleTransferModal = ({
         <View style={styles.contentContainer}>
           {/* Header Row */}
           <View style={styles.headerRow}>
-            {/* Dropdown to close */}
-            <TouchableOpacity
-              style={styles.header}
-              onPress={handleHeaderClick}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.headerText}>Match Art Style</Text>
-              <DropdownIcon size={16} color={Colors.textAccent} />
-            </TouchableOpacity>
+            {/* Mode Selector Dropdown */}
+            <ModeSelector
+              currentMode="match-art-style"
+              onModeChange={onModeChange}
+              onClose={onClose}
+              showTooltip={false}
+            />
 
             {/* Cross button - only in gallery state */}
             {modalState === "gallery" && (
