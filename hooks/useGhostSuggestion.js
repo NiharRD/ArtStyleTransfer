@@ -7,14 +7,16 @@ import { useEffect, useRef, useState } from "react";
  * @param {boolean} modelReady - Whether the model is ready (kept for backwards compatibility, not used)
  * @param {array} suggestions - Style suggestions to guide the completion
  * @param {number} debounceTime - Time in ms to wait before generating (default 1000ms)
- * @returns {object} { suggestion, isLoading }
+ * @param {boolean} skipAutocomplete - Whether to skip autocomplete (e.g., after refining)
+ * @returns {object} { suggestion, isLoading, clearSuggestion }
  */
 export const useGhostSuggestion = (
   text,
   llm,
   modelReady,
   suggestions = [],
-  debounceTime = 1000
+  debounceTime = 1000,
+  skipAutocomplete = false
 ) => {
   const [suggestion, setSuggestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -81,6 +83,12 @@ export const useGhostSuggestion = (
       return;
     }
 
+    // Don't generate if skipAutocomplete is true (e.g., after refining)
+    if (skipAutocomplete) {
+      console.log("Autocomplete skipped (skipAutocomplete=true)");
+      return;
+    }
+
     lastTextRef.current = text;
 
     // Set new timeout
@@ -90,8 +98,8 @@ export const useGhostSuggestion = (
         console.log("Generating ghost suggestion for:", text);
         console.log("Suggestions:", suggestions);
 
-        // Call localhost API
-        const response = await fetch("http://10.16.0.248:8000/autocomplete", {
+        // Call localhost API - Update IP when network changes
+        const response = await fetch("http://10.16.1.94:8000/autocomplete", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -172,7 +180,14 @@ export const useGhostSuggestion = (
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [text, suggestions, debounceTime]);
+  }, [text, suggestions, debounceTime, skipAutocomplete]);
 
-  return { suggestion, isLoading };
+  // Function to clear suggestion manually
+  const clearSuggestion = () => {
+    setSuggestion("");
+    baseTextRef.current = "";
+    fullSuggestionRef.current = "";
+  };
+
+  return { suggestion, isLoading, clearSuggestion };
 };

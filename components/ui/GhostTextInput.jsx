@@ -136,6 +136,7 @@ const GhostTextInput = memo(
     cyclePlaceholders = false,
     suggestions = GLOBAL_EDITING_SUGGESTIONS,
     enableSuggestions = true,
+    skipAutocomplete = false,
     ...props
   }) => {
     // Only run hook if suggestions are enabled and value is not empty (if we wanted autocomplete)
@@ -149,11 +150,17 @@ const GhostTextInput = memo(
     // This confirms they don't want autocomplete.
 
     // We will still call the hook but ignore its result if we want to disable autocomplete.
-    const { suggestion: rawSuggestion, isLoading } = useGhostSuggestion(
+    const {
+      suggestion: rawSuggestion,
+      isLoading,
+      clearSuggestion,
+    } = useGhostSuggestion(
       value,
       llm,
       modelReady,
-      suggestions
+      suggestions,
+      1000,
+      skipAutocomplete
     );
 
     // Filter suggestion: Only show if enabled AND (user wants autocomplete? No, they said no).

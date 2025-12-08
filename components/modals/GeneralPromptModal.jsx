@@ -1,18 +1,20 @@
 import React, { useState } from "react";
 import {
-    Keyboard,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import {
-    BorderRadius,
-    Colors,
-    Spacing,
-    Typography,
+  BorderRadius,
+  Colors,
+  Spacing,
+  Typography,
 } from "../../constants/Theme";
+import { useRefinePrompt } from "../../hooks/useRefinePrompt";
 import DrawerToggle from "../ui/DrawerToggle";
 import GhostTextInput from "../ui/GhostTextInput";
 import ModalContainer from "./ModalContainer";
@@ -131,9 +133,34 @@ const GeneralPromptModal = ({
     onClose();
   };
 
-  // Placeholder functions
-  const handleRefine = () => {
-    console.log("Refine clicked");
+  // Use refine prompt hook
+  const { refinePrompt, isRefining } = useRefinePrompt();
+
+  // Track if text was just refined (to skip autocomplete)
+  const [wasRefined, setWasRefined] = useState(false);
+
+  // Handle refine button press - calls API and replaces text input
+  const handleRefine = async () => {
+    if (!promptText || promptText.trim().length === 0) {
+      console.warn("Refine: No text to refine");
+      return;
+    }
+
+    console.log("Refine clicked for:", promptText);
+    const refined = await refinePrompt(promptText);
+    if (refined) {
+      setWasRefined(true); // Skip autocomplete after refine
+      setPromptText(refined);
+      console.log("Text replaced with refined version:", refined);
+    }
+  };
+
+  // Reset wasRefined when user starts typing again
+  const handleTextChange = (newText) => {
+    if (wasRefined && newText !== promptText) {
+      setWasRefined(false);
+    }
+    setPromptText(newText);
   };
 
   const handleSend = async () => {
@@ -142,11 +169,7 @@ const GeneralPromptModal = ({
   };
 
   return (
-    <ModalContainer
-      visible={visible}
-      onClose={onClose}
-      height={MODAL_HEIGHT}
-    >
+    <ModalContainer visible={visible} onClose={onClose} height={MODAL_HEIGHT}>
       <View style={styles.container}>
         {/* Talk to Kimi Button */}
         <TalkToKimiButton onPress={() => console.log("Talk to Kimi")} />
@@ -175,7 +198,7 @@ const GeneralPromptModal = ({
                 !modeSelected && styles.textInputDisabled,
               ]}
               value={promptText}
-              onChangeText={setPromptText}
+              onChangeText={handleTextChange}
               placeholder={
                 modeSelected
                   ? "Describe what you want to do..."
@@ -186,6 +209,7 @@ const GeneralPromptModal = ({
               llm={llm}
               modelReady={modelReady}
               editable={modeSelected}
+              skipAutocomplete={wasRefined}
             />
 
             <View style={styles.actionsRow}>
@@ -195,14 +219,25 @@ const GeneralPromptModal = ({
                 <TouchableOpacity
                   style={[
                     styles.refineButton,
-                    !modeSelected && styles.buttonDisabled,
+                    (!modeSelected || isRefining) && styles.buttonDisabled,
                   ]}
                   onPress={handleRefine}
                   activeOpacity={0.7}
-                  disabled={!modeSelected}
+                  disabled={
+                    !modeSelected ||
+                    isRefining ||
+                    !promptText ||
+                    promptText.trim().length === 0
+                  }
                 >
-                  <RefineIcon size={16} color={Colors.textAccent} />
-                  <Text style={styles.buttonText}>Refine</Text>
+                  {isRefining ? (
+                    <ActivityIndicator size="small" color={Colors.textAccent} />
+                  ) : (
+                    <>
+                      <RefineIcon size={16} color={Colors.textAccent} />
+                      <Text style={styles.buttonText}>Refine</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
 
                 <TouchableOpacity
