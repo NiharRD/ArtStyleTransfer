@@ -95,30 +95,19 @@ export const useGhostSuggestion = (
         setIsLoading(true);
         console.log("Generating ghost suggestion for:", text);
 
-        // Construct prompt for autocomplete
-        let systemContent = `### Role
-You are a text completion assistant for an image editor.
+        // Optimized prompt for OnePlus Nord CE 4 (reduced tokens, few-shot examples)
+        let systemContent = `Complete text for image editing. Max 4 words, output completion only.
 
-### Task
-Complete the user's sentence naturally. Use the "Style Suggestions" below to guide the mood and tone.
-
-### Constraints
-1. Output ONLY the completion text.
-2. Do NOT repeat the user's input.
-3. Start exactly where the user left off.
-4. Keep it strictly short (maximum 6 words).`;
+`;
 
         console.log("--- Ghost Suggestion Debug ---");
         console.log("Input:", text);
         console.log("Suggestions received:", suggestions);
 
         if (suggestions && suggestions.length > 0) {
-          // Limit to first 6 suggestions to reduce context size
-          const limitedSuggestions = suggestions.slice(0, 6);
-          // Format suggestions as a clean list for better model comprehension
-          systemContent += `\n\n### Style Suggestions\n- ${limitedSuggestions.join(
-            "\n- "
-          )}`;
+          // Reduced to 3 suggestions for faster processing
+          const limitedSuggestions = suggestions.slice(0, 3);
+          systemContent += `\nStyle: ${limitedSuggestions.join(", ")}`;
         } else {
           console.log("No suggestions to append.");
         }
@@ -160,10 +149,10 @@ Complete the user's sentence naturally. Use the "Style Suggestions" below to gui
         if (completion) {
           let trimmedCompletion = completion.trim();
 
-          // Enforce 6 words limit client-side
+          // Enforce 3 words limit client-side (optimized for OnePlus Nord CE 4)
           const words = trimmedCompletion.split(/\s+/);
-          if (words.length > 6) {
-            trimmedCompletion = words.slice(0, 6).join(" ");
+          if (words.length > 3) {
+            trimmedCompletion = words.slice(0, 3).join(" ");
           }
 
           // Handle space logic:

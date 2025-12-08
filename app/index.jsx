@@ -17,7 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { LLAMA3_2_1B_SPINQUANT, useLLM } from "react-native-executorch";
+import { QWEN3_1_7B_QUANTIZED, useLLM } from "react-native-executorch";
 import { z } from "zod";
 import FilteredImage from "../components/FilteredImage";
 import InfiniteView from "../components/InfiniteView";
@@ -113,7 +113,7 @@ const HomeScreen = () => {
   });
 
   const llm = useLLM({
-    model: LLAMA3_2_1B_SPINQUANT,
+    model: QWEN3_1_7B_QUANTIZED, // Better quality than Llama 1B, optimized for mobile
     contextWindowLength: 128, // Reduced for better performance and memory usage
   });
 

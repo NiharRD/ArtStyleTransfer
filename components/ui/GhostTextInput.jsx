@@ -152,7 +152,8 @@ const GhostTextInput = memo(
     const { suggestion: rawSuggestion, isLoading } = useGhostSuggestion(
       value,
       llm,
-      modelReady
+      modelReady,
+      suggestions
     );
 
     // Filter suggestion: Only show if enabled AND (user wants autocomplete? No, they said no).
