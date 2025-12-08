@@ -152,7 +152,8 @@ const GhostTextInput = memo(
     const { suggestion: rawSuggestion, isLoading } = useGhostSuggestion(
       value,
       llm,
-      modelReady
+      modelReady,
+      suggestions
     );
 
     // Filter suggestion: Only show if enabled AND (user wants autocomplete? No, they said no).
@@ -243,22 +244,23 @@ const GhostTextInput = memo(
         {/* Overlay Text for Ghost Suggestion */}
         {/* Only render if there is a suggestion to show */}
         {suggestion && (
-          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          <View
+            style={[StyleSheet.absoluteFill, styles.ghostContainer]}
+            pointerEvents="none"
+          >
             {/*
-              Fix for "black text behind":
-              We use a transparent color for the user's text part.
-              We also ensure the container Text has transparent color to avoid inheritance issues.
+              The ghost text shows only the suggestion part after the user's text.
+              User's text part is fully transparent to avoid duplication.
            */}
             <Text
               style={[
                 styles.ghostText,
                 textStyle,
                 props.multiline ? styles.multilineGhost : {},
-                { color: "transparent" },
               ]}
             >
-              {value}
-              <Text style={{ color: Colors.textAccent, opacity: 0.6 }}>
+              <Text style={{ color: "transparent" }}>{value}</Text>
+              <Text style={{ color: "rgba(150, 150, 150, 0.8)" }}>
                 {suggestion}
               </Text>
             </Text>
@@ -293,15 +295,22 @@ const styles = StyleSheet.create({
   input: {
     textAlignVertical: "top",
     minHeight: 60,
+    paddingTop: 0,
+    paddingHorizontal: 4,
   },
   placeholderContainer: {
     position: "absolute",
     top: 0,
-    left: 0,
+    left: 4,
     right: 0,
+  },
+  ghostContainer: {
+    justifyContent: "flex-start",
+    paddingHorizontal: 4,
   },
   ghostText: {
     paddingTop: 0,
+    margin: 0,
   },
   multilineGhost: {},
   acceptOverlay: {
