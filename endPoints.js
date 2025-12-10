@@ -4,4 +4,4 @@ export const baseUrl =
 export const artStyleBaseUrl =
   "https://kumaranish89457--sdxl-img2img-api3-fastapi-app.modal.run";
 
-export const localHostUrl = "http://10.191.19.56:8000";
+export const localHostUrl = "http://10.14.9.34:8000";

@@ -100,7 +100,7 @@ const StyleGalleryGrid = ({ onStyleSelect, selectedStyleId }) => {
     },
     {
       id: 7,
-      name: "Impression Sunshine",
+      name: "Impression Sunrise",
       artist: "Monet",
       style: "Impressionism",
       description: "Atmospheric, misty, luminous",
