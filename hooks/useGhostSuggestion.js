@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-
+import { localHostUrl } from "../endPoints.js";
 /**
  * Hook to generate ghost suggestions using localhost LLM API
  * @param {string} text - The current text input
@@ -99,7 +99,7 @@ export const useGhostSuggestion = (
         console.log("Suggestions:", suggestions);
 
         // Call localhost API - Update IP when network changes
-        const response = await fetch("http://10.16.1.94:8000/autocomplete", {
+        const response = await fetch(`${localHostUrl}/autocomplete`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

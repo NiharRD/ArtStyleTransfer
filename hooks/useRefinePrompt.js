@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { localHostUrl } from "../endPoints.js";
 /**
  * Hook to refine prompts using localhost LLM API
  * @returns {object} { refinePrompt, isRefining, error }
@@ -21,7 +21,7 @@ export const useRefinePrompt = () => {
       console.log("Refining prompt:", prompt);
       console.log("With suggestions:", suggestions);
 
-      const response = await fetch("http://10.16.1.94:8000/refine", {
+      const response = await fetch(`${localHostUrl}/refine`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
