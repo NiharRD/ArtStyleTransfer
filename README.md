@@ -1,4 +1,4 @@
-# ArtStyleTransfer
+# ArtStyleTransfer/Feather - Mobile Client Repo for InterIIT TechMeet 14.0 Adobe PS
 
 A React Native mobile application for AI-powered image editing with art style transfer, smart adjustments, and intelligent prompt autocomplete.
 
