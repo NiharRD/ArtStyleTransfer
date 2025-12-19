@@ -1,28 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    Easing,
-    Keyboard,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Svg, {
-    Defs,
-    G,
-    LinearGradient,
-    Path,
-    Rect,
-    Stop,
+  Defs,
+  G,
+  LinearGradient,
+  Path,
+  Rect,
+  Stop,
 } from "react-native-svg";
 import {
-    BorderRadius,
-    Colors,
-    Spacing,
-    Typography
+  BorderRadius,
+  Colors,
+  Spacing,
+  Typography,
 } from "../../constants/Theme";
+import { useRefinePrompt } from "../../hooks/useRefinePrompt";
 import GhostTextInput from "../ui/GhostTextInput";
 import FeatureSliderContainer from "./FeatureSliderContainer";
 import ModalContainer from "./ModalContainer";
@@ -481,9 +482,35 @@ const GlobalEditingModal = ({
     }
   };
 
-  // Handle refine button press - placeholder for AI refinement
-  const handleRefine = () => {
-    console.log("Refine clicked - placeholder for AI refinement");
+  // Use refine prompt hook
+  const { refinePrompt, isRefining } = useRefinePrompt();
+
+  // Track if text was just refined (to skip autocomplete)
+  const [wasRefined, setWasRefined] = useState(false);
+
+  // Handle refine button press - calls API and replaces text input
+  const handleRefine = async () => {
+    if (!promptText || promptText.trim().length === 0) {
+      console.warn("Refine: No text to refine");
+      return;
+    }
+
+    console.log("Refine clicked for:", promptText);
+    const refined = await refinePrompt(promptText, suggestions);
+    if (refined) {
+      setWasRefined(true); // Skip autocomplete after refine
+      setPromptText(refined);
+      console.log("Text replaced with refined version:", refined);
+    }
+  };
+
+  // Reset wasRefined when user starts typing again
+  const handleTextChange = (newText) => {
+    // If user is manually editing after refine, allow autocomplete again
+    if (wasRefined && newText !== promptText) {
+      setWasRefined(false);
+    }
+    setPromptText(newText);
   };
 
   // Get Talk to Kimi button label based on input state
@@ -499,7 +526,12 @@ const GlobalEditingModal = ({
       onClose={onClose}
       height={getModalHeight()}
     >
-      <View style={[styles.container, upperSectionVisible && styles.containerCompact]}>
+      <View
+        style={[
+          styles.container,
+          upperSectionVisible && styles.containerCompact,
+        ]}
+      >
         {/* Talk to Kimi Button - hide when upper section is visible and confirmation not visible */}
         {!upperSectionVisible && !confirmationVisible && (
           <TalkToKimiButton
@@ -636,7 +668,8 @@ const GlobalEditingModal = ({
                   labels={semanticLabels}
                 />
                 <Text style={styles.tipText}>
-                  Tip: The more you refine, the better Kimi adapts to your unique creative style.
+                  Tip: The more you refine, the better Kimi adapts to your
+                  unique creative style.
                 </Text>
               </>
             ) : (
@@ -650,13 +683,13 @@ const GlobalEditingModal = ({
                 {/* Warning text when sliders are used */}
                 {areSlidersUsed && (
                   <Text style={styles.warningText}>
-                    Demo mode: Semantic editing is temporarily disabled while manual slider adjustments are active.
+                    Demo mode: Semantic editing is temporarily disabled while
+                    manual slider adjustments are active.
                   </Text>
                 )}
               </>
             )}
           </Animated.View>
-
 
           {/* Bottom Controls Row */}
           <View style={styles.controlsRow}>
@@ -718,7 +751,7 @@ const GlobalEditingModal = ({
                   upperSectionVisible && styles.textInputDisabled,
                 ]}
                 value={promptText}
-                onChangeText={setPromptText}
+                onChangeText={handleTextChange}
                 cyclePlaceholders={true}
                 placeholderTextColor="#949494"
                 multiline
@@ -726,6 +759,7 @@ const GlobalEditingModal = ({
                 llm={llm}
                 modelReady={modelReady}
                 enableSuggestions={!hasSentPrompt}
+                skipAutocomplete={wasRefined}
               />
 
               <View style={styles.actionsRow}>
@@ -734,12 +768,29 @@ const GlobalEditingModal = ({
 
                 <View style={styles.rightActions}>
                   <TouchableOpacity
-                    style={styles.refineButton}
+                    style={[
+                      styles.refineButton,
+                      isRefining && styles.buttonDisabled,
+                    ]}
                     onPress={handleRefine}
                     activeOpacity={0.7}
+                    disabled={
+                      isRefining ||
+                      !promptText ||
+                      promptText.trim().length === 0
+                    }
                   >
-                    <RefineIcon size={16} color={Colors.textAccent} />
-                    <Text style={styles.buttonText}>Refine</Text>
+                    {isRefining ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={Colors.textAccent}
+                      />
+                    ) : (
+                      <>
+                        <RefineIcon size={16} color={Colors.textAccent} />
+                        <Text style={styles.buttonText}>Refine</Text>
+                      </>
+                    )}
                   </TouchableOpacity>
 
                   <TouchableOpacity

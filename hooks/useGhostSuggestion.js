@@ -1,19 +1,22 @@
 import { useEffect, useRef, useState } from "react";
-
+import { localHostUrl } from "../endPoints.js";
 /**
- * Hook to generate ghost suggestions using LLM
+ * Hook to generate ghost suggestions using localhost LLM API
  * @param {string} text - The current text input
- * @param {object} llm - The LLM instance
- * @param {boolean} modelReady - Whether the model is ready for inference
+ * @param {object} llm - The LLM instance (kept for backwards compatibility, not used)
+ * @param {boolean} modelReady - Whether the model is ready (kept for backwards compatibility, not used)
+ * @param {array} suggestions - Style suggestions to guide the completion
  * @param {number} debounceTime - Time in ms to wait before generating (default 1000ms)
- * @returns {object} { suggestion, isLoading }
+ * @param {boolean} skipAutocomplete - Whether to skip autocomplete (e.g., after refining)
+ * @returns {object} { suggestion, isLoading, clearSuggestion }
  */
 export const useGhostSuggestion = (
   text,
   llm,
   modelReady,
   suggestions = [],
-  debounceTime = 1000
+  debounceTime = 1000,
+  skipAutocomplete = false
 ) => {
   const [suggestion, setSuggestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -80,8 +83,9 @@ export const useGhostSuggestion = (
       return;
     }
 
-    // Don't generate if model is not ready
-    if (!modelReady) {
+    // Don't generate if skipAutocomplete is true (e.g., after refining)
+    if (skipAutocomplete) {
+      console.log("Autocomplete skipped (skipAutocomplete=true)");
       return;
     }
 
@@ -89,81 +93,56 @@ export const useGhostSuggestion = (
 
     // Set new timeout
     timeoutRef.current = setTimeout(async () => {
-      if (!llm || !modelReady) return;
-
       try {
         setIsLoading(true);
         console.log("Generating ghost suggestion for:", text);
+        console.log("Suggestions:", suggestions);
 
-        // Construct prompt for autocomplete
-        let systemContent = `### Role
-You are a text completion assistant for an image editor.
-
-### Task
-Complete the user's sentence naturally. Use the "Style Suggestions" below to guide the mood and tone.
-
-### Constraints
-1. Output ONLY the completion text.
-2. Do NOT repeat the user's input.
-3. Start exactly where the user left off.
-4. Keep it strictly short (maximum 6 words).`;
-
-        console.log("--- Ghost Suggestion Debug ---");
-        console.log("Input:", text);
-        console.log("Suggestions received:", suggestions);
-
-        if (suggestions && suggestions.length > 0) {
-          // Limit to first 6 suggestions to reduce context size
-          const limitedSuggestions = suggestions.slice(0, 6);
-          // Format suggestions as a clean list for better model comprehension
-          systemContent += `\n\n### Style Suggestions\n- ${limitedSuggestions.join(
-            "\n- "
-          )}`;
-        } else {
-          console.log("No suggestions to append.");
-        }
-
-        console.log("System Content:", systemContent);
-
-        const messages = [
-          { role: "system", content: systemContent },
-          { role: "user", content: text },
-        ];
-
-        if (llm.isGenerating) {
-          console.log("Model busy, skipping.");
-          setIsLoading(false);
-          return;
-        }
-
-        const response = await llm.generate(messages);
-        // console.log("llm.generate response received:", JSON.stringify(response));
+        // Call localhost API - Update IP when network changes
+        const response = await fetch(`${localHostUrl}/autocomplete`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sentence: text,
+            suggestions: suggestions, // Limit to 6 suggestions
+          }),
+        });
 
         // Check if the text has changed while generating
         if (text !== lastTextRef.current) {
           return;
         }
 
-        let completion = response;
-
-        // Fallback: Check llm.response if generate returns undefined
-        if (!completion && llm.response) {
-          completion = llm.response;
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        if (typeof response === "object" && response.content) {
-          completion = response.content;
-        } else if (typeof response === "object" && response.text) {
-          completion = response.text;
+        const data = await response.json();
+        console.log("API response:", data);
+
+        // Extract completion from response
+        let completion = data.completion || data.text || data.result || data;
+
+        if (typeof completion === "object" && completion.content) {
+          completion = completion.content;
         }
 
-        if (completion) {
+        if (completion && typeof completion === "string") {
           let trimmedCompletion = completion.trim();
 
-          // Enforce 6 words limit client-side
+          // Clean up the response - remove leading dots, quotes, or other artifacts
+          trimmedCompletion = trimmedCompletion
+            .replace(/^\.{2,}/g, "") // Remove leading dots (...)
+            .replace(/^["']/g, "") // Remove leading quotes
+            .replace(/["']$/g, "") // Remove trailing quotes
+            .trim();
+
+          // Enforce 4 words limit client-side for cleaner suggestions
           const words = trimmedCompletion.split(/\s+/);
-          if (words.length > 6) {
-            trimmedCompletion = words.slice(0, 6).join(" ");
+          if (words.length > 4) {
+            trimmedCompletion = words.slice(0, 4).join(" ");
           }
 
           // Handle space logic:
@@ -176,28 +155,19 @@ Complete the user's sentence naturally. Use the "Style Suggestions" below to gui
           baseTextRef.current = text;
           fullSuggestionRef.current = finalSuggestion;
           setSuggestion(finalSuggestion);
+        } else {
+          console.warn("No valid completion in response");
         }
       } catch (error) {
-        if (error.message && error.message.includes("ModuleNotLoaded")) {
-          console.warn(
-            "Ghost Suggestion: Model not loaded yet. Retrying later."
-          );
-        } else if (
-          error.message &&
-          (error.message.includes("GPU") ||
-            error.message.includes("memory") ||
-            error.message.includes("WebGL") ||
-            error.message.includes("OOM"))
+        console.error("Error generating suggestion:", error);
+
+        // Check if it's a network error
+        if (
+          error.message.includes("fetch") ||
+          error.message.includes("Network")
         ) {
-          console.error(
-            "Ghost Suggestion: GPU/Memory does not support the LLM",
-            error
-          );
-          setSuggestion(
-            " [AI autocomplete unavailable - GPU/memory insufficient]"
-          );
+          setSuggestion(" [Server unavailable - is localhost:8000 running?]");
         } else {
-          console.error("Error generating suggestion:", error);
           setSuggestion(" [AI autocomplete unavailable]");
         }
       } finally {
@@ -210,7 +180,14 @@ Complete the user's sentence naturally. Use the "Style Suggestions" below to gui
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [text, llm, modelReady, debounceTime]);
+  }, [text, suggestions, debounceTime, skipAutocomplete]);
 
-  return { suggestion, isLoading };
+  // Function to clear suggestion manually
+  const clearSuggestion = () => {
+    setSuggestion("");
+    baseTextRef.current = "";
+    fullSuggestionRef.current = "";
+  };
+
+  return { suggestion, isLoading, clearSuggestion };
 };
