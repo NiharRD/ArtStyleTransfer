@@ -48,9 +48,9 @@ export const useRefinePrompt = () => {
       const data = await response.json();
       console.log("Refine API response:", data);
 
-      // Extract the refined text - use full_text for complete refined prompt
-      const refinedText =
-        data.full_text || data.completion || data.refined_prompt;
+      // Extract the refined text - use completion only (not full_text which includes original)
+      // full_text = original + completion, so we only want completion for replacement
+      const refinedText = data.completion || data.refined_prompt || data.result;
 
       if (refinedText && typeof refinedText === "string") {
         return refinedText.trim();
