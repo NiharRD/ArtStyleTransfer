@@ -98,7 +98,12 @@ Complete: ${prompt}
       }
 
       if (completion && typeof completion === "string") {
-        return completion.trim();
+        const trimmedCompletion = completion.trim();
+        // Combine prompt and completion to return full text
+        // Add space if prompt doesn't end with one and completion doesn't start with punctuation
+        const separator =
+          prompt.endsWith(" ") || /^[.,;!?]/.test(trimmedCompletion) ? "" : " ";
+        return `${prompt}${separator}${trimmedCompletion}`;
       } else {
         console.warn("No valid refined text in response");
         return null;
