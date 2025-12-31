@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { localHostUrl } from "../endPoints.js";
 /**
  * Hook to generate ghost suggestions using localhost LLM API
  * @param {string} text - The current text input
@@ -22,6 +21,7 @@ export const useGhostSuggestion = (
   const [isLoading, setIsLoading] = useState(false);
   const timeoutRef = useRef(null);
   const lastTextRef = useRef(text);
+  const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 
   // Refs for persistence logic to avoid dependency loops
   const fullSuggestionRef = useRef("");
@@ -71,11 +71,6 @@ export const useGhostSuggestion = (
       setSuggestion("");
     }
 
-    // Interrupt previous generation if active - REMOVED per user request
-    // if (llm && llm.isGenerating) {
-    //   llm.interrupt();
-    // }
-
     setIsLoading(false);
 
     // Don't generate if text is empty or too short
@@ -98,17 +93,47 @@ export const useGhostSuggestion = (
         console.log("Generating ghost suggestion for:", text);
         console.log("Suggestions:", suggestions);
 
-        // Call localhost API - Update IP when network changes
-        const response = await fetch(`${localHostUrl}/autocomplete`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sentence: text,
-            suggestions: suggestions, // Limit to 6 suggestions
-          }),
-        });
+        const prompt = `
+You are an AUTOCOMPLETE assistant.
+
+Use ONLY these light_suggestions:
+${JSON.stringify(suggestions)}
+
+RULES:
+- Continue the sentence EXACTLY from where it ends.
+- Do NOT change the base sentence.
+- ONLY use provided light_suggestions to autocomplete.
+- ONLY natural color/tone language.
+- ONLY autocomplete using the light_suggestions.
+
+Complete: ${text}
+`;
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_API_KEY}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              systemInstruction: {
+                parts: [
+                  { text: "Autocomplete using ONLY the allowed suggestions." },
+                ],
+              },
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: prompt,
+                    },
+                  ],
+                },
+              ],
+            }),
+          }
+        );
 
         // Check if the text has changed while generating
         if (text !== lastTextRef.current) {
@@ -123,10 +148,15 @@ export const useGhostSuggestion = (
         console.log("API response:", data);
 
         // Extract completion from response
-        let completion = data.completion || data.text || data.result || data;
-
-        if (typeof completion === "object" && completion.content) {
-          completion = completion.content;
+        let completion = "";
+        if (
+          data.candidates &&
+          data.candidates[0] &&
+          data.candidates[0].content &&
+          data.candidates[0].content.parts &&
+          data.candidates[0].content.parts[0]
+        ) {
+          completion = data.candidates[0].content.parts[0].text;
         }
 
         if (completion && typeof completion === "string") {
@@ -160,16 +190,7 @@ export const useGhostSuggestion = (
         }
       } catch (error) {
         console.error("Error generating suggestion:", error);
-
-        // Check if it's a network error
-        if (
-          error.message.includes("fetch") ||
-          error.message.includes("Network")
-        ) {
-          setSuggestion(" [Server unavailable - is localhost:8000 running?]");
-        } else {
-          setSuggestion(" [AI autocomplete unavailable]");
-        }
+        setSuggestion(" [AI autocomplete unavailable]");
       } finally {
         setIsLoading(false);
       }
