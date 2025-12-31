@@ -1,7 +1,7 @@
 export const baseUrl =
-  "https://kumaranish89457--photoart-backend-fastapi-app.modal.run/";
+  "https://niharranjandas008--photoart-backend-fastapi-app.modal.run/";
 
 export const artStyleBaseUrl =
-  "https://kumaranish89457--sdxl-img2img-api3-fastapi-app.modal.run";
+  "https://niharranjandas008--sdxl-text2img-api2-fastapi-app.modal.run";
 
 export const localHostUrl = "http://10.191.19.56:8000";
