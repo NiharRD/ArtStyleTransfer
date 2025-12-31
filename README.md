@@ -1,6 +1,6 @@
 # ArtStyleTransfer (Feather)
 
-**ArtStyleTransfer** is a  mobile image editing application built with React Native and Expo. It leverages powerful AI models for semantic image editing, art style transfer, and intelligent prompt assistance.
+**ArtStyleTransfer** is a  mobile image editing application built with React Native and Expo. It leverages  AI models for semantic image editing, art style transfer, and intelligent prompt assistance.
 
 ## ✨ Key Features
 
