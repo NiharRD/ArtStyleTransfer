@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { localHostUrl } from "../endPoints.js";
+
 /**
- * Hook to refine prompts using localhost LLM API
+ * Hook to refine prompts using Gemini API
  * @returns {object} { refinePrompt, isRefining, error }
  */
 export const useRefinePrompt = () => {
   const [isRefining, setIsRefining] = useState(false);
   const [error, setError] = useState(null);
+  const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 
   const refinePrompt = async (prompt, suggestions = []) => {
     if (!prompt || prompt.trim().length === 0) {
@@ -17,29 +18,65 @@ export const useRefinePrompt = () => {
     setIsRefining(true);
     setError(null);
 
+    const lightSuggestions =
+      suggestions.length > 0
+        ? suggestions
+        : [
+            "Enhance the colors",
+            "Add warmth to the scene",
+            "Boost contrast",
+            "Soften the image",
+            "Increase clarity",
+          ];
+
     try {
       console.log("Refining prompt:", prompt);
-      console.log("With suggestions:", suggestions);
+      console.log("With suggestions:", lightSuggestions);
 
-      const response = await fetch(`${localHostUrl}/refine`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sentence: prompt,
-          suggestions:
-            suggestions.length > 0
-              ? suggestions
-              : [
-                  "Enhance the colors",
-                  "Add warmth to the scene",
-                  "Boost contrast",
-                  "Soften the image",
-                  "Increase clarity",
+      const refinePromptText = `
+You are a REFINE assistant.
+
+Use ONLY these light_suggestions:
+${JSON.stringify(lightSuggestions)}
+
+RULES:
+- Continue the sentence EXACTLY from where it ends.
+- Do NOT change the base sentence.
+- ONLY use provided light_suggestions to refine.
+- ONLY natural color/tone language.
+- Generate approximately 12 words for the completion.
+- ONLY refine using the light_suggestions.
+
+Complete: ${prompt}
+`;
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_API_KEY}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [
+                {
+                  text: "Refine using ONLY the allowed suggestions. Generate approximately 12 words.",
+                },
+              ],
+            },
+            contents: [
+              {
+                parts: [
+                  {
+                    text: refinePromptText,
+                  },
                 ],
-        }),
-      });
+              },
+            ],
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -48,12 +85,20 @@ export const useRefinePrompt = () => {
       const data = await response.json();
       console.log("Refine API response:", data);
 
-      // Extract the refined text - use completion only (not full_text which includes original)
-      // full_text = original + completion, so we only want completion for replacement
-      const refinedText = data.completion || data.refined_prompt || data.result;
+      // Extract the refined text
+      let completion = "";
+      if (
+        data.candidates &&
+        data.candidates[0] &&
+        data.candidates[0].content &&
+        data.candidates[0].content.parts &&
+        data.candidates[0].content.parts[0]
+      ) {
+        completion = data.candidates[0].content.parts[0].text;
+      }
 
-      if (refinedText && typeof refinedText === "string") {
-        return refinedText.trim();
+      if (completion && typeof completion === "string") {
+        return completion.trim();
       } else {
         console.warn("No valid refined text in response");
         return null;
