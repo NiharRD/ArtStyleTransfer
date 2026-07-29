@@ -17,7 +17,7 @@ Experience  yourself ( live apk link ) : https://drive.google.com/file/d/1nICpp2
   - **Real-time Autocomplete**: Get suggestions as you type.
   - **Prompt Refinement**: Enhance your simple prompts into detailed, descriptive instructions using **Google Gemini**.
   <p align="center">
-    <img src="assets/ezgifautosuggestions.gif" width="280" alt="Auto Suggestions Demo" />
+    <img src="assets/ezgifautosugggestions.gif" width="280" alt="Auto Suggestions Demo" />
   </p>
 
 - **🖼️ Infinite Canvas**: Zoom, pan, and explore your creations with a fluid, infinite UI.
