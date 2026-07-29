@@ -10,14 +10,15 @@ Experience  yourself ( live apk link ) : https://drive.google.com/file/d/1nICpp2
 
 - **🧠 Smart Adjust**: Edit images using natural language prompts (e.g., "Make the sky more dramatic", "Remove the bird").
   <br>
-  <video src="assets/Final%20Smart%20Adjust.mp4" controls="controls" width="100%"></video>
+  <img src="assets/finalSmartAdjust.gif" width="100%" alt="Smart Adjust Demo" />
   </br>
+
+  
 - **👻 Ghost Text & Refine**: 
   - **Real-time Autocomplete**: Get suggestions as you type.
   - **Prompt Refinement**: Enhance your simple prompts into detailed, descriptive instructions using **Google Gemini**.
-  <br>
-  ![Auto Suggestions Demo](assets/ezgifautosugggestions.gif)
-  </br>
+ 
+  ![Auto Suggestions Demo](assets/ezgifautosuggestions.gif)
 
 - **🖼️ Infinite Canvas**: Zoom, pan, and explore your creations with a fluid, infinite UI.
 
