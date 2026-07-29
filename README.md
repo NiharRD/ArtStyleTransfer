@@ -7,13 +7,20 @@ Experience  yourself ( live apk link ) : https://drive.google.com/file/d/1nICpp2
 ## ✨ Key Features
 
 - **🎨 Art Style Transfer**: Transform your photos into masterpieces using curated art styles (powered by SDXL).
+
 - **🧠 Smart Adjust**: Edit images using natural language prompts (e.g., "Make the sky more dramatic", "Remove the bird").
+  <br>
+  <video src="assets/Final%20Smart%20Adjust.mp4" controls="controls" width="100%"></video>
+
 - **👻 Ghost Text & Refine**: 
   - **Real-time Autocomplete**: Get suggestions as you type.
   - **Prompt Refinement**: Enhance your simple prompts into detailed, descriptive instructions using **Google Gemini**.
-- **🖼️ Infinite Canvas**: Zoom, pan, and explore your creations with a fluid, infinite UI.
-- **💡 Smart Suggestions**: Context-aware editing suggestions based on your image's content.
+  <br>
+  ![Auto Suggestions Demo](assets/ezgifautosuggstions.gif)
 
+- **🖼️ Infinite Canvas**: Zoom, pan, and explore your creations with a fluid, infinite UI.
+
+- **💡 Smart Suggestions**: Context-aware editing suggestions based on your image's content.
 ## 🏗️ Architecture
 
 The project is divided into a mobile client and cloud-based backend services.
