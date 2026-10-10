@@ -1,12 +1,12 @@
-# Feather: a photo editor for 2030
+# Art Style Transfer: a photo editor for 2030
 
-Feather, Inter IIT Tech Meet 14.0 · Team Lead, Product and Tech
+Feather, Inter IIT Tech Meet 14.0 · Dev Lead, Product and Tech
 
 Dec 2025
 
 Adobe's problem statement at Inter IIT Tech Meet 14.0 asked for the photo editor of 2030, running on limited hardware. Feather was our answer: a phone editor where you describe an edit in plain words, restyle a photo after a piece of art, and get help writing the prompt as you type.
 
-I led a six-person team across research, design, ML and engineering, as the lead for product and tech. We placed 8th of 23 IITs and presented to Adobe's product team.
+We were a   six-person team across research, design, ML and engineering, as the lead for product and tech. We placed 8th of 23 IITs and presented to Adobe's product team.
 
 **Try it yourself:** [download the live APK](https://drive.google.com/file/d/1nICpp2gTIEjmFVx9OHsYsuKafsVAi3dM/view)
 
